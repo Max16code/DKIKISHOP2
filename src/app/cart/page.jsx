@@ -31,7 +31,7 @@ export default function CartPage() {
             {cartItems.map((item, index) => (
               <div
                 key={index}
-                className="flex gap-4 items-center bg-white/60 backdrop-blur-md border border-zinc-200 shadow-lg rounded-2xl p-4 hover:scale-[1.01] transition-transform duration-200 ease-in-out"
+                className="flex gap-4 items-center bg-grey-600/60 backdrop-blur-md border border-zinc-200 shadow-lg rounded-2xl p-4 hover:scale-[1.01] transition-transform duration-200 ease-in-out"
               >
                 <Image
                   src={item.image}
@@ -44,7 +44,7 @@ export default function CartPage() {
                   <h3 className="text-lg font-semibold text-zinc-800">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-zinc-500">₦{item.price}</p>
+                  <p className="text-sm text-green-700">₦{item.price}</p>
                   <p className="text-sm text-zinc-500">
                     Size: {item.size} | Qty: {item.quantity}
                   </p>
@@ -52,7 +52,7 @@ export default function CartPage() {
               </div>
             ))}
 
-            <div className="bg-white/60 backdrop-blur-md border border-zinc-200 rounded-2xl p-4 shadow-md text-right text-xl font-bold text-zinc-800">
+            <div className="bg-grey-800/60 backdrop-blur-md border border-green-200 rounded-2xl p-4 shadow-md text-right text-xl font-bold text-zinc-800">
               Total: ₦{totalPrice}
             </div>
           </div>

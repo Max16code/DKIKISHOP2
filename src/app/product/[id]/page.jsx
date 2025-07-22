@@ -66,7 +66,8 @@ export default function ProductDetailPage() {
     >
       <Navbar />
 
-      <div className="max-w-5xl mx-auto mt-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-xl p-6 md:p-10 grid md:grid-cols-2 gap-8">
+      <div className="max-w-5xl mx-auto mt-10 rounded-2xl bg-white/10 border
+       border-white/20 backdrop-blur-md shadow-xl p-6 md:p-10 grid md:grid-cols-2 gap-8">
         <motion.img
           src={product.image}
           alt={product.title}
