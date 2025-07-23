@@ -1,74 +1,113 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react'
+import Navbar from '@/components/Navbar'
 
 export default function UploadPage() {
-  const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    price: '',
-    size: '',
-    category: '',
-    image: '',
-  });
-
-  useEffect(() => {
-    const isAdmin = localStorage.getItem('isAdmin');
-    if (isAdmin === 'true') {
-      setIsAuthorized(true);
-    } else {
-      router.push('/admin/login');
-    }
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [sizes, setSizes] = useState('')
+  const [category, setCategory] = useState('')
+  const [image, setImage] = useState('')
+  const [message, setMessage] = useState('')
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const payload = {
-      ...form,
-      price: Number(form.price),
-      size: form.size.split(',').map(s => s.trim().toUpperCase()),
-      category: form.category.toLowerCase(),
-    };
+    if (!title || !description || !price || !sizes || !category || !image) {
+      setMessage('❌ All fields are required.')
+      return
+    }
 
-    const res = await fetch('/api/admin/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          price,
+          sizes: sizes.split(',').map((s) => s.trim()),
+          category,
+          image,
+        }),
+      })
 
-    const data = await res.json();
-    alert(data.success ? '✅ Uploaded' : '❌ Failed: ' + data.error);
-  };
+      const data = await response.json()
 
-  if (!isAuthorized) return null; // Don't show form while checking
+      if (data.success) {
+        setMessage('✅ Product uploaded successfully.')
+        setTitle('')
+        setDescription('')
+        setPrice('')
+        setSizes('')
+        setCategory('')
+        setImage('')
+      } else {
+        setMessage(`❌ ${data.error || 'Something went wrong.'}`)
+      }
+    } catch (err) {
+      setMessage('❌ Failed to upload product.')
+    }
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-4 space-y-4">
-      <input name="title" placeholder="Title" onChange={handleChange} className="w-full border p-2" required />
-      <textarea name="description" placeholder="Description" onChange={handleChange} className="w-full border p-2" required />
-      <input name="price" type="number" placeholder="Price" onChange={handleChange} className="w-full border p-2" required />
-      <input name="size" placeholder="Sizes (comma separated)" onChange={handleChange} className="w-full border p-2" required />
-      <select name="category" onChange={handleChange} className="w-full border p-2" required>
-        <option value="">Select Category</option>
-        <option value="blazers">BLAZERS</option>
-        <option value="shirts">SHIRTS</option>
-        <option value="skirts">SKIRTS</option>
-        <option value="jeans">JEANS</option>
-        <option value="activewears">ACTIVE WEARS</option>
-        <option value="dresses">DRESSES</option>
-      </select>
-      <input name="image" placeholder="Image URL" onChange={handleChange} className="w-full border p-2" required />
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2">Upload</button>
-    </form>
-  );
+    <div className="min-h-screen bg-black p-4 text-white">
+      <Navbar />
+      <div className="max-w-2xl mx-auto mt-8">
+        <h1 className="text-2xl font-bold mb-4">Upload Product</h1>
+        <form onSubmit={handleSubmit} className="space-y-4 placeholder:text-shadow-white">
+          <input
+            type="text"
+            placeholder="Title"
+            className="w-full border p-2 rounded"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <textarea
+            placeholder="Description"
+            className="w-full border p-2 rounded"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Price (₦)"
+            className="w-full border p-2 rounded"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Sizes (comma separated)"
+            className="w-full border p-2 rounded"
+            value={sizes}
+            onChange={(e) => setSizes(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Category (e.g. blazers)"
+            className="w-full border p-2 rounded"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Image URL"
+            className="w-full border p-2 rounded"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="w-full bg-green-600 text-white py-2 rounded hover:bg-gray-800"
+          >
+            Upload Product
+          </button>
+        </form>
+        {message && <p className="mt-4 text-center">{message}</p>}
+      </div>
+    </div>
+  )
 }

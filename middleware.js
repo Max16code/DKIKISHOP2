@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 export function middleware(req) {
-  const isAdmin = req.cookies.get('admin_auth')?.value === 'true'
+  const isAdmin = req.localStorage.get('isAdmin')?.value === 'true'
   const isLoginPage = req.nextUrl.pathname === '/admin/login'
 
   if (!isAdmin && req.nextUrl.pathname.startsWith('/admin') && !isLoginPage) {

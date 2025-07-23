@@ -1,18 +1,20 @@
-import { NextResponse } from 'next/server'
+export async function POST(request) {
+  const body = await request.json()
+  const enteredPassword = body.password
+  const correctPassword = process.env.ADMIN_PASSWORD
 
-export async function POST(req) {
-  const { password } = await req.json()
-  const adminPassword = process.env.ADMIN_PASSWORD
+  console.log(' Entered password:', enteredPassword)
+  console.log(' .env ADMIN_PASSWORD:', correctPassword)
 
-  if (password === adminPassword) {
-    const res = NextResponse.json({ success: true })
-    res.cookies.set('admin_auth', 'true', {
-      httpOnly: true,
-      path: '/',
-      maxAge: 60 * 60 * 24, // 1 day
-    })
-    return res
+  if (!correctPassword) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured: ADMIN_PASSWORD missing' }), {
+      status: 500,
+    });
   }
 
-  return NextResponse.json({ success: false, error: 'Invalid password' }, { status: 401 })
+  if (enteredPassword ==correctPassword) {
+    return new Response(JSON.stringify({ success: true }), { status: 200 })
+  } else {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+  }
 }
