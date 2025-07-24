@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 export default function Home() {
   const [productData, setProductData] = useState([])
@@ -31,7 +32,10 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] overflow-hidden">
       {/* Faint Logo Background */}
-      <div className="absolute inset-0 opacity-5 z-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url('/images/kikiLogo.jpg')` }} />
+      <div
+        className="absolute inset-0 opacity-5 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('/images/kikiLogo.jpg')` }}
+      />
 
       <Navbar />
 
@@ -53,35 +57,36 @@ export default function Home() {
       </div>
 
       {/* Product Grid */}
-      <div className="relative z-10 px-4 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {productData.map((product, index) => (
-          <motion.div
-            key={product._id || index}
-            whileHover={{ scale: 1.03 }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="rounded-3xl overflow-hidden backdrop-blur-xl border border-white/10 bg-white/5 shadow-2xl hover:shadow-yellow-400/30 transition-shadow duration-300"
-          >
-            <img
-              src={product.image || '/images/fallback.jpg'}
-              alt={product.title || 'Product'}
-              className="w-full h-60 object-cover rounded-t-3xl"
-            />
-            <div className="p-5 text-white">
-              <h2 className="text-lg font-semibold mb-1">{product.title}</h2>
-              <p className="text-sm text-gray-300 mb-2">{product.description}</p>
-              <p className="text-yellow-400 font-bold text-base">
+          <Link href={`/product/${product._id}`} key={product._id || index} passHref>
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.05 }}
+              className="p-3 sm:p-4 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300"
+            >
+              <img
+                src={product.image || '/images/fallback.jpg'}
+                alt={product.title || 'Product'}
+                className="w-full h-70 object-cover rounded-4xl mb-2"
+              />
+              <h2 className="text-sm sm:text-base font-semibold text-white">
+                {product.title}
+              </h2>
+              <p className="text-xs text-gray-400">{product.description}</p>
+              <p className="text-yellow-400 font-bold text-sm mt-1">
                 ₦{Number(product.price).toLocaleString()}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-[10px] text-gray-400 mt-1">
                 Sizes:{' '}
                 {Array.isArray(product.sizes) && product.sizes.length > 0
                   ? product.sizes.join(', ')
                   : 'N/A'}
               </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          </Link>
         ))}
       </div>
     </div>

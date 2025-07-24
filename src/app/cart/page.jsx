@@ -13,7 +13,7 @@ const PaystackButton = dynamic(
 )
 
 export default function CartPage() {
-  const { cartItems, clearCart } = useCart()
+  const { cartItems, clearCart, removeFromCart } = useCart()
   const [email] = useState('customer@example.com') // Replace with user's email if available
 
   const totalPrice = cartItems.reduce(
@@ -24,7 +24,7 @@ export default function CartPage() {
   const paystackConfig = {
     email,
     amount: totalPrice * 100, // Paystack expects kobo
-    publicKey: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e', // Replace with your public key
+    publicKey: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e',
     metadata: {
       custom_fields: cartItems.map(item => ({
         display_name: item.title,
@@ -70,6 +70,12 @@ export default function CartPage() {
                     <p className="text-sm text-zinc-500">
                       Size: {item.size} | Qty: {item.quantity}
                     </p>
+                    <button
+                      onClick={() => removeFromCart(item._id, item.size)} // ✅ updated
+                      className="mt-2 text-sm text-red-500 hover:text-red-600"
+                    >
+                      Remove Item
+                    </button>
                   </div>
                 </div>
               ))}

@@ -4,9 +4,12 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const CartContext = createContext()
 
+
+
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([])
 
+  
   useEffect(() => {
     const saved = localStorage.getItem('dkikishop-cart')
     if (saved) setCartItems(JSON.parse(saved))
@@ -15,6 +18,10 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('dkikishop-cart', JSON.stringify(cartItems))
   }, [cartItems])
+
+  
+
+
 
   const addToCart = (item) => {
     const exists = cartItems.find(
@@ -34,11 +41,15 @@ export const CartProvider = ({ children }) => {
     }
   }
 
-  const removeFromCart = (id, size) => {
-    setCartItems((prev) =>
-      prev.filter((item) => !(item._id === id && item.size === size))
+  const removeFromCart = (idToRemove, sizeToRemove) => {
+  setCartItems((prev) =>
+    prev.filter(
+      (item) =>
+        !(item._id === idToRemove && item.size === sizeToRemove)
     )
-  }
+  )
+}
+
 
   const clearCart = () => {
     setCartItems([])
