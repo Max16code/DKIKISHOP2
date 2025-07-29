@@ -10,23 +10,38 @@ function SuccessContent() {
 
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchOrderAndDeleteProducts = async () => {
       try {
         const res = await fetch(`/api/orders/${reference}`)
         const data = await res.json()
+
         if (data.success) {
           setOrder(data.data)
+
+          // Begin deleting purchased products
+          if (data.data.items && data.data.items.length > 0) {
+            setDeleting(true)
+            for (const item of data.data.items) {
+              const deleteRes = await fetch(`/api/deleteproduct/${item._id}`, {
+                method: 'DELETE',
+              })
+              const result = await deleteRes.json()
+              console.log(`🗑️ Deleted product ${item._id}:`, result)
+            }
+            setDeleting(false)
+          }
         }
       } catch (err) {
-        console.error('❌ Error loading order:', err)
+        console.error('❌ Error loading or deleting order:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    if (reference) fetchOrder()
+    if (reference) fetchOrderAndDeleteProducts()
   }, [reference])
 
   return (
@@ -63,6 +78,12 @@ function SuccessContent() {
               </ul>
             </div>
           </div>
+
+          {deleting && (
+            <p className="text-yellow-400 text-xs italic mt-4">
+              Removing purchased items from store...
+            </p>
+          )}
 
           <p className="text-xs text-gray-500 mt-6 italic">
             Your order will be processed shortly. We appreciate your trust in DKIKISHOP.

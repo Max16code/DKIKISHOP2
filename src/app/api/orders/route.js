@@ -3,6 +3,7 @@
 import dbConnect from '@/lib/mongodb'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
+import Product from '@/models/Product' // ✅ Add this line to import your Product model
 
 // Generate unique shopId
 function generateShopId() {
@@ -15,7 +16,7 @@ function generateShopId() {
 const orderSchema = new mongoose.Schema({
   email: String, // optional field
   items: Array,
-  totalAmount: Number, // renamed from total
+  totalAmount: Number,
   reference: String,
   shopId: {
     type: String,
@@ -38,11 +39,15 @@ export async function POST(req) {
 
     // Validate input
     if (!items || !totalAmount || !reference) {
-      return NextResponse.json({ success: false, error: 'Missing required order fields' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'Missing required order fields' },
+        { status: 400 }
+      )
     }
 
+    // ✅ Save the order first
     const newOrder = new Order({
-      email: email || '', // optional
+      email: email || '',
       items,
       totalAmount,
       reference,
@@ -50,6 +55,16 @@ export async function POST(req) {
     })
 
     await newOrder.save()
+
+    // ✅ Now loop through items and update product quantity
+    for (const item of items) {
+      const product = await Product.findById(item._id)
+      if (product) {
+        const newQty = product.quantity - (item.quantity || 1)
+        product.quantity = Math.max(newQty, 0)
+        await product.save()
+      }
+    }
 
     return NextResponse.json({ success: true, order: newOrder }, { status: 201 })
   } catch (error) {

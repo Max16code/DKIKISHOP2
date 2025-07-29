@@ -8,6 +8,10 @@ const ProductSchema = new mongoose.Schema({
   image: String,
   sizes: [String],
   category: String,
+  quantity: {
+    type: Number,
+    default: 1,
+  }
 });
 
 // Prevent model overwrite on hot reload

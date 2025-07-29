@@ -11,23 +11,26 @@ export default function Home() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const getAllProducts = async () => {
-      try {
-        const res = await fetch('/api/getproducts/all')
-        const data = await res.json()
+  const getProducts = async () => {
+    try {
+      const res = await fetch('/api/getproducts/all')
+      const data = await res.json()
 
-        if (!data.success) throw new Error(data.error || 'Failed to fetch products')
-        setProductData(data.data || [])
-      } catch (err) {
-        console.error('❌ Error:', err)
-        setError('Failed to fetch products')
-      } finally {
-        setLoading(false)
-      }
+      // ✅ If the API directly returns an array
+      if (!Array.isArray(data)) throw new Error('Invalid product format')
+
+      setProductData(data)
+    } catch (err) {
+      console.error('❌ Error:', err)
+      setError('Failed to fetch products')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    getAllProducts()
-  }, [])
+  getProducts()
+}, [])
+
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] overflow-hidden">

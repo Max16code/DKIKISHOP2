@@ -2,23 +2,57 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
-  const [products, setProducts] = useState([]);
+ const router = useRouter()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch('/api/admin/products');
-        const data = await res.json();
-        if (data.success) setProducts(data.products);
-      } catch (err) {
-        console.error("Failed to fetch products:", err);
-      }
+    const isAdmin = localStorage.getItem('isAdmin')
+    if (isAdmin !== 'true') {
+      router.replace('/admin/login')
+      return
     }
+    fetchProducts()
+  }, [])
 
-    fetchProducts();
-  }, []);
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('/api/getproducts/all')
+      const data = await res.json()
+      setProducts(data)
+    } catch (err) {
+      console.error('❌ Failed to fetch products:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/deleteproduct/${id}`, {
+        method: 'DELETE',
+      })
+      const result = await res.json()
+
+      if (!res.ok) throw new Error(result.message)
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 3000)
+      fetchProducts()
+    } catch (err) {
+      alert('Failed to delete product')
+    }
+  }
+
+  const goToUpload = () => {
+    router.push('/admin/upload')
+  }
+
+  if (loading) return <p className="text-center py-10">Loading...</p>
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -39,11 +73,26 @@ export default function AdminDashboard() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map(product => (
-              <div key={product._id} className="border rounded p-3">
+              <div key={product._id} className="border rounded p-3 relative">
                 <img src={product.image} alt={product.title} className="w-full h-40 object-cover mb-2 rounded" />
                 <h3 className="font-bold text-lg">{product.title}</h3>
                 <p className="text-sm text-gray-600">₦{product.price}</p>
                 <p className="text-xs text-gray-500">{product.category}</p>
+
+                {/* ✅ DELETE BUTTON */}
+                <button
+                  onClick={() => handleDelete(product._id)}
+                  className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+
+                {/* ✅ Edit Button */}
+    <Link href={`/admin/edit/${product._id}`}>
+      <button className="bg-blue-500 text-white text-xs px-3 py-1 rounded mt-2 hover:bg-blue-600">
+        Edit
+      </button>
+    </Link>
               </div>
             ))}
           </div>

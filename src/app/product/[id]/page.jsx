@@ -7,7 +7,6 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
-
 export const dynamic = 'force-dynamic'
 
 export default function ProductDetailPage() {
@@ -22,7 +21,7 @@ export default function ProductDetailPage() {
         const res = await fetch(`/api/product/${id}`)
         const data = await res.json()
         if (data._id) setProduct(data)
-        else throw new Error('Product not found')
+        else throw new Error('product not found')
       } catch (err) {
         console.error('❌ Failed to load product:', err)
       }
@@ -100,12 +99,21 @@ export default function ProductDetailPage() {
                 ))}
               </select>
 
-              <button
-                onClick={handleAddToCart}
-                className="mt-6 w-full bg-yellow-400 text-black hover:bg-yellow-500 font-semibold px-6 py-3 rounded-xl transition duration-200"
-              >
-                Add to Cart
-              </button>
+              {product.quantity === 0 ? (
+                <button
+                  disabled
+                  className="mt-6 w-full bg-gray-500 text-white font-semibold px-6 py-3 rounded-xl opacity-60 cursor-not-allowed"
+                >
+                  🚫 Out of Stock
+                </button>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  className="mt-6 w-full bg-yellow-400 text-black hover:bg-yellow-500 font-semibold px-6 py-3 rounded-xl transition duration-200"
+                >
+                  Add to Cart
+                </button>
+              )}
             </div>
           ) : (
             <div className="mt-6 text-red-400 font-semibold">🚫 Out of Stock</div>

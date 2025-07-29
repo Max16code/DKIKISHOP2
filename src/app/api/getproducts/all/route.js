@@ -1,16 +1,16 @@
 // app/api/getproducts/all/route.js
 
-import connectToDatabase from "@/lib/mongodb";
-import Product from "@/models/productModel";
+import dbConnect from '@/lib/mongodb'
+import product from "@/models/productModel";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    await connectToDatabase();
+    await dbConnect();
 
-    const products = await Product.find({}).lean();
+    const products = await product.find({}).lean();
 
-    return NextResponse.json({ success: true, data: products }, { status: 200 });
+    return NextResponse.json(products);
   } catch (error) {
     return NextResponse.json(
       { success: false, error: "Failed to fetch products: " + error.message },

@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
     if (res.ok) {
       console.log('✅ Login success')
       localStorage.setItem('isAdmin', 'true')
-      router.replace('/admin/upload') // 👈 this MUST match your folder structure
+      router.replace('/admin/dashboard') // 👈 this MUST match your folder structure
       
     } else {
       const err = await res.json()
