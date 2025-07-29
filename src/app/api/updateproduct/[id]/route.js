@@ -2,9 +2,12 @@
 import dbConnect from '@/lib/mongodb';
 import product from "@/models/productModel";
 
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
   await dbConnect();
-  const { id } = params; // ✅ correctly use params
+
+  const { params } = context;
+  const { id } = await params; // ✅ Await the whole params object
+
   const updates = await req.json();
 
   try {
