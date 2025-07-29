@@ -3,7 +3,7 @@
 import dbConnect from '@/lib/mongodb'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
-import Product from '@/models/Product' // ✅ Add this line to import your Product model
+import product from '@/models/productModel' // ✅ Add this line to import your Product model
 
 // Generate unique shopId
 function generateShopId() {
@@ -58,7 +58,7 @@ export async function POST(req) {
 
     // ✅ Now loop through items and update product quantity
     for (const item of items) {
-      const product = await Product.findById(item._id)
+      const product = await product.findById(item._id)
       if (product) {
         const newQty = product.quantity - (item.quantity || 1)
         product.quantity = Math.max(newQty, 0)
