@@ -2,34 +2,77 @@
 
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
+import useAdminAuthRedirect from '@/hooks/useAdminAuthRedirect'
+import AdminRouteWrapper from '@/components/AdminRouteWrapper'
+
+
+// 🔒 Safer auth hook (no crash from localStorage in server context)
+function useAdminAuthRedirectSafe() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin')
+    if (isAdmin !== 'true') {
+      window.location.href = '/' // redirect to home or login
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  return loading
+}
 
 export default function AdminOrdersPage() {
+  const loading = useAdminAuthRedirectSafe()
   const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [fetching, setFetching] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const res = await fetch('/api/orders')
-        const data = await res.json()
-        setOrders(data.orders || [])
-      } catch (error) {
-        console.error('Failed to fetch orders:', error)
+        const text = await res.text()
+
+        // ✅ Handle empty or invalid JSON response
+        if (!text) {
+          setOrders([])
+          return
+        }
+
+        const data = JSON.parse(text)
+        setOrders(Array.isArray(data.orders) ? data.orders : [])
+      } catch (err) {
+        console.error('❌ Failed to fetch orders:', err)
+        setError('Something went wrong while loading orders.')
       } finally {
-        setLoading(false)
+        setFetching(false)
       }
     }
 
-    fetchOrders()
-  }, [])
+    if (!loading) {
+      fetchOrders()
+    }
+  }, [loading])
+
+  if (loading || fetching) {
+    return (
+      <div className="min-h-screen px-4 py-6">
+        <Navbar />
+        <p>Loading orders...</p>
+      </div>
+    )
+  }
 
   return (
+
+    
     <div className="min-h-screen px-4 py-6">
       <Navbar />
       <h1 className="text-2xl font-bold mb-4">Admin Orders</h1>
 
-      {loading ? (
-        <p>Loading orders...</p>
+      {error ? (
+        <p className="text-red-500">{error}</p>
       ) : orders.length === 0 ? (
         <p>No orders yet.</p>
       ) : (

@@ -2,10 +2,31 @@
 
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
+import useAdminAuthRedirect from '@/hooks/useAdminAuthRedirect'
+import AdminRouteWrapper from '@/components/AdminRouteWrapper'
+
 
 export default function ManageProductsPage() {
+ 
+ const loading = useAdminAuthRedirect()
+  if (loading) return null
   const [products, setProducts] = useState([]);
 const [showSuccess, setShowSuccess] = useState(false);
+
+
+useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin')
+    if (isAdmin !== 'true') {
+      router.replace('/admin/login')
+      return
+    }
+    setLoading(false)
+  }, [])
+
+  if (loading) return null 
+
+
+
   // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {

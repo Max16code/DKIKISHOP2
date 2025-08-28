@@ -1,45 +1,63 @@
 'use client'
-
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/admin/dashboard'
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleLogin = async () => {
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    
+    const result = await signIn('credentials', {
+      password,
+      redirect: false,
+      callbackUrl
     })
-    console.log(res)
 
-    if (res.ok) {
-      console.log('✅ Login success')
-      localStorage.setItem('isAdmin', 'true')
-      router.replace('/admin/dashboard') // 👈 this MUST match your folder structure
-      
+    if (result?.error) {
+      setError(result.error)
     } else {
-      const err = await res.json()
-      console.log('❌ Login failed:', err)
-      setError(err.error || 'Unauthorized')
+      window.location.href = callbackUrl // Full page reload to ensure session is set
     }
   }
 
   return (
-    <div className="p-4">
-      <h1>Admin Login</h1>
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Enter password"
-        className="border px-2 py-1"
-      />
-      <button onClick={handleLogin} className="bg-black text-white px-4 py-1 ml-2">Login</button>
-      {error && <p className="text-red-500">{error}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
