@@ -16,6 +16,21 @@ const nextConfig = {
     // This makes Next.js look in src/ for app or pages
     srcDir: true,
 
+  async headers() {
+    return [{
+      source: "/:path*",
+      headers: [{
+        key: "Set-Cookie",
+        value: `next-auth.session-token; SameSite=Lax; Path=/; ${
+          process.env.NODE_ENV === "production" ? "Secure; " : ""
+        }HttpOnly`
+      }]
+    }];
+  },
+  experimental: {
+    serverActions: {}
+  },
+  serverExternalPackages: ['next-auth']
 };
 
-export default nextConfig;
+export default nextConfig;  // ES Module export
