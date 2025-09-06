@@ -99,19 +99,20 @@ export default function ProductDetailPage() {
                 ))}
               </select>
 
-              {product.quantity === 0 ? (
-                <button
-                  disabled
-                  className="mt-6 w-full bg-gray-500 text-white font-semibold px-6 py-3 rounded-xl opacity-60 cursor-not-allowed"
-                >
-                  🚫 Out of Stock
-                </button>
-              ) : (
+              {product.quantity > 0 ? (
+                
                 <button
                   onClick={handleAddToCart}
                   className="mt-6 w-full bg-yellow-400 text-black hover:bg-yellow-500 font-semibold px-6 py-3 rounded-xl transition duration-200"
                 >
                   Add to Cart
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="mt-6 w-full bg-gray-500 text-white font-semibold px-6 py-3 rounded-xl opacity-60 cursor-not-allowed"
+                >
+                  🚫 Out of Stock
                 </button>
               )}
             </div>

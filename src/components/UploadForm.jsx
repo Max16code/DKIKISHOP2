@@ -1,0 +1,110 @@
+'use client'
+
+import { useState } from 'react'
+
+
+export default function UploadForm() {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [sizes, setSizes] = useState('')
+  const [category, setCategory] = useState('')
+  const [image, setImage] = useState('')
+  const [message, setMessage] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!title || !description || !price || !sizes || !category || !image) {
+      setMessage('❌ All fields are required.')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          price,
+          sizes: sizes.split(',').map((s) => s.trim()),
+          category,
+          image,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setMessage('✅ Product uploaded successfully.')
+        setTitle('')
+        setDescription('')
+        setPrice('')
+        setSizes('')
+        setCategory('')
+        setImage('')
+      } else {
+        setMessage(`❌ ${data.error || 'Something went wrong.'}`)
+      }
+    } catch (err) {
+      setMessage('❌ Failed to upload product.')
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto mt-8 p-4">
+      <h1 className="text-2xl font-bold mb-4">Upload Product</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Title"
+          className="w-full border p-2 rounded text-black"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <textarea
+          placeholder="Description"
+          className="w-full border p-2 rounded text-black"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Price (₦)"
+          className="w-full border p-2 rounded text-black"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Sizes (comma separated)"
+          className="w-full border p-2 rounded text-black"
+          value={sizes}
+          onChange={(e) => setSizes(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Category (e.g. blazers)"
+          className="w-full border p-2 rounded text-black"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Image URL"
+          className="w-full border p-2 rounded text-black"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-gray-800"
+        >
+          Upload Product
+        </button>
+      </form>
+      {message && <p className="mt-4 text-center">{message}</p>}
+    </div>
+  )
+}
