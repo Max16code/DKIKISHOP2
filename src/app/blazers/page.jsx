@@ -83,6 +83,7 @@ export default function BlazersPage() {
                   ? product.sizes.join(', ')
                   : 'N/A'}
               </p>
+              
             </div>
           </motion.div>
         ))}
