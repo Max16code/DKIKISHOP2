@@ -14,26 +14,90 @@ const PaystackButton = dynamic(
 
 export default function CartPage() {
   const { cartItems, clearCart, removeFromCart } = useCart()
-  const [email] = useState('customer@example.com') // Replace with user's email if available
+
+  // ✅ Buyer contact details
+  const [contact, setContact] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+  })
+
+  const handleChange = (e) => {
+    setContact({ ...contact, [e.target.name]: e.target.value })
+  }
 
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   )
 
+  // ✅ Validate inputs (simple check)
+  const isFormValid =
+    contact.name.trim() !== '' &&
+    contact.email.includes('@') &&
+    contact.phone.trim() !== ''
+
   const paystackConfig = {
-    email,
+    email: contact.email || 'customer@example.com',
     amount: totalPrice * 100, // Paystack expects kobo
     publicKey: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e',
     metadata: {
-      custom_fields: cartItems.map(item => ({
-        display_name: item.title,
-        variable_name: item.title,
-        value: `₦${item.price} x${item.quantity}`
-      }))
+      custom_fields: [
+        {
+          display_name: "Customer Name",
+          variable_name: "customer_name",
+          value: contact.name,
+        },
+        {
+          display_name: "Phone Number",
+          variable_name: "customer_phone",
+          value: contact.phone,
+        },
+        {
+          display_name: "Delivery Address",
+          variable_name: "customer_address",
+          value: contact.address,
+        },
+        ...cartItems.map(item => ({
+          display_name: item.title,
+          variable_name: item.title,
+          value: `₦${item.price} x${item.quantity}`
+        }))
+      ]
     },
-    onSuccess: (ref) => {
+    onSuccess: async (ref) => {
       alert(`Payment successful! Reference: ${ref.reference}`)
+
+      // ✅ Save order to backend
+      try {
+        await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...contact,
+            items: cartItems,
+            total: totalPrice,
+            paymentRef: ref.reference,
+          }),
+        })
+
+        // ✅ Send confirmation email
+        await fetch('/api/sendMail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: contact.email,
+            name: contact.name,
+            address: contact.address,
+            cartItems,
+            totalAmount: totalPrice,
+          }),
+        })
+      } catch (err) {
+        console.error('Order save/email failed:', err)
+      }
+
       clearCart()
     },
     onClose: () => alert('Payment window closed')
@@ -71,7 +135,7 @@ export default function CartPage() {
                       Size: {item.size} | Qty: {item.quantity}
                     </p>
                     <button
-                      onClick={() => removeFromCart(item._id, item.size)} // ✅ updated
+                      onClick={() => removeFromCart(item._id, item.size)}
                       className="mt-2 text-sm text-red-500 hover:text-red-600"
                     >
                       Remove Item
@@ -84,6 +148,46 @@ export default function CartPage() {
               </div>
             </div>
 
+            {/* ✅ Buyer Details Form */}
+            <div className="mt-8 bg-white/70 backdrop-blur-md border border-zinc-200 rounded-2xl p-6 shadow-md">
+              <h3 className="text-lg font-semibold mb-4 text-black">Your Details</h3>
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={contact.name}
+                onChange={handleChange}
+                className="w-full border p-2 mb-3 rounded-lg text-black"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={contact.email}
+                onChange={handleChange}
+                className="w-full border p-2 mb-3 rounded-lg text-black"
+                required
+              />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={contact.phone}
+                onChange={handleChange}
+                className="w-full border p-2 mb-3 rounded-lg text-black"
+                required
+              />
+              <input
+                type="text"
+                name="address"
+                placeholder="Delivery Address"
+                value={contact.address}
+                onChange={handleChange}
+                className="w-full border p-2 mb-3 rounded-lg text-black"
+              />
+            </div>
+
             <div className="flex justify-between items-center mt-8 gap-4">
               <button
                 onClick={clearCart}
@@ -93,8 +197,13 @@ export default function CartPage() {
               </button>
 
               <PaystackButton
-                className="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition"
+                className={`px-4 py-2 rounded-xl font-medium transition ${
+                  isFormValid
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                }`}
                 {...paystackConfig}
+                disabled={!isFormValid}
               >
                 Pay with Paystack
               </PaystackButton>
