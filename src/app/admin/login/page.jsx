@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
 
   const handleLogin = () => {
     // ✅ Check against env var (create NEXT_PUBLIC_ADMIN_PASSWORD in .env.local)
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASS) {
       // ✅ Set cookie for 1 hour
       document.cookie = "admin_logged_in=true; path=/; max-age=3600"
       router.replace("/admin/dashboard")
