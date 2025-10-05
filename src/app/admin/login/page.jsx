@@ -1,45 +1,41 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
-  const handleLogin = async () => {
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-    console.log(res)
-
-    if (res.ok) {
-      console.log('✅ Login success')
-      localStorage.setItem('isAdmin', 'true')
-      router.replace('/admin/dashboard') // 👈 this MUST match your folder structure
-      
+  const handleLogin = () => {
+    // ✅ Check against env var (create NEXT_PUBLIC_ADMIN_PASSWORD in .env.local)
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+      // ✅ Set cookie for 1 hour
+      document.cookie = "admin_logged_in=true; path=/; max-age=3600"
+      router.replace("/admin/dashboard")
     } else {
-      const err = await res.json()
-      console.log('❌ Login failed:', err)
-      setError(err.error || 'Unauthorized')
+      setError("Wrong password")
     }
   }
 
   return (
-    <div className="p-4">
-      <h1>Admin Login</h1>
+    <div className="p-6 max-w-sm mx-auto mt-20 bg-gray-900 text-white rounded-lg shadow-lg">
+      <h1 className="text-xl font-bold mb-4">Admin Login</h1>
       <input
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Enter password"
-        className="border px-2 py-1"
+        className="w-full p-2 rounded mb-4 text-black"
       />
-      <button onClick={handleLogin} className="bg-black text-white px-4 py-1 ml-2">Login</button>
-      {error && <p className="text-red-500">{error}</p>}
+      <button
+        onClick={handleLogin}
+        className="w-full bg-green-600 hover:bg-green-700 p-2 rounded"
+      >
+        Login
+      </button>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
     </div>
   )
 }

@@ -32,7 +32,7 @@ export default function ActivewearsPage() {
     <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] text-white overflow-hidden px-6 py-20">
       {/* Faint floating logo background */}
       <div
-        className="absolute inset-0 opacity-5 z-0 bg-no-repeat bg-center bg-cover"
+        className="absolute inset-0 opacity-5 z-0 bg-no-repeat cdg-center bg-cover"
         style={{ backgroundImage: `url('/category/images/kikiLogo.jpg')` }}
       />
 
