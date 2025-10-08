@@ -3,7 +3,7 @@
 import dbConnect from '@/lib/mongodb'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
-import product from '@/models/productModel' // ✅ Add this line to import your Product model
+import Product from '@/models/productModel' // ✅ Capitalized model name for clarity
 
 // Generate unique shopId
 function generateShopId() {
@@ -37,8 +37,8 @@ export async function POST(req) {
 
     const { email, items, totalAmount, reference } = await req.json()
 
-    // Validate input
-    if (!items || !totalAmount || !reference) {
+    // ✅ Validate input
+    if (!items?.length || !totalAmount || !reference) {
       return NextResponse.json(
         { success: false, error: 'Missing required order fields' },
         { status: 400 }
@@ -56,19 +56,34 @@ export async function POST(req) {
 
     await newOrder.save()
 
-    // ✅ Now loop through items and update product quantity
+    // ✅ Loop through items and safely update product quantities
     for (const item of items) {
-      const product = await product.findById(item._id)
-      if (product) {
-        const newQty = product.quantity - (item.quantity || 1)
-        product.quantity = Math.max(newQty, 0)
-        await product.save()
+      const foundProduct = await Product.findById(item._id)
+
+      if (foundProduct) {
+        const newQty = foundProduct.quantity - (item.quantity || 1)
+
+        // Prevent negative values
+        foundProduct.quantity = Math.max(newQty, 0)
+
+        // ✅ Optional: Auto-hide or mark as out of stock if quantity = 0
+        if (foundProduct.quantity === 0) {
+          foundProduct.isAvailable = false // Add this field in your model if not yet there
+        }
+
+        await foundProduct.save()
       }
     }
 
-    return NextResponse.json({ success: true, order: newOrder }, { status: 201 })
+    return NextResponse.json(
+      { success: true, order: newOrder },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('❌ Order saving error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
   }
 }

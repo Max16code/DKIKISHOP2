@@ -20,8 +20,8 @@ export default function ProductDetailPage() {
       try {
         const res = await fetch(`/api/product/${id}`)
         const data = await res.json()
-        if (data._id) setProduct(data)
-        else throw new Error('product not found')
+        if (data?._id) setProduct(data)
+        else throw new Error('Product not found')
       } catch (err) {
         console.error('❌ Failed to load product:', err)
       }
@@ -30,11 +30,20 @@ export default function ProductDetailPage() {
     if (id) fetchProduct()
   }, [id])
 
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
+        <p className="text-lg animate-pulse">Loading product...</p>
+      </div>
+    )
+  }
+
+  // ✅ Check stock/availability
+  const isOutOfStock = !product.isAvailable || product.quantity <= 0
+
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert('Please select a size')
-      return
-    }
+    if (isOutOfStock) return alert('🚫 Item is out of stock.')
+    if (!selectedSize) return alert('Please select a size')
 
     addToCart({
       _id: product._id,
@@ -46,14 +55,6 @@ export default function ProductDetailPage() {
     })
 
     alert('✅ Added to cart!')
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
-        <p className="text-lg animate-pulse">Loading product...</p>
-      </div>
-    )
   }
 
   return (
@@ -83,41 +84,52 @@ export default function ProductDetailPage() {
             ₦{Number(product.price).toLocaleString()}
           </p>
 
-          {product.sizes?.length > 0 ? (
-            <div className="mt-6">
-              <label className="block mb-2 font-medium text-white">Choose Size:</label>
-              <select
-                value={selectedSize}
-                onChange={(e) => setSelectedSize(e.target.value)}
-                className="w-full rounded-lg px-4 py-2 bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              >
-                <option value="">-- Select Size --</option>
-                {product.sizes.map((size, idx) => (
-                  <option key={idx} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+          <div className="mt-6">
+            {product.sizes?.length > 0 && (
+              <>
+                <label className="block mb-2 font-medium text-white">Choose Size:</label>
+                <select
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
+                  disabled={isOutOfStock}
+                  className="w-full rounded-lg px-4 py-2 bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <option value="">-- Select Size --</option>
+                  {product.sizes.map((size, idx) => (
+                    <option key={idx} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
 
-              {product.quantity === 0 ? (
-                <button
-                  disabled
-                  className="mt-6 w-full bg-gray-500 text-white font-semibold px-6 py-3 rounded-xl opacity-60 cursor-not-allowed"
-                >
-                  🚫 Out of Stock
-                </button>
+            {/* ✅ Show Add to Cart or Out of Stock */}
+            {isOutOfStock ? (
+              <button
+                disabled
+                className="mt-6 w-full bg-gray-500 text-white font-semibold px-6 py-3 rounded-xl opacity-60 cursor-not-allowed"
+              >
+                🚫 Out of Stock
+              </button>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="mt-6 w-full bg-yellow-400 text-black hover:bg-yellow-500 font-semibold px-6 py-3 rounded-xl transition duration-200 active:scale-95"
+              >
+                Add to Cart
+              </button>
+            )}
+
+            {/* Optional stock indicator */}
+            <div className="mt-3 text-sm text-gray-400">
+              {isOutOfStock ? (
+                <span>Currently unavailable</span>
               ) : (
-                <button
-                  onClick={handleAddToCart}
-                  className="mt-6 w-full bg-yellow-400 text-black hover:bg-yellow-500 font-semibold px-6 py-3 rounded-xl transition duration-200"
-                >
-                  Add to Cart
-                </button>
+                <span>Only {product.quantity} left in stock</span>
               )}
             </div>
-          ) : (
-            <div className="mt-6 text-red-400 font-semibold">🚫 Out of Stock</div>
-          )}
+          </div>
         </div>
       </div>
     </motion.div>
