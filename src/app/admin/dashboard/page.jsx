@@ -50,9 +50,9 @@ export default function AdminDashboard() {
     }
   }
   const handleLogout = () => {
-  document.cookie = "admin_logged_in=false; path=/; max-age=0" // clear cookie
-  router.replace("/admin/login") // redirect
-}
+    document.cookie = "admin_logged_in=false; path=/; max-age=0" // clear cookie
+    router.replace("/admin/login") // redirect
+  }
 
 
   if (loading) return <p className="text-center py-10">Loading...</p>
@@ -86,10 +86,11 @@ export default function AdminDashboard() {
             {products.map((product) => (
               <div key={product._id} className="border rounded p-3 relative">
                 <img
-                  src={product.image}
+                  src={product.images?.[0] || product.image || '/images/fallback.jpg'}
                   alt={product.title}
                   className="w-full h-40 object-cover mb-2 rounded"
                 />
+
                 <h3 className="font-bold text-lg">{product.title}</h3>
                 <p className="text-sm text-gray-600">₦{product.price}</p>
                 <p className="text-xs text-gray-500">{product.category}</p>

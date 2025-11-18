@@ -6,6 +6,8 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
+import ProductImage from '@/components/ProductImage'  // ✅ Import added
+
 
 export default function ShirtsPage() {
   const [products, setProducts] = useState([])
@@ -37,7 +39,7 @@ export default function ShirtsPage() {
       <div className="absolute inset-0 opacity-10 bg-[url('/category/images/kikiLogo.jpg')] bg-cover bg-center blur-sm z-0" />
       <div className="relative z-10 px-4 sm:px-6 py-10">
         <Navbar />
-      
+
         <h1 className="text-center text-4xl font-extrabold mb-8 text-white drop-shadow-[0_1.2px_1.2px_rgba(255,255,255,0.3)]">
           Explore <span className="text-[#00FFC2]">Shirts</span>
         </h1>
@@ -56,11 +58,10 @@ export default function ShirtsPage() {
               href={`/product/${product._id}`}
               className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.015]"
             >
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-64 object-cover rounded-t-2xl"
-              />
+             {/* ✅ Use ProductImage component */}
+                           <ProductImage product={product} />
+
+
               <div className="p-4 text-white">
                 <h2 className="text-xl font-semibold group-hover:text-[#00FFC2] transition">
                   {product.title}

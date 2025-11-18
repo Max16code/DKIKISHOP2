@@ -8,7 +8,9 @@ const allowedCategories = [
   "skirts",
   "dresses",
   "activewears",
-  "jeans"
+  "jeans",
+  "shorts",
+  "accessories", // ✅ new categories included
 ];
 
 export async function POST(req) {
@@ -21,13 +23,17 @@ export async function POST(req) {
     // ✅ Normalize values
     const title = String(rawData.title || "").trim();
     const description = String(rawData.description || "").trim();
-    const image = String(rawData.image || "").trim();
     const price = Number(rawData.price);
-
-    // ✅ SAFELY normalize and lowercase category
     const category = String(rawData.category || "").trim().toLowerCase();
 
-    // 🔄 Handle both `size` and `sizes` fields gracefully
+    // ✅ Handle images (array)
+    const images = Array.isArray(rawData.images)
+      ? rawData.images.map(img => String(img).trim()).filter(Boolean)
+      : rawData.image
+        ? [String(rawData.image).trim()]
+        : [];
+
+    // ✅ Handle sizes gracefully
     const sizes = Array.isArray(rawData.sizes)
       ? rawData.sizes
       : Array.isArray(rawData.size)
@@ -40,13 +46,13 @@ export async function POST(req) {
     if (
       !title ||
       !description ||
-      !image ||
       !category ||
       isNaN(price) || price <= 0 ||
-      sizes.length === 0
+      sizes.length === 0 ||
+      images.length === 0
     ) {
       return NextResponse.json(
-        { success: false, error: "All fields are required and must be valid." },
+        { success: false, error: "All fields (including at least one image) are required." },
         { status: 400 }
       );
     }
@@ -61,14 +67,14 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Save to DB with clean, validated data
+    // ✅ Save to DB
     const newProduct = new product({
       title,
       price,
       description,
-      image,
+      images, // ✅ now saving array instead of single image
       sizes,
-      category, // ← already normalized
+      category,
     });
 
     await newProduct.save();
@@ -78,6 +84,7 @@ export async function POST(req) {
       { status: 201 }
     );
   } catch (error) {
+    console.error("❌ Upload error:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

@@ -18,6 +18,8 @@ export default function Navbar() {
     { name: 'Skirts', href: '/category/skirts' },
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },
+    { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
+    { name: 'Accessories', href: '/category/accessories' } // 🆕 Added
   ]
 
   return (
@@ -62,7 +64,7 @@ export default function Navbar() {
           {/* Right Side: Contact + Cart */}
           <div className="flex items-center gap-4 z-10">
             <Link
-              href="/Contact"
+              href="/contact"
               className="text-black font-medium hover:text-pink-600 transition hidden md:inline"
             >
               Contact

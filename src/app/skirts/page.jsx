@@ -6,6 +6,9 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
+import ProductImage from '@/components/ProductImage'  // ✅ Import added
+
+
 
 export default function SkirtsPage() {
   const [products, setProducts] = useState([])
@@ -51,11 +54,11 @@ export default function SkirtsPage() {
             href={`/product/${product._id}`}
             className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all shadow-lg hover:shadow-pink-500/30"
           >
-            <img
-              src={product.image}
-              alt={product.title}
-              className="w-full h-64 object-cover transition-transform group-hover:scale-105"
-            />
+            {/* ✅ Use ProductImage component */}
+                          <ProductImage product={product} />
+
+
+
             <div className="p-4">
               <h2 className="text-xl font-semibold text-white/90 group-hover:text-pink-400">
                 {product.title}

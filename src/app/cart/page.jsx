@@ -281,7 +281,7 @@ export default function CartPage() {
                     className="flex gap-4 items-center bg-white/40 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl p-4 hover:scale-[1.02] transition-transform duration-200 ease-in-out"
                   >
                     <Image
-                      src={item.image}
+                        src={item.image.startsWith('/') ? item.image : `/${item.image}`}
                       alt={item.title}
                       width={80}
                       height={80}

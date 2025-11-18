@@ -67,10 +67,19 @@ export default function CategoryPage() {
             className="block rounded-2xl overflow-hidden shadow-lg border border-gray-200 transition-transform hover:scale-[1.02] bg-white"
           >
             <img
-              src={product.image || '/images/fallback.jpg'}
-              alt={product.title || 'product'}
-              className="w-full h-64 object-cover"
-            />
+  src={
+    product.images?.[0]
+      ? product.images[0].startsWith('/')
+        ? product.images[0]
+        : `/${product.images[0]}`
+      : product.image
+        ? (product.image.startsWith('/') ? product.image : `/${product.image}`)
+        : '/images/fallback.jpg'
+  }
+  alt={product.title || 'Product'}
+  className="w-full h-70 object-cover rounded-4xl mb-2"
+/>
+
             <div className="p-4 text-black">
               <h2 className="text-lg font-bold">{product.title}</h2>
               <p className="text-sm text-gray-700 mb-1 line-clamp-2">{product.description}</p>

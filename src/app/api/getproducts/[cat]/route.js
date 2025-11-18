@@ -5,7 +5,7 @@ import Product from "@/models/productModel"
 import { NextResponse } from "next/server"
 import Link from "next/link"
 
-const allowedCategories = ["blazers", "shirts", "skirts", "dresses", "activewears", "jeans"]
+const allowedCategories = ["blazers", "shirts", "skirts", "dresses", "activewears", "jeans", "shorts", "accessories"]
 
 export async function GET(request, context) {
   try {

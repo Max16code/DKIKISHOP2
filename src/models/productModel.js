@@ -1,3 +1,4 @@
+import { Images } from "lucide-react";
 import mongoose from "mongoose";
 
 const ProductSchema = new mongoose.Schema({
@@ -16,7 +17,10 @@ const ProductSchema = new mongoose.Schema({
     min: 0,
   },
   image: {
-    type: String,
+  type: String,
+}, // old single image
+  images: {
+    type: [String],
     required: true,
   },
   sizes: {

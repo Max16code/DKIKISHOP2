@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import ProductImage from '@/components/ProductImage'  // ✅ Import added
 
 export default function Home() {
   const [productData, setProductData] = useState([])
@@ -11,26 +12,22 @@ export default function Home() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-  const getProducts = async () => {
-    try {
-      const res = await fetch('/api/getproducts/all')
-      const data = await res.json()
-
-      // ✅ If the API directly returns an array
-      if (!Array.isArray(data)) throw new Error('Invalid product format')
-
-      setProductData(data)
-    } catch (err) {
-      console.error('❌ Error:', err)
-      setError('Failed to fetch products')
-    } finally {
-      setLoading(false)
+    const getProducts = async () => {
+      try {
+        const res = await fetch('/api/getproducts/all')
+        const data = await res.json()
+        if (!Array.isArray(data)) throw new Error('Invalid product format')
+        setProductData(data)
+      } catch (err) {
+        console.error('❌ Error:', err)
+        setError('Failed to fetch products')
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  getProducts()
-}, [])
-
+    getProducts()
+  }, [])
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] overflow-hidden">
@@ -70,12 +67,10 @@ export default function Home() {
               transition={{ duration: 0.5, delay: index * 0.05 }}
               className="p-3 sm:p-4 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300"
             >
-              <img
-                src={product.image || '/images/fallback.jpg'}
-                alt={product.title || 'Product'}
-                className="w-full h-70 object-cover rounded-4xl mb-2"
-              />
-              <h2 className="text-sm sm:text-base font-semibold text-white">
+              {/* ✅ Use ProductImage component */}
+              <ProductImage product={product} />
+
+              <h2 className="text-sm sm:text-base font-semibold text-white mt-2">
                 {product.title}
               </h2>
               <p className="text-xs text-gray-400">{product.description}</p>
