@@ -40,21 +40,22 @@ export default function ProductDetailPage() {
 
   const isOutOfStock = !product.isAvailable || product.quantity <= 0
 
-  const handleAddToCart = () => {
-    if (isOutOfStock) return alert('🚫 Item is out of stock.')
-    if (!selectedSize) return alert('Please select a size')
+ const handleAddToCart = () => {
+  if (isOutOfStock) return alert('🚫 Item is out of stock.')
+  if (!selectedSize) return alert('Please select a size')
 
-    addToCart({
-      _id: product._id,
-      title: product.title,
-      image: product.image,
-      price: product.price,
-      size: selectedSize,
-      quantity: 1,
-    })
+  addToCart({
+    _id: product._id,
+    title: product.title,
+    image: product.images?.[0] || product.image || '/images/placeholder.png', // ✅ safe
+    price: product.price,
+    size: selectedSize,
+    quantity: 1,
+  })
 
-    alert('✅ Added to cart!')
-  }
+  alert('✅ Added to cart!')
+}
+
 
   return (
     <motion.div
