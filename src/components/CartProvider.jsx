@@ -12,7 +12,7 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
-  // Load cart from localStorage (optional but great for persistence)
+  // Load cart from localStorage (persistent cart)
   useEffect(() => {
     const storedCart = localStorage.getItem('dkikishop-cart');
     if (storedCart) {
@@ -20,6 +20,7 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
+  // Sync cart with localStorage
   useEffect(() => {
     localStorage.setItem('dkikishop-cart', JSON.stringify(cartItems));
   }, [cartItems]);
@@ -30,21 +31,32 @@ export const CartProvider = ({ children }) => {
       const existing = prev.find(
         (item) => item._id === product._id && item.size === product.size
       );
+
       if (existing) {
+        // Increment quantity if same product + size exists
         return prev.map((item) =>
           item._id === product._id && item.size === product.size
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
+        // Add new item safely with fallback image
+        const safeImage =
+          product.images?.[0] || product.image || '/images/placeholder.png';
+
         return [
           ...prev,
-          { ...product, image: product.images?.[0] || '', quantity: 1 },
+          {
+            ...product,
+            image: safeImage,
+            quantity: 1,
+          },
         ];
       }
     });
   };
 
+  // Remove item by _id + size
   const removeFromCart = (productId, size) => {
     setCartItems((prev) =>
       prev.filter(
@@ -53,10 +65,12 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  // Clear the entire cart
   const clearCart = () => {
     setCartItems([]);
   };
 
+  // Update quantity of a specific item
   const updateQuantity = (productId, size, quantity) => {
     setCartItems((prev) =>
       prev.map((item) =>
