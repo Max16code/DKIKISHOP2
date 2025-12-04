@@ -281,9 +281,19 @@ export default function CartPage() {
                     transition={{ duration: 0.22, delay: idx * 0.03 }}
                     className="flex gap-4 items-center bg-white/40 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl p-4 hover:scale-[1.02] transition-transform duration-200 ease-in-out"
                   >
-                    {/* ✅ Use ProductImage component */}
-                                               <ProductImage product={product} />
-                    
+                    <Image
+                      src={
+                        item.image
+                          ? item.image.startsWith('/') || item.image.startsWith('http')
+                            ? item.image
+                            : `/${item.image}`
+                          : '/images/placeholder.png' // ✅ fallback placeholder
+                      }
+                      alt={item.title || 'Product Image'}
+                      width={80}
+                      height={80}
+                      className="rounded-xl object-cover"
+                    />
 
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-zinc-800">{item.title}</h3>
