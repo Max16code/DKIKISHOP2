@@ -24,33 +24,45 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('dkikishop-cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // ✅ Fixed addToCart
   const addToCart = (product) => {
     setCartItems((prev) => {
-      const existing = prev.find((item) => item._id === product._id);
+      const existing = prev.find(
+        (item) => item._id === product._id && item.size === product.size
+      );
       if (existing) {
         return prev.map((item) =>
-          item._id === product._id
+          item._id === product._id && item.size === product.size
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
-        return [...prev, { ...product, quantity: 1 }];
+        return [
+          ...prev,
+          { ...product, image: product.images?.[0] || '', quantity: 1 },
+        ];
       }
     });
   };
 
-  const removeFromCart = (productId) => {
-    setCartItems((prev) => prev.filter((item) => item._id !== productId));
+  const removeFromCart = (productId, size) => {
+    setCartItems((prev) =>
+      prev.filter(
+        (item) => !(item._id === productId && item.size === size)
+      )
+    );
   };
 
   const clearCart = () => {
     setCartItems([]);
   };
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (productId, size, quantity) => {
     setCartItems((prev) =>
       prev.map((item) =>
-        item._id === productId ? { ...item, quantity } : item
+        item._id === productId && item.size === size
+          ? { ...item, quantity }
+          : item
       )
     );
   };

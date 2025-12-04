@@ -45,13 +45,13 @@ export default function CartPage() {
         jos: 6500,
         kaduna: 6500,
         kano: 6500,
-        kastina: 6500, 
+        kastina: 6500,
         kebbi: 6500,
         lafia: 6500,
         lokoja: 6500,
         maduguri: 6500,
         makurdi: 6500,
-        minna: 6500, 
+        minna: 6500,
         sokoto: 6500,
         taraba: 6500,
         zamfara: 6500,
@@ -127,7 +127,7 @@ export default function CartPage() {
       eta: 'delivery in 1–3 days',
       rates: {
         PortHarcourt: 2500,
-        
+
       },
     },
   }
@@ -281,12 +281,19 @@ export default function CartPage() {
                     className="flex gap-4 items-center bg-white/40 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl p-4 hover:scale-[1.02] transition-transform duration-200 ease-in-out"
                   >
                     <Image
-                        src={item.image.startsWith('/') ? item.image : `/${item.image}`}
-                      alt={item.title}
+                      src={
+                        item.image
+                          ? item.image.startsWith('/') || item.image.startsWith('http')
+                            ? item.image
+                            : `/${item.image}`
+                          : '/images/placeholder.png' // ✅ fallback placeholder
+                      }
+                      alt={item.title || 'Product Image'}
                       width={80}
                       height={80}
                       className="rounded-xl object-cover"
                     />
+
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-zinc-800">{item.title}</h3>
                       <p className="text-sm text-green-700">₦{item.price.toLocaleString()}</p>
@@ -323,11 +330,10 @@ export default function CartPage() {
                         key={courierKey}
                         whileTap={{ scale: 0.995 }}
                         onClick={() => handleCourierSelect(courierKey)}
-                        className={`cursor-pointer rounded-2xl p-4 backdrop-blur-xl border transition-all ${
-                          isSelected
+                        className={`cursor-pointer rounded-2xl p-4 backdrop-blur-xl border transition-all ${isSelected
                             ? 'bg-green-600/90 text-white shadow-lg border-transparent'
                             : 'bg-white/40 border-white/50 text-zinc-800 hover:bg-white/50'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -480,11 +486,10 @@ export default function CartPage() {
                   </button>
 
                   <PaystackButton
-                    className={`px-4 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all ${
-                      isFormValid
+                    className={`px-4 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all ${isFormValid
                         ? 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
                         : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    }`}
+                      }`}
                     {...paystackConfig}
                     disabled={!isFormValid}
                   >
