@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
+
 import ProductImage from '@/components/ProductImage'  // ✅ Import added
 
 export default function Home() {
@@ -40,10 +42,28 @@ export default function Home() {
       <Navbar />
 
       {/* Title */}
-      <div className="relative z-10 text-center mt-24">
-        <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
-          Welcome to <span className="text-yellow-400">DKIKISHOP</span>
-        </h1>
+<div className="relative z-10 text-center mt-24">
+  <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
+    Welcome to{' '}
+    <span className="text-yellow-400">
+      DKIKISHO
+      {/* Wrap the P in a relative span so the hat can sit on it */}
+      <span className="relative inline-block">
+        P
+        <Image
+          src="/images/santa2.png" // make sure this is in /public/images/
+          alt=""
+          width={24}
+          height={24}
+          className="absolute -top-2 -right-3"
+        />
+      </span>
+    </span>
+  </h1>
+
+
+
+
         <p className="mt-2 text-gray-400">Luxury on a Budget</p>
       </div>
 
