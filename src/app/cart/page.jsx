@@ -6,7 +6,7 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import ProductImage from '@/components/ProductImage'
+
 
 // Dynamically load PaystackButton without SSR
 const PaystackButton = dynamic(
@@ -282,18 +282,16 @@ export default function CartPage() {
                     className="flex gap-4 items-center bg-white/40 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl p-4 hover:scale-[1.02] transition-transform duration-200 ease-in-out"
                   >
                     <Image
-                      src={
-                        item.image
-                          ? item.image.startsWith('/') || item.image.startsWith('http')
-                            ? item.image
-                            : `/${item.image}`
-                          : '/images/placeholder.png' // ✅ fallback placeholder
-                      }
+                      src={item.image && (item.image.startsWith('/') || item.image.startsWith('http'))
+                        ? item.image
+                        : '/images/placeholder.png'}
                       alt={item.title || 'Product Image'}
                       width={80}
                       height={80}
                       className="rounded-xl object-cover"
+                      onError={(e) => { e.currentTarget.src = '/images/placeholder.png' }}
                     />
+
 
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-zinc-800">{item.title}</h3>
@@ -332,8 +330,8 @@ export default function CartPage() {
                         whileTap={{ scale: 0.995 }}
                         onClick={() => handleCourierSelect(courierKey)}
                         className={`cursor-pointer rounded-2xl p-4 backdrop-blur-xl border transition-all ${isSelected
-                            ? 'bg-green-600/90 text-white shadow-lg border-transparent'
-                            : 'bg-white/40 border-white/50 text-zinc-800 hover:bg-white/50'
+                          ? 'bg-green-600/90 text-white shadow-lg border-transparent'
+                          : 'bg-white/40 border-white/50 text-zinc-800 hover:bg-white/50'
                           }`}
                       >
                         <div className="flex items-center justify-between">
@@ -488,8 +486,8 @@ export default function CartPage() {
 
                   <PaystackButton
                     className={`px-4 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all ${isFormValid
-                        ? 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
-                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      ? 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
+                      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
                       }`}
                     {...paystackConfig}
                     disabled={!isFormValid}
