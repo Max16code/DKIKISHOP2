@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useRouter } from "next/navigation";
 
+const allowedCategories = ["blazers", "shirts", "skirts", "dresses", "activewears", "jeans", "shorts", "accessories"];
+
 export default function UploadPage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
@@ -16,7 +18,7 @@ export default function UploadPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // 🔒 Check admin cookie before rendering page
+  // 🔒 STEP 1 — Check Admin Cookie
   useEffect(() => {
     const isLoggedIn = document.cookie
       .split('; ')
@@ -30,31 +32,37 @@ export default function UploadPage() {
     }
   }, [router]);
 
+  // 🔒 STEP 2 — Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Basic validation
     if (!title || !description || !price || !sizes || !category || images.length === 0) {
       setMessage('❌ All fields are required.');
       return;
     }
 
-    // ✅ Normalize image paths before sending
+    if (!allowedCategories.includes(category.toLowerCase())) {
+      setMessage(`❌ Invalid category. Must be one of: ${allowedCategories.join(', ')}`);
+      return;
+    }
+
     const normalizedImages = images.map(img => {
-      if (img.startsWith('http')) return img; // external URL
-      if (!img.startsWith('/')) return `/${img.trim()}`; // ensure leading slash
-      return img.trim();
+      if (img.startsWith('http')) return img;
+      return img.startsWith('/') ? img.trim() : `/${img.trim()}`;
     });
 
     try {
       const response = await fetch('/api/admin/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: "include", // ensures cookie is sent
         body: JSON.stringify({
           title,
           description,
-          price,
-          sizes: sizes.split(',').map(s => s.trim()),
-          category,
+          price: Number(price),
+          sizes: sizes.split(',').map(s => s.trim()).filter(Boolean),
+          category: category.toLowerCase(),
           images: normalizedImages,
         }),
       });
@@ -73,7 +81,7 @@ export default function UploadPage() {
         setMessage(`❌ ${data.error || 'Something went wrong.'}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error('❌ Upload error:', err);
       setMessage('❌ Failed to upload product.');
     }
   };
@@ -106,7 +114,7 @@ export default function UploadPage() {
       <div className="max-w-2xl mx-auto mt-8">
         <h1 className="text-2xl font-bold mb-4">Upload Product</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4 placeholder:text-shadow-white">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" placeholder="Title" className="w-full border p-2 rounded"
             value={title} onChange={e => setTitle(e.target.value)} />
 
@@ -119,13 +127,13 @@ export default function UploadPage() {
           <input type="text" placeholder="Sizes (comma separated)" className="w-full border p-2 rounded"
             value={sizes} onChange={e => setSizes(e.target.value)} />
 
-          <input type="text" placeholder="Category (e.g. blazers)" className="w-full border p-2 rounded"
+          <input type="text" placeholder="Category" className="w-full border p-2 rounded"
             value={category} onChange={e => setCategory(e.target.value)} />
 
           <div>
             <input
               type="text"
-              placeholder="Enter image URL or filename (must exist in /public)"
+              placeholder="Enter image URL or filename"
               className="w-full border p-2 rounded mb-2"
               value={imageInput}
               onChange={e => setImageInput(e.target.value)}
@@ -143,7 +151,6 @@ export default function UploadPage() {
               Add Image
             </button>
 
-            {/* ✅ Live Preview */}
             <div className="flex gap-2 mt-2 flex-wrap">
               {images.map((img, index) => {
                 const src = img.startsWith('http') ? img : img.startsWith('/') ? img : `/${img}`;

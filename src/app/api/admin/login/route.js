@@ -1,20 +1,30 @@
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { ADMIN_PASSWORD_HASH } from "../../../../../config"; // adjust path
+
+export const runtime = "nodejs";
+
 export async function POST(request) {
-  const body = await request.json()
-  const enteredPassword = body.password
-  const correctPassword = process.env.ADMIN_PASSWORD
+  try {
+    const { password } = await request.json();
+    const trimmedPassword = password?.trim();
 
-  console.log(' Entered password:', enteredPassword)
-  console.log(' .env ADMIN_PASSWORD:', correctPassword)
+    if (!trimmedPassword || typeof trimmedPassword !== "string") {
+      return NextResponse.json({ error: "Invalid password format" }, { status: 400 });
+    }
 
-  if (!correctPassword) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured: ADMIN_PASSWORD missing' }), {
-      status: 500,
-    });
-  }
+    // 🔐 Compare input password with stored hash
+    const isMatch = await bcrypt.compare(trimmedPassword, ADMIN_PASSWORD_HASH);
 
-  if (enteredPassword ==correctPassword) {
-    return new Response(JSON.stringify({ success: true }), { status: 200 })
-  } else {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    if (!isMatch) {
+      console.log("Password mismatch!");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.log("Admin login successful!");
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err) {
+    console.error("Admin login error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

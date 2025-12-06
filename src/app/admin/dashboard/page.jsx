@@ -8,20 +8,32 @@ export default function AdminDashboard() {
   const router = useRouter()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [authChecking, setAuthChecking] = useState(true)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // ✅ Check if admin is logged in
-  useEffect(() => {
-    const isLoggedIn = document.cookie
+  // 🔐 Reusable Authentication Checker
+  const checkAdminAuth = () => {
+    if (typeof window === "undefined") return false
+
+    const cookie = document.cookie
       .split("; ")
-      .find((row) => row.startsWith("admin_logged_in="))
-      ?.split("=")[1] === "true"
+      .find((c) => c.startsWith("admin_logged_in="))
+
+    return cookie?.split("=")[1] === "true"
+  }
+
+  // 🔐 Protect Page
+  useEffect(() => {
+    const isLoggedIn = checkAdminAuth()
 
     if (!isLoggedIn) {
       router.replace("/admin/login")
-    } else {
-      fetchProducts()
+      return
     }
+
+    // Auth OK → Load products
+    fetchProducts()
+    setAuthChecking(false)
   }, [])
 
   const fetchProducts = async () => {
@@ -42,18 +54,23 @@ export default function AdminDashboard() {
       const result = await res.json()
 
       if (!res.ok) throw new Error(result.message)
+
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 3000)
+
       fetchProducts()
     } catch (err) {
       alert("Failed to delete product")
     }
   }
+
   const handleLogout = () => {
-    document.cookie = "admin_logged_in=false; path=/; max-age=0" // clear cookie
-    router.replace("/admin/login") // redirect
+    document.cookie = "admin_logged_in=false; path=/; max-age=0"
+    router.replace("/admin/login")
   }
 
+  // 🔐 Prevent page flash while checking cookie
+  if (authChecking) return <p className="text-center py-10">Checking admin access…</p>
 
   if (loading) return <p className="text-center py-10">Loading...</p>
 

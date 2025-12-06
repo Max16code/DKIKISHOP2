@@ -2,6 +2,12 @@ import dbConnect from "@/lib/mongodb";
 import product from "@/models/productModel";
 import { NextResponse } from "next/server";
 
+import { sanitizeInput, validateProductData } from "@/lib/validate";
+import { apiLimiter } from "@/lib/rateLimit";
+import { verifyAdmin } from "@/lib/verifyAdmin";
+
+export const runtime = "nodejs";
+
 const allowedCategories = [
   "blazers",
   "shirts",
@@ -10,49 +16,67 @@ const allowedCategories = [
   "activewears",
   "jeans",
   "shorts",
-  "accessories", // ✅ new categories included
+  "accessories",
 ];
 
 export async function POST(req) {
   try {
-    await dbConnect();
-    const rawData = await req.json();
+    // 🔒 Rate Limit to prevent brute-force attacks
+    const limiter = apiLimiter();
+    await limiter(req);
 
+    // 🔒 Admin access check
+    if (!verifyAdmin(req)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access." },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
+
+    // RAW DATA
+    const rawData = await req.json();
     console.log("🟡 RAW REQUEST BODY:", rawData);
 
-    // ✅ Normalize values
-    const title = String(rawData.title || "").trim();
-    const description = String(rawData.description || "").trim();
-    const price = Number(rawData.price);
-    const category = String(rawData.category || "").trim().toLowerCase();
+    // 🔒 Sanitize and validate product data
+    const clean = validateProductData(rawData);
 
-    // ✅ Handle images (array)
-    const images = Array.isArray(rawData.images)
-      ? rawData.images.map(img => String(img).trim()).filter(Boolean)
-      : rawData.image
-        ? [String(rawData.image).trim()]
+    // ---- Extract clean values ----
+    const title = sanitizeInput(clean.title);
+    const description = sanitizeInput(clean.description);
+    const price = Number(clean.price);
+    const category = sanitizeInput(clean.category.toLowerCase());
+
+    // 🔒 Sanitize images
+    const images = Array.isArray(clean.images)
+      ? clean.images.map(img => sanitizeInput(img)).filter(Boolean)
+      : clean.image
+        ? [sanitizeInput(clean.image)]
         : [];
 
-    // ✅ Handle sizes gracefully
-    const sizes = Array.isArray(rawData.sizes)
-      ? rawData.sizes
-      : Array.isArray(rawData.size)
-        ? rawData.size
-        : typeof rawData.size === "string"
-          ? rawData.size.split(",").map(s => s.trim()).filter(Boolean)
-          : [];
+    // 🔒 Sanitize sizes
+    const sizes = Array.isArray(clean.sizes)
+      ? clean.sizes.map(s => sanitizeInput(s)).filter(Boolean)
+      : typeof clean.sizes === "string"
+        ? clean.sizes.split(",").map(s => sanitizeInput(s.trim()))
+        : [];
 
-    // ✅ Validation
+    // ---- VALIDATION ----
     if (
       !title ||
       !description ||
       !category ||
-      isNaN(price) || price <= 0 ||
+      isNaN(price) ||
+      price <= 0 ||
       sizes.length === 0 ||
       images.length === 0
     ) {
       return NextResponse.json(
-        { success: false, error: "All fields (including at least one image) are required." },
+        {
+          success: false,
+          error: "All fields must be valid (including at least one image).",
+        },
         { status: 400 }
       );
     }
@@ -61,32 +85,30 @@ export async function POST(req) {
       return NextResponse.json(
         {
           success: false,
-          error: `Invalid category. Must be one of: ${allowedCategories.join(", ")}.`,
+          error: `Invalid category. Must be one of: ${allowedCategories.join(", ")}`,
         },
         { status: 400 }
       );
     }
 
-    // ✅ Save to DB
+    // ---- SAVE TO DATABASE ----
     const newProduct = new product({
       title,
       price,
       description,
-      images, // ✅ now saving array instead of single image
+      images,
       sizes,
       category,
     });
 
     await newProduct.save();
 
-    return NextResponse.json(
-      { success: true, product: newProduct },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
+
   } catch (error) {
     console.error("❌ Upload error:", error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: "Internal server error." },
       { status: 500 }
     );
   }
