@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { ADMIN_PASSWORD_HASH } from "../../../../../config"; // adjust path
+import { ADMIN_PASSWORD_HASH } from "@/config"; // adjust path
 
 export const runtime = "nodejs";
 
