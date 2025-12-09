@@ -1,115 +1,78 @@
 import dbConnect from "@/lib/mongodb";
 import product from "@/models/productModel";
 import { NextResponse } from "next/server";
-
-import { sanitizeInput, validateProductData } from "@/lib/validate";
-import { apiLimiter } from "@/lib/rateLimit";
+import { sanitizeInput } from "@/lib/validate";
 import { verifyAdmin } from "@/lib/verifyAdmin";
+import { v2 as cloudinary } from "cloudinary";
 
 export const runtime = "nodejs";
 
-const allowedCategories = [
-  "blazers",
-  "shirts",
-  "skirts",
-  "dresses",
-  "activewears",
-  "jeans",
-  "shorts",
-  "accessories",
-];
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const allowedCategories = ["blazers","shirts","skirts","dresses","activewears","jeans","shorts","accessories"];
 
 export async function POST(req) {
   try {
-    // 🔒 Rate Limit to prevent brute-force attacks
-    const limiter = apiLimiter();
-    await limiter(req);
-
-    // 🔒 Admin access check
+    // 🔒 Verify admin
     if (!verifyAdmin(req)) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized access." },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized access." }, { status: 401 });
     }
 
     await dbConnect();
 
-    // RAW DATA
-    const rawData = await req.json();
-    console.log("🟡 RAW REQUEST BODY:", rawData);
+    const formData = await req.formData();
 
-    // 🔒 Sanitize and validate product data
-    const clean = validateProductData(rawData);
+    const title = sanitizeInput(formData.get("title"));
+    const description = sanitizeInput(formData.get("description"));
+    const price = Number(formData.get("price"));
+    const category = sanitizeInput(formData.get("category")?.toLowerCase());
+    const sizesRaw = sanitizeInput(formData.get("sizes") || "");
+    const quantity = Number(formData.get("quantity") || 1);
 
-    // ---- Extract clean values ----
-    const title = sanitizeInput(clean.title);
-    const description = sanitizeInput(clean.description);
-    const price = Number(clean.price);
-    const category = sanitizeInput(clean.category.toLowerCase());
+    const sizes = sizesRaw.split(",").map(s => sanitizeInput(s.trim())).filter(Boolean);
 
-    // 🔒 Sanitize images
-    const images = Array.isArray(clean.images)
-      ? clean.images.map(img => sanitizeInput(img)).filter(Boolean)
-      : clean.image
-        ? [sanitizeInput(clean.image)]
-        : [];
+    const imagesFiles = formData.getAll("images");
+    if (!imagesFiles || imagesFiles.length === 0) {
+      return NextResponse.json({ success: false, error: "At least one product image is required." }, { status: 400 });
+    }
 
-    // 🔒 Sanitize sizes
-    const sizes = Array.isArray(clean.sizes)
-      ? clean.sizes.map(s => sanitizeInput(s)).filter(Boolean)
-      : typeof clean.sizes === "string"
-        ? clean.sizes.split(",").map(s => sanitizeInput(s.trim()))
-        : [];
+    const imageUrls = [];
+    for (const file of imagesFiles) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-    // ---- VALIDATION ----
-    if (
-      !title ||
-      !description ||
-      !category ||
-      isNaN(price) ||
-      price <= 0 ||
-      sizes.length === 0 ||
-      images.length === 0
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "All fields must be valid (including at least one image).",
-        },
-        { status: 400 }
-      );
+      const uploadRes = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ folder: "dkikishop/products" }, (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }).end(buffer);
+      });
+
+      imageUrls.push(uploadRes.secure_url);
+    }
+
+    if (!title || !description || isNaN(price) || price <= 0) {
+      return NextResponse.json({ success: false, error: "Required fields missing or invalid." }, { status: 400 });
     }
 
     if (!allowedCategories.includes(category)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid category. Must be one of: ${allowedCategories.join(", ")}`,
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: `Invalid category. Must be: ${allowedCategories.join(", ")}` }, { status: 400 });
     }
 
-    // ---- SAVE TO DATABASE ----
-    const newProduct = new product({
-      title,
-      price,
-      description,
-      images,
-      sizes,
-      category,
-    });
+    if (sizes.length === 0) {
+      return NextResponse.json({ success: false, error: "Sizes are required." }, { status: 400 });
+    }
 
+    const newProduct = new product({ title, description, price, sizes, category, images: imageUrls, quantity });
     await newProduct.save();
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
-
-  } catch (error) {
-    console.error("❌ Upload error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error." },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("❌ Upload error:", err);
+    return NextResponse.json({ success: false, error: "Internal server error." }, { status: 500 });
   }
 }

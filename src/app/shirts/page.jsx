@@ -58,8 +58,11 @@ export default function ShirtsPage() {
               href={`/product/${product._id}`}
               className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.015]"
             >
-             {/* ✅ Use ProductImage component */}
-                           <ProductImage product={product} />
+             {/* ✅ Product Image with fallback */}
+                         <ProductImage
+                           product={product}
+                           fallback="/images/placeholder.jpg" // ⚠️ fallback image for broken URLs
+                         />
 
 
               <div className="p-4 text-white">

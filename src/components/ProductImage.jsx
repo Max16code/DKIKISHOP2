@@ -5,9 +5,10 @@ export default function ProductImage({
   product,
   height = 'h-[650px]',
   fit = 'object-contain',
+  fallback = '/images/fallback.jpg', // optional override
 }) {
   const [current, setCurrent] = useState(0)
-  const [loaded, setLoaded] = useState(false) // for fade-in animation
+  const [loaded, setLoaded] = useState(false) // fade-in animation
 
   // ⛔ Prevent crash if product or product.images is undefined
   useEffect(() => {
@@ -15,23 +16,27 @@ export default function ProductImage({
 
     if (product.images.length > 1) {
       const interval = setInterval(() => {
-        setCurrent((prev) => (prev === 0 ? 1 : 0))
+        setCurrent(prev => (prev === 0 ? 1 : 0))
       }, 3000)
       return () => clearInterval(interval)
     }
   }, [product])
 
-  // 🧠 Fallbacks for image source
+  // 🧠 Normalize URL: remove accidental leading slash for full URLs
+  const normalizeUrl = (url) => {
+    if (!url) return fallback
+    if (url.startsWith('/https://') || url.startsWith('/http://')) {
+      return url.slice(1) // remove the extra '/'
+    }
+    return url
+  }
+
   const imgSrc =
     product?.images && product.images.length > 0
-      ? product.images[current].startsWith('/')
-        ? product.images[current]
-        : `/${product.images[current]}`
+      ? normalizeUrl(product.images[current])
       : product?.image
-      ? product.image.startsWith('/')
-        ? product.image
-        : `/${product.image}`
-      : '/images/fallback.jpg'
+      ? normalizeUrl(product.image)
+      : fallback
 
   // 🧱 Skeleton loader while product data hasn’t arrived yet
   if (!product) {
@@ -51,6 +56,7 @@ export default function ProductImage({
         src={imgSrc}
         alt={product.title || 'Product'}
         onLoad={() => setLoaded(true)}
+        onError={(e) => (e.currentTarget.src = fallback)} // fallback if broken
         className={`absolute w-full h-full ${fit} object-top rounded-3xl transition-all duration-700 ease-in-out ${
           loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}

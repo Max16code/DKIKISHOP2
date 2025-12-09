@@ -70,8 +70,11 @@ export default function ActivewearsPage() {
               href={`/product/${product._id}`}
               className="block rounded-3xl overflow-hidden backdrop-blur-xl border border-white/10 bg-white/5 shadow-2xl hover:shadow-yellow-400/30 transition-shadow duration-300"
             >
-              {/* ✅ Use ProductImage component */}
-                            <ProductImage product={product} />
+              {/* ✅ Product Image with fallback */}
+                          <ProductImage
+                            product={product}
+                            fallback="/images/placeholder.jpg" // ⚠️ fallback image for broken URLs
+                          />
 
 
 

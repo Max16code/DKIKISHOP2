@@ -1,8 +1,8 @@
 export function verifyAdmin(req) {
-  const secret = req.headers["x-admin-secret"];
+  const cookieHeader = req.headers.get("cookie") || "";
+  const adminCookie = cookieHeader
+    .split("; ")
+    .find(c => c.startsWith("admin_logged_in="));
 
-  if (secret !== process.env.ADMIN_SECRET_KEY) {
-    return false;
-  }
-  return true;
+  return adminCookie?.split("=")[1] === "true";
 }

@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
-import ProductImage from '@/components/ProductImage'  // ✅ Import added
-
+import ProductImage from '@/components/ProductImage'
 
 export default function BlazersPage() {
   const [products, setProducts] = useState([])
@@ -68,9 +67,11 @@ export default function BlazersPage() {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="rounded-3xl overflow-hidden backdrop-blur-xl border border-white/10 bg-white/5 shadow-2xl hover:shadow-yellow-400/30 transition-shadow duration-300"
           >
-            {/* ✅ Use ProductImage component */}
-                          <ProductImage product={product} />
-
+            {/* ✅ Product Image with fallback */}
+            <ProductImage
+              product={product}
+              fallback="/images/placeholder.jpg" // ⚠️ fallback image for broken URLs
+            />
 
             <div className="p-5 text-white">
               <h2 className="text-lg font-semibold mb-1">{product.title}</h2>
@@ -84,7 +85,6 @@ export default function BlazersPage() {
                   ? product.sizes.join(', ')
                   : 'N/A'}
               </p>
-
             </div>
           </motion.div>
         ))}

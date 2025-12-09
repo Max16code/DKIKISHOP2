@@ -54,8 +54,11 @@ export default function SkirtsPage() {
             href={`/product/${product._id}`}
             className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all shadow-lg hover:shadow-pink-500/30"
           >
-            {/* ✅ Use ProductImage component */}
-                          <ProductImage product={product} />
+            {/* ✅ Product Image with fallback */}
+                        <ProductImage
+                          product={product}
+                          fallback="/images/placeholder.jpg" // ⚠️ fallback image for broken URLs
+                        />
 
 
 
