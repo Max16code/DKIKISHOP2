@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
+import ProductImage from '@/components/ProductImage' // ✅ Use the same component
 
 export const dynamic = 'force-dynamic'
 
@@ -47,14 +48,8 @@ export default function CategoryPage() {
         Browse {cat}
       </h1>
 
-      {loading && (
-        <p className="text-center text-gray-500">⏳ Loading...</p>
-      )}
-
-      {error && (
-        <p className="text-center text-red-500">🚫 {error}</p>
-      )}
-
+      {loading && <p className="text-center text-gray-500">⏳ Loading...</p>}
+      {error && <p className="text-center text-red-500">🚫 {error}</p>}
       {!loading && productData.length === 0 && !error && (
         <p className="text-center text-gray-500">No products found in this category.</p>
       )}
@@ -66,19 +61,8 @@ export default function CategoryPage() {
             href={`/product/${product._id}`}
             className="block rounded-2xl overflow-hidden shadow-lg border border-gray-200 transition-transform hover:scale-[1.02] bg-white"
           >
-            <img
-  src={
-    product.images?.[0]
-      ? product.images[0].startsWith('/')
-        ? product.images[0]
-        : `/${product.images[0]}`
-      : product.image
-        ? (product.image.startsWith('/') ? product.image : `/${product.image}`)
-        : '/images/fallback.jpg'
-  }
-  alt={product.title || 'Product'}
-  className="w-full h-70 object-cover rounded-4xl mb-2"
-/>
+            {/* ✅ Use ProductImage for proper URL handling */}
+            <ProductImage product={product} height="h-70" fit="object-cover" fallback="/images/fallback.jpg" />
 
             <div className="p-4 text-black">
               <h2 className="text-lg font-bold">{product.title}</h2>
