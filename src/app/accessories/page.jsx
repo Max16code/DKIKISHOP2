@@ -68,11 +68,8 @@ export default function AccessoriesPage() {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="rounded-3xl overflow-hidden backdrop-blur-xl border border-white/10 bg-white/5 shadow-2xl hover:shadow-yellow-400/30 transition-shadow duration-300"
           >
-           {/* ✅ Product Image with fallback */}
-                       <ProductImage
-                         product={product}
-                         fallback="/images/placeholder.jpg" // ⚠️ fallback image for broken URLs
-                       />
+            {/* ✅ Use ProductImage component */}
+                          <ProductImage product={product} />
 
 
 

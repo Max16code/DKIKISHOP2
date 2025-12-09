@@ -86,11 +86,9 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
               className="p-3 sm:p-4 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300"
-            >{/* ✅ Product Image with fallback */}
-                        <ProductImage
-                          product={product}
-                          fallback="/images/placeholder.jpg" // ⚠️ fallback image for broken URLs
-                        />
+            >
+              {/* ✅ Use ProductImage component */}
+              <ProductImage product={product} />
 
               <h2 className="text-sm sm:text-base font-semibold text-white mt-2">
                 {product.title}
