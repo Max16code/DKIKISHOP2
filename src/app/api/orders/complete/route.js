@@ -1,9 +1,10 @@
-import connectDB from "@/lib/connectDB";
+import dbConnect from "@/lib/dbconnect";
 import Product from "@/models/productModel";
 import Order from "@/models/orderModel";
 
+
 export async function POST(req) {
-  await connectDB();
+  await dbConnect();
 
   try {
     const body = await req.json();
