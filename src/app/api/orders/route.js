@@ -1,9 +1,9 @@
 // /app/api/orders/route.js
 
-import dbConnect from '@/lib/mongodb'
+import connectDB from '@/lib/mongodb'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
-import Product from '@/models/productModel' // ✅ Capitalized model name for clarity
+import Product from '@/models/productModel.js' // ✅ Capitalized model name for clarity
 
 // Generate unique shopId
 function generateShopId() {
@@ -33,7 +33,7 @@ const Order = mongoose.models.Order || mongoose.model('Order', orderSchema)
 
 export async function POST(req) {
   try {
-    await dbConnect()
+    await connectDB()
 
     const { email, items, totalAmount, reference } = await req.json()
 
