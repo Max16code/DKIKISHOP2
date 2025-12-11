@@ -1,4 +1,4 @@
-import dbConnect from "@/lib/dbconnect";
+import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/productModel";
 import Order from "@/models/orderModel";
 
