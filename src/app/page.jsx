@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 
-import ProductImage from '@/components/ProductImage'  // ✅ Import added
+import ProductImage from '@/components/ProductImage'
 
 export default function Home() {
   const [productData, setProductData] = useState([])
@@ -42,28 +42,23 @@ export default function Home() {
       <Navbar />
 
       {/* Title */}
-<div className="relative z-10 text-center mt-24">
-  <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
-    Welcome to{' '}
-    <span className="text-yellow-400">
-      DKIKISHO
-      {/* Wrap the P in a relative span so the hat can sit on it */}
-      <span className="relative inline-block">
-        P
-        <Image
-          src="/images/santa2.png" // make sure this is in /public/images/
-          alt=""
-          width={24}
-          height={24}
-          className="absolute -top-2 -right-3"
-        />
-      </span>
-    </span>
-  </h1>
-
-
-
-
+      <div className="relative z-10 text-center mt-24">
+        <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
+          Welcome to{' '}
+          <span className="text-yellow-400">
+            DKIKISHO
+            <span className="relative inline-block">
+              P
+              <Image
+                src="/images/santa2.png"
+                alt=""
+                width={24}
+                height={24}
+                className="absolute -top-2 -right-3"
+              />
+            </span>
+          </span>
+        </h1>
         <p className="mt-2 text-gray-400">Luxury on a Budget</p>
       </div>
 
@@ -77,7 +72,7 @@ export default function Home() {
       </div>
 
       {/* Product Grid */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
         {productData.map((product, index) => (
           <Link href={`/product/${product._id}`} key={product._id || index} passHref>
             <motion.div
@@ -85,18 +80,29 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="p-3 sm:p-4 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300"
+              className="p-2 sm:p-3 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 h-full"
             >
-              {/* ✅ Use ProductImage component */}
-              <ProductImage product={product} />
+              {/* Responsive Product Image */}
+              <ProductImage
+                product={product}
+                heightMobile="h-40"
+                heightTablet="sm:h-48"
+                heightDesktop="md:h-56"
+                fit="object-contain"
+              />
 
-              <h2 className="text-sm sm:text-base font-semibold text-white mt-2">
+              <h2 className="text-sm sm:text-base font-semibold text-white mt-2 line-clamp-1">
                 {product.title}
               </h2>
-              <p className="text-xs text-gray-400">{product.description}</p>
+
+              <p className="text-xs text-gray-400 line-clamp-2 mt-1">
+                {product.description}
+              </p>
+
               <p className="text-yellow-400 font-bold text-sm mt-1">
                 ₦{Number(product.price).toLocaleString()}
               </p>
+
               <p className="text-[10px] text-gray-400 mt-1">
                 Sizes:{' '}
                 {Array.isArray(product.sizes) && product.sizes.length > 0

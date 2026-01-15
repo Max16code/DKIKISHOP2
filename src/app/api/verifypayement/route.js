@@ -1,11 +1,18 @@
-// /api/verifyPayment/route.js
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/orderModel";
+import Product from "@/models/productModel"; // ✅ ADDED
 
 export async function POST(req) {
   try {
-    const { reference, cartItems, email, name, address, totalAmount } = await req.json();
+    const {
+      reference,
+      cartItems,
+      email,
+      name,
+      address,
+      totalAmount,
+    } = await req.json();
 
     if (!reference || !email || !totalAmount || !Array.isArray(cartItems)) {
       return NextResponse.json(
@@ -22,7 +29,7 @@ export async function POST(req) {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
-        cache: "no-store", // ensure fresh verification
+        cache: "no-store",
       }
     );
 
@@ -43,7 +50,12 @@ export async function POST(req) {
     // ✅ Connect to DB
     await dbConnect();
 
-    // ✅ Prevent duplicate order creation if user refreshes
+    /**
+     * ✅ IDPOTENCY CHECK
+     * If the order already exists, DO NOT:
+     * - create another order
+     * - reduce inventory again
+     */
     const existing = await Order.findOne({ reference });
     if (existing) {
       return NextResponse.json({ success: true, order: existing });
@@ -62,12 +74,37 @@ export async function POST(req) {
       verifiedAt: new Date(),
     });
 
-    // ✅ Send email to Kikishop admin
+    /**
+     * ✅ INVENTORY REDUCTION (THE FIX)
+     * Runs ONLY once, AFTER:
+     * - payment is verified
+     * - order is confirmed new
+     */
+    for (const item of cartItems) {
+      await Product.findOneAndUpdate(
+        {
+          _id: item.productId,
+          quantity: { $gt: 0 },
+        },
+        {
+          $inc: { quantity: -1 },
+        },
+        { new: true }
+      );
+    }
+
+    // ✅ Send email to Kikishop admin (non-blocking)
     try {
       await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sendMail`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, address, cartItems, totalAmount }),
+        body: JSON.stringify({
+          email,
+          name,
+          address,
+          cartItems,
+          totalAmount,
+        }),
       });
     } catch (mailErr) {
       console.error("Email sending failed:", mailErr);

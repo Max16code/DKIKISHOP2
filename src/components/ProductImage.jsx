@@ -3,14 +3,15 @@ import { useState, useEffect } from 'react'
 
 export default function ProductImage({
   product,
-  height = 'h-[650px]',
+  heightMobile = 'h-40',       // mobile default ~160px
+  heightTablet = 'sm:h-48',     // tablet default ~192px
+  heightDesktop = 'md:h-56',    // desktop default ~224px
   fit = 'object-contain',
-  fallback = '/images/fallback.jpg', // optional override
+  fallback = '/images/fallback.jpg',
 }) {
   const [current, setCurrent] = useState(0)
-  const [loaded, setLoaded] = useState(false) // fade-in animation
+  const [loaded, setLoaded] = useState(false)
 
-  // ⛔ Prevent crash if product or product.images is undefined
   useEffect(() => {
     if (!product || !product.images) return
 
@@ -22,11 +23,10 @@ export default function ProductImage({
     }
   }, [product])
 
-  // 🧠 Normalize URL: remove accidental leading slash for full URLs
   const normalizeUrl = (url) => {
     if (!url) return fallback
     if (url.startsWith('/https://') || url.startsWith('/http://')) {
-      return url.slice(1) // remove the extra '/'
+      return url.slice(1)
     }
     return url
   }
@@ -38,25 +38,24 @@ export default function ProductImage({
       ? normalizeUrl(product.image)
       : fallback
 
-  // 🧱 Skeleton loader while product data hasn’t arrived yet
   if (!product) {
     return (
       <div
-        className={`w-full ${height} bg-gray-200 animate-pulse rounded-3xl shadow-lg`}
+        className={`w-full ${heightMobile} ${heightTablet} ${heightDesktop} bg-gray-200 animate-pulse rounded-3xl shadow-lg`}
       />
     )
   }
 
   return (
     <div
-      className={`relative w-full ${height} overflow-hidden rounded-3xl shadow-lg`}
+      className={`relative w-full ${heightMobile} ${heightTablet} ${heightDesktop} overflow-hidden rounded-3xl shadow-lg`}
     >
       <img
         key={imgSrc}
         src={imgSrc}
         alt={product.title || 'Product'}
         onLoad={() => setLoaded(true)}
-        onError={(e) => (e.currentTarget.src = fallback)} // fallback if broken
+        onError={(e) => (e.currentTarget.src = fallback)}
         className={`absolute w-full h-full ${fit} object-top rounded-3xl transition-all duration-700 ease-in-out ${
           loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}

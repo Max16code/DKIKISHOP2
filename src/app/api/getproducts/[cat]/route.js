@@ -18,8 +18,9 @@ export async function GET(req, context) {
   try {
     await dbConnect();
 
-    // Extract category from URL
-    const { cat } = context.params;
+    // ✅ Just use context.params directly, no await
+    const cat = context.params?.cat;
+
 
     if (!cat) {
       return NextResponse.json(
@@ -28,31 +29,26 @@ export async function GET(req, context) {
       );
     }
 
-    // 🔒 Clean + sanitize input
     const cleanedCategory = sanitizeInput(cat).toLowerCase();
 
-    // 🔒 Validate category
     if (!allowedCategories.includes(cleanedCategory)) {
       return NextResponse.json(
         {
           success: false,
-          error: `Invalid category '${cleanedCategory}'. Allowed: ${allowedCategories.join(", ")}`
+          error: `Invalid category '${cleanedCategory}'. Allowed: ${allowedCategories.join(
+            ", "
+          )}`
         },
         { status: 400 }
       );
     }
 
-    // 🔒 Safe MongoDB query
     const products = await Product.find({ category: cleanedCategory }).lean();
 
-    return NextResponse.json(
-      { success: true, data: products },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, data: products }, { status: 200 });
 
   } catch (error) {
     console.error("🔴 Secure GET Category Error:", error);
-
     return NextResponse.json(
       { success: false, error: "Internal server error." },
       { status: 500 }
