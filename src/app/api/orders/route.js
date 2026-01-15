@@ -1,32 +1,22 @@
 // /app/api/orders/route.js
-
 import Connectdb from '@/lib/mongodb'
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
-import Product from '@/models/productModel' // ✅ Capitalized model name for clarity
+import Product from '@/models/productModel'
 
-// Generate unique shopId
 function generateShopId() {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 5).toUpperCase()
   return `DKIKI-${timestamp}-${random}`
 }
 
-// Define Order schema and model
 const orderSchema = new mongoose.Schema({
-  email: String, // optional field
+  email: String,
   items: Array,
   totalAmount: Number,
   reference: String,
-  shopId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  shopId: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now }
 })
 
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema)
@@ -37,7 +27,6 @@ export async function POST(req) {
 
     const { email, items, totalAmount, reference } = await req.json()
 
-    // ✅ Validate input
     if (!items?.length || !totalAmount || !reference) {
       return NextResponse.json(
         { success: false, error: 'Missing required order fields' },
@@ -45,45 +34,29 @@ export async function POST(req) {
       )
     }
 
-    // ✅ Save the order first
-    const newOrder = new Order({
+    // 1️⃣ Save the order
+    const newOrder = await Order.create({
       email: email || '',
       items,
       totalAmount,
       reference,
-      shopId: generateShopId(),
+      shopId: generateShopId()
     })
 
-    await newOrder.save()
-
-    // ✅ Loop through items and safely update product quantities
+    // 2️⃣ Update inventory atomically
     for (const item of items) {
-      const foundProduct = await Product.findById(item._id)
+      const product = await Product.findById(item._id)
+      if (!product) continue
 
-      if (foundProduct) {
-        const newQty = foundProduct.quantity - (item.quantity || 1)
-
-        // Prevent negative values
-        foundProduct.quantity = Math.max(newQty, 0)
-
-        // ✅ Optional: Auto-hide or mark as out of stock if quantity = 0
-        if (foundProduct.quantity === 0) {
-          foundProduct.isAvailable = false // Add this field in your model if not yet there
-        }
-
-        await foundProduct.save()
-      }
+      const newQty = Math.max(product.quantity - (item.quantity || 1), 0)
+      product.quantity = newQty
+      product.isAvailable = newQty > 0
+      await product.save()
     }
 
-    return NextResponse.json(
-      { success: true, order: newOrder },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true, order: newOrder }, { status: 201 })
   } catch (error) {
-    console.error('❌ Order saving error:', error)
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    )
+    console.error('❌ Order API error:', error)
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }
