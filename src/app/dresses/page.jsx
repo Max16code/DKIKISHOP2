@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import ProductImage from '@/components/ProductImage'  // ✅ Import added
+
 
 export default function DressesPage() {
   const [products, setProducts] = useState([])
@@ -70,11 +72,10 @@ export default function DressesPage() {
               href={`/product/${product._id}`}
               className="block rounded-3xl overflow-hidden backdrop-blur-xl border border-white/10 bg-white/5 shadow-2xl hover:shadow-yellow-400/30 transition-shadow duration-300"
             >
-              <img
-                src={product.image || '/images/fallback.jpg'}
-                alt={product.title}
-                className="w-full h-60 object-cover rounded-t-3xl"
-              />
+              {/* ✅ Use ProductImage component */}
+                            <ProductImage product={product} />
+
+
               <div className="p-5 text-white">
                 <h2 className="text-lg font-semibold mb-1">{product.title}</h2>
                 <p className="text-sm text-gray-300 mb-2">{product.description}</p>

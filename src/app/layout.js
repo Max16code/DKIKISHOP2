@@ -4,6 +4,7 @@ import { CartProvider } from '@/context/Cartcontext'
 import Image from "next/image";
 import PageWrapper from '@/components/PageWrapper'
 
+
 export const metadata = {
   title: "Dkikishop",
   description: "Luxury on a budget",
@@ -30,11 +31,13 @@ export default function RootLayout({ children }) {
             priority
           />
         </div>
-        <CartProvider>
-          <PageWrapper>
-            {children}
-          </PageWrapper>
-        </CartProvider>
+        
+          <CartProvider>
+            <PageWrapper>
+              {children}
+            </PageWrapper>
+          </CartProvider>
+        
 
       </body>
     </html>

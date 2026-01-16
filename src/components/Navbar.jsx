@@ -18,6 +18,8 @@ export default function Navbar() {
     { name: 'Skirts', href: '/category/skirts' },
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },
+    { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
+    { name: 'Accessories', href: '/category/accessories' } // 🆕 Added
   ]
 
   return (
@@ -37,13 +39,27 @@ export default function Navbar() {
             href="/"
             className="absolute left-1/2 transform -translate-x-1/2 md:static md:translate-x-0 z-0"
           >
-            <Image
-              src="/images/kikiLogo.jpg"
-              alt="Dkikishop Logo"
-              width={50}
-              height={50}
-              className="rounded-full object-cover shadow-md hover:opacity-90 transition"
-            />
+            <div className="relative w-12 h-12">
+              {/* Main Logo */}
+              <Image
+                src="/images/kikiLogo.jpg"
+                alt="Dkikishop Logo"
+                fill
+                className="rounded-full object-cover shadow-md hover:opacity-90 transition"
+              />
+
+              {/* Santa Hat Overlay */}
+              <Image
+                src="/images/santa2.png" // your downloaded transparent PNG
+                alt=""
+                width={24}  // set your desired width
+                height={24} // set your desired height
+                className="absolute -top-2 -right-2"
+                
+              />
+            </div>
+
+
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -62,7 +78,7 @@ export default function Navbar() {
           {/* Right Side: Contact + Cart */}
           <div className="flex items-center gap-4 z-10">
             <Link
-              href="/Contact"
+              href="/contact"
               className="text-black font-medium hover:text-pink-600 transition hidden md:inline"
             >
               Contact

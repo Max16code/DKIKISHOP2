@@ -1,86 +1,78 @@
 import dbConnect from "@/lib/mongodb";
 import product from "@/models/productModel";
 import { NextResponse } from "next/server";
+import { sanitizeInput } from "@/lib/validate";
+import { verifyAdmin } from "@/lib/verifyAdmin";
+import { v2 as cloudinary } from "cloudinary";
 
-const allowedCategories = [
-  "blazers",
-  "shirts",
-  "skirts",
-  "dresses",
-  "activewears",
-  "jeans"
-];
+export const runtime = "nodejs";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const allowedCategories = ["blazers","shirts","skirts","dresses","activewears","jeans","shorts","accessories"];
 
 export async function POST(req) {
   try {
+    // 🔒 Verify admin
+    if (!verifyAdmin(req)) {
+      return NextResponse.json({ success: false, error: "Unauthorized access." }, { status: 401 });
+    }
+
     await dbConnect();
-    const rawData = await req.json();
 
-    console.log("🟡 RAW REQUEST BODY:", rawData);
+    const formData = await req.formData();
 
-    // ✅ Normalize values
-    const title = String(rawData.title || "").trim();
-    const description = String(rawData.description || "").trim();
-    const image = String(rawData.image || "").trim();
-    const price = Number(rawData.price);
+    const title = sanitizeInput(formData.get("title"));
+    const description = sanitizeInput(formData.get("description"));
+    const price = Number(formData.get("price"));
+    const category = sanitizeInput(formData.get("category")?.toLowerCase());
+    const sizesRaw = sanitizeInput(formData.get("sizes") || "");
+    const quantity = Number(formData.get("quantity") || 1);
 
-    // ✅ SAFELY normalize and lowercase category
-    const category = String(rawData.category || "").trim().toLowerCase();
+    const sizes = sizesRaw.split(",").map(s => sanitizeInput(s.trim())).filter(Boolean);
 
-    // 🔄 Handle both `size` and `sizes` fields gracefully
-    const sizes = Array.isArray(rawData.sizes)
-      ? rawData.sizes
-      : Array.isArray(rawData.size)
-        ? rawData.size
-        : typeof rawData.size === "string"
-          ? rawData.size.split(",").map(s => s.trim()).filter(Boolean)
-          : [];
+    const imagesFiles = formData.getAll("images");
+    if (!imagesFiles || imagesFiles.length === 0) {
+      return NextResponse.json({ success: false, error: "At least one product image is required." }, { status: 400 });
+    }
 
-    // ✅ Validation
-    if (
-      !title ||
-      !description ||
-      !image ||
-      !category ||
-      isNaN(price) || price <= 0 ||
-      sizes.length === 0
-    ) {
-      return NextResponse.json(
-        { success: false, error: "All fields are required and must be valid." },
-        { status: 400 }
-      );
+    const imageUrls = [];
+    for (const file of imagesFiles) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const uploadRes = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ folder: "dkikishop/products" }, (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }).end(buffer);
+      });
+
+      imageUrls.push(uploadRes.secure_url);
+    }
+
+    if (!title || !description || isNaN(price) || price <= 0) {
+      return NextResponse.json({ success: false, error: "Required fields missing or invalid." }, { status: 400 });
     }
 
     if (!allowedCategories.includes(category)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid category. Must be one of: ${allowedCategories.join(", ")}.`,
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: `Invalid category. Must be: ${allowedCategories.join(", ")}` }, { status: 400 });
     }
 
-    // ✅ Save to DB with clean, validated data
-    const newProduct = new product({
-      title,
-      price,
-      description,
-      image,
-      sizes,
-      category, // ← already normalized
-    });
+    if (sizes.length === 0) {
+      return NextResponse.json({ success: false, error: "Sizes are required." }, { status: 400 });
+    }
 
+    const newProduct = new product({ title, description, price, sizes, category, images: imageUrls, quantity });
     await newProduct.save();
 
-    return NextResponse.json(
-      { success: true, product: newProduct },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
+  } catch (err) {
+    console.error("❌ Upload error:", err);
+    return NextResponse.json({ success: false, error: "Internal server error." }, { status: 500 });
   }
 }

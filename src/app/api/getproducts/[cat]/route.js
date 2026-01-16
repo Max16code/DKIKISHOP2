@@ -1,38 +1,57 @@
-// app/api/getproducts/[cat]/route.js
+import dbConnect from "@/lib/mongodb";
+import Product from "@/models/productModel";
+import { NextResponse } from "next/server";
+import { sanitizeInput } from "@/lib/validate";
 
-import dbConnect from "@/lib/mongodb"
-import Product from "@/models/productModel"
-import { NextResponse } from "next/server"
-import Link from "next/link"
+const allowedCategories = [
+  "blazers",
+  "shirts",
+  "skirts",
+  "dresses",
+  "activewears",
+  "jeans",
+  "shorts",
+  "accessories"
+];
 
-const allowedCategories = ["blazers", "shirts", "skirts", "dresses", "activewears", "jeans"]
-
-export async function GET(request, context) {
+export async function GET(req, context) {
   try {
-    await dbConnect()
+    await dbConnect();
 
-    const { cat } = await context.params // ✅ Properly awaited destructure
+    // ✅ Just use context.params directly, no await
+    const cat = context.params?.cat;
 
-    console.log("🟡 Requested category:", cat) // ✅ Use 'cat' not 'catParam'
 
     if (!cat) {
-      return NextResponse.json({ success: false, error: "Category param missing." }, { status: 400 })
-    }
-
-    const category = cat.toLowerCase()
-
-    if (!allowedCategories.includes(category)) {
       return NextResponse.json(
-        { success: false, error: `Invalid category: ${category}` },
+        { success: false, error: "Category parameter is required." },
         { status: 400 }
-      )
+      );
     }
 
-    const products = await Product.find({ category }).lean()
+    const cleanedCategory = sanitizeInput(cat).toLowerCase();
 
-    return NextResponse.json({ success: true, data: products }, { status: 200 })
+    if (!allowedCategories.includes(cleanedCategory)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Invalid category '${cleanedCategory}'. Allowed: ${allowedCategories.join(
+            ", "
+          )}`
+        },
+        { status: 400 }
+      );
+    }
+
+    const products = await Product.find({ category: cleanedCategory }).lean();
+
+    return NextResponse.json({ success: true, data: products }, { status: 200 });
+
   } catch (error) {
-    console.error("🔴 API Error:", error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error("🔴 Secure GET Category Error:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error." },
+      { status: 500 }
+    );
   }
 }
