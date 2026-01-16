@@ -1,9 +1,16 @@
+// 
+
+// deepseek////////
+
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/orderModel";
 import Product from "@/models/productModel";
+import mongoose from "mongoose";
 
 export async function POST(req) {
+  const session = await mongoose.startSession();
+  
   try {
     const {
       reference,
@@ -13,8 +20,14 @@ export async function POST(req) {
       phone,
       address,
       totalAmount,
+      subtotal,
+      deliveryFee,
+      courier,
+      location,
+      eta,
     } = await req.json();
 
+    // Validate required fields
     if (!reference || !email || !totalAmount || !Array.isArray(cartItems)) {
       return NextResponse.json(
         { success: false, message: "Invalid request data" },
@@ -51,61 +64,135 @@ export async function POST(req) {
     }
 
     /* ===============================
-       DATABASE CONNECTION
+       DATABASE CONNECTION & TRANSACTION START
     =============================== */
     await dbConnect();
+    session.startTransaction();
 
     /* ===============================
-       IDEMPOTENCY CHECK
+       IDEMPOTENCY CHECK (INSIDE TRANSACTION)
     =============================== */
-    const existing = await Order.findOne({ reference });
+    const existing = await Order.findOne({ reference }).session(session);
     if (existing) {
+      await session.commitTransaction();
       return NextResponse.json({ success: true, order: existing });
     }
 
     /* ===============================
-       INVENTORY REDUCTION (FIXED)
-       - validates productId
-       - respects item.quantity
-       - fails loudly on insufficient stock
+       ENHANCED INVENTORY REDUCTION
+       - Updates both quantity AND stock fields
+       - Updates isAvailable when stock hits 0
+       - Better error handling
     =============================== */
     for (const item of cartItems) {
       if (!item.productId || !item.quantity) {
-        throw new Error("Invalid cart item structure");
-      }
-
-      const updatedProduct = await Product.findOneAndUpdate(
-        {
-          _id: item.productId,
-          quantity: { $gte: item.quantity },
-        },
-        {
-          $inc: { quantity: -item.quantity },
-        },
-        { new: true }
-      );
-
-      if (!updatedProduct) {
-        throw new Error(
-          `Insufficient stock for product ${item.productId}`
+        await session.abortTransaction();
+        return NextResponse.json(
+          { success: false, message: "Invalid cart item structure" },
+          { status: 400 }
         );
       }
+
+      // Find the product with session for transaction safety
+      const product = await Product.findById(item.productId).session(session);
+      
+      if (!product) {
+        await session.abortTransaction();
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: `Product ${item.productId} not found`,
+            type: 'PRODUCT_NOT_FOUND'
+          },
+          { status: 404 }
+        );
+      }
+
+      // Check stock availability
+      if (product.stock < item.quantity) {
+        await session.abortTransaction();
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: `Insufficient stock for "${product.title}". Available: ${product.stock}, Requested: ${item.quantity}`,
+            productTitle: product.title,
+            availableStock: product.stock,
+            requestedQuantity: item.quantity,
+            type: 'STOCK_ERROR'
+          },
+          { status: 400 }
+        );
+      }
+
+      // ✅ UPDATE BOTH STOCK AND QUANTITY FIELDS
+      product.stock -= item.quantity;
+      product.quantity = product.stock; // Keep them in sync
+      
+      // Update availability if stock reaches 0
+      if (product.stock <= 0) {
+        product.isAvailable = false;
+        product.stock = 0;
+        product.quantity = 0;
+      }
+
+      await product.save({ session });
     }
 
     /* ===============================
-       SAVE ORDER (ONLY AFTER STOCK IS SAFE)
+       ENHANCED ORDER SAVING
+       - Include all order details
+       - Track stock before reduction
     =============================== */
-    const newOrder = await Order.create({
+    const newOrder = await Order.create([{
       email,
       name,
+      phone,
       address,
       reference,
-      amount: totalAmount,
-      items: cartItems,
-      status: "Paid",
+      totalAmount,
+      subtotal: subtotal || totalAmount - (deliveryFee || 0),
+      shippingFee: deliveryFee || 0,
+      items: cartItems.map(item => ({
+        ...item,
+        // Store purchased stock for records
+        purchasedStock: 0, // Will be updated after save if needed
+      })),
+      status: "confirmed",
+      paymentStatus: "successful",
       paymentGateway: "Paystack",
-      verifiedAt: new Date(),
-    });
+      courier,
+      location,
+      eta,
+      paidAt: new Date(),
+      // Add shopId for reference
+      shopId: `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+    }], { session });
+
+    await session.commitTransaction();
+
+    /* ===============================
+       POST-TRANSACTION: Update product purchasedStock
+       This is optional but good for records
+    =============================== */
+    try {
+      for (const item of cartItems) {
+        const product = await Product.findById(item.productId);
+        if (product) {
+          // Update the order item with stock before purchase
+          await Order.updateOne(
+            { _id: newOrder[0]._id, "items.productId": item.productId },
+            { 
+              $set: { 
+                "items.$.purchasedStock": product.stock + item.quantity 
+              } 
+            }
+          );
+        }
+      }
+    } catch (updateError) {
+      console.error("Failed to update purchasedStock:", updateError);
+      // Non-critical error, continue
+    }
 
     /* ===============================
        EMAIL (NON-BLOCKING)
@@ -115,22 +202,50 @@ export async function POST(req) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,        // customer email
-          name,         // customer name
-          phone,        // ✅ newly added
-          address,      // shipping address
-          cartItems,    // products purchased
-          totalAmount,  // total price
+          email,
+          name,
+          phone,
+          address,
+          cartItems,
+          totalAmount,
+          subtotal: subtotal || totalAmount - (deliveryFee || 0),
+          deliveryFee: deliveryFee || 0,
+          courier,
+          location,
+          eta,
+          orderId: newOrder[0].shopId,
+          paymentReference: reference,
         }),
       });
-
     } catch (mailErr) {
       console.error("Email sending failed:", mailErr);
     }
 
-    return NextResponse.json({ success: true, order: newOrder });
+    return NextResponse.json({ 
+      success: true, 
+      order: newOrder[0],
+      message: "Payment verified and stock updated successfully"
+    });
+
   } catch (err) {
+    // Rollback transaction if it's still active
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    
     console.error("Payment verification error:", err);
+
+    // Handle specific stock errors
+    if (err.message.includes("Insufficient stock") || err.message.includes("stock")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: err.message,
+          type: 'STOCK_ERROR'
+        },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -139,5 +254,7 @@ export async function POST(req) {
       },
       { status: 500 }
     );
+  } finally {
+    session.endSession();
   }
 }

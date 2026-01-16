@@ -1,3 +1,7 @@
+// 
+
+// deepseek//////
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -5,7 +9,6 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-
 import ProductImage from '@/components/ProductImage'
 
 export default function Home() {
@@ -16,10 +19,19 @@ export default function Home() {
   useEffect(() => {
     const getProducts = async () => {
       try {
-        const res = await fetch('/api/getproducts/all')
+        // CHANGED: Add stock filter parameter
+        const res = await fetch('/api/getproducts/all?available=true')
         const data = await res.json()
+        
         if (!Array.isArray(data)) throw new Error('Invalid product format')
-        setProductData(data)
+        
+        // CHANGED: Filter products by availability (client-side backup)
+        const availableProducts = data.filter(product => 
+          product.isAvailable !== false && 
+          (product.stock > 0 || product.quantity > 0)
+        )
+        
+        setProductData(availableProducts)
       } catch (err) {
         console.error('❌ Error:', err)
         setError('Failed to fetch products')
@@ -67,51 +79,86 @@ export default function Home() {
         {loading && <p className="text-gray-500">Loading products...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && productData.length === 0 && !error && (
-          <p className="text-gray-500">No products found.</p>
+          <p className="text-gray-500">No products available at the moment.</p>
         )}
       </div>
 
       {/* Product Grid */}
       <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-        {productData.map((product, index) => (
-          <Link href={`/product/${product._id}`} key={product._id || index} passHref>
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="p-2 sm:p-3 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 h-full"
-            >
-              {/* Responsive Product Image */}
-              <ProductImage
-                product={product}
-                heightMobile="h-40"
-                heightTablet="sm:h-48"
-                heightDesktop="md:h-56"
-                fit="object-contain"
-              />
+        {productData.map((product, index) => {
+          // Calculate stock status
+          const isAvailable = product.isAvailable !== false;
+          const stock = product.stock || product.quantity || 0;
+          const inStock = isAvailable && stock > 0;
+          const lowStock = inStock && stock <= 5;
+          
+          return (
+            <Link href={`/product/${product._id}`} key={product._id || index} passHref>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                className={`p-2 sm:p-3 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 h-full relative ${
+                  !inStock ? 'opacity-70' : ''
+                }`}
+              >
+                {/* Stock Status Badge */}
+                {!inStock && (
+                  <div className="absolute top-2 left-2 z-20 px-2 py-1 bg-red-600/90 text-white text-xs font-bold rounded-full">
+                    OUT OF STOCK
+                  </div>
+                )}
+                {lowStock && (
+                  <div className="absolute top-2 left-2 z-20 px-2 py-1 bg-yellow-600/90 text-white text-xs font-bold rounded-full">
+                    LOW STOCK
+                  </div>
+                )}
 
-              <h2 className="text-sm sm:text-base font-semibold text-white mt-2 line-clamp-1">
-                {product.title}
-              </h2>
+                {/* Responsive Product Image */}
+                <ProductImage
+                  product={product}
+                  heightMobile="h-40"
+                  heightTablet="sm:h-48"
+                  heightDesktop="md:h-56"
+                  fit="object-contain"
+                  showStockBadge={false} // We'll show our own badge
+                  showOutOfStockOverlay={!inStock} // Show overlay if out of stock
+                />
 
-              <p className="text-xs text-gray-400 line-clamp-2 mt-1">
-                {product.description}
-              </p>
+                <h2 className="text-sm sm:text-base font-semibold text-white mt-2 line-clamp-1">
+                  {product.title}
+                </h2>
 
-              <p className="text-yellow-400 font-bold text-sm mt-1">
-                ₦{Number(product.price).toLocaleString()}
-              </p>
+                <p className="text-xs text-gray-400 line-clamp-2 mt-1">
+                  {product.description}
+                </p>
 
-              <p className="text-[10px] text-gray-400 mt-1">
-                Sizes:{' '}
-                {Array.isArray(product.sizes) && product.sizes.length > 0
-                  ? product.sizes.join(', ')
-                  : 'N/A'}
-              </p>
-            </motion.div>
-          </Link>
-        ))}
+                <p className="text-yellow-400 font-bold text-sm mt-1">
+                  ₦{Number(product.price).toLocaleString()}
+                </p>
+
+                {/* Stock Indicator */}
+                <div className="mt-1 text-xs">
+                  {inStock ? (
+                    <span className={lowStock ? 'text-yellow-400' : 'text-green-400'}>
+                      {lowStock ? `Only ${stock} left!` : 'In Stock'}
+                    </span>
+                  ) : (
+                    <span className="text-red-400">Out of Stock</span>
+                  )}
+                </div>
+
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Sizes:{' '}
+                  {Array.isArray(product.sizes) && product.sizes.length > 0
+                    ? product.sizes.join(', ')
+                    : 'N/A'}
+                </p>
+              </motion.div>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )

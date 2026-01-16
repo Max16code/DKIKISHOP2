@@ -1,3 +1,7 @@
+// 
+
+// deepseek/////
+
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
@@ -42,13 +46,32 @@ export async function GET(req, context) {
       );
     }
 
-    // ✅ SURGICAL CHANGE: Hide products with quantity === 0
-    const products = await Product.find({
-      category: cleanedCategory,
-      quantity: { $gt: 0 } // <-- only change, everything else untouched
-    }).lean();
+    // ✅ GET QUERY PARAMETERS FOR STOCK FILTERING
+    const { searchParams } = new URL(req.url);
+    const available = searchParams.get('available'); // 'true' or 'false'
+    const showAll = searchParams.get('showAll') === 'true'; // Show all including out of stock
 
-    return NextResponse.json({ success: true, data: products }, { status: 200 });
+    // ✅ BUILD QUERY WITH STOCK MANAGEMENT
+    let query = {
+      category: cleanedCategory
+    };
+
+    // ✅ ENHANCED STOCK FILTERING:
+    // If 'available=true' OR no parameter (default behavior), filter out-of-stock
+    // If 'showAll=true', show everything
+    if (available !== 'false' && !showAll) {
+      query.isAvailable = true;
+      query.$or = [
+        { stock: { $gt: 0 } },
+        { quantity: { $gt: 0 } }
+      ];
+    }
+
+    // ✅ Get products with proper filtering
+    const products = await Product.find(query).lean();
+
+    // ✅ RETURN CONSISTENT FORMAT WITH OTHER APIs
+    return NextResponse.json(products, { status: 200 });
 
   } catch (error) {
     console.error("🔴 Secure GET Category Error:", error);

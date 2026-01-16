@@ -15,23 +15,45 @@ export default function ShirtsPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchCategory = async () => {
-      try {
-        const res = await fetch('/api/getproducts/shirts')
-        const json = await res.json()
+  const fetchCategory = async () => {
+    try {
+      // ✅ ADD STOCK FILTER: 'available=true'
+      const res = await fetch('/api/getproducts/shirts?available=true')
+      const products = await res.json()
 
-        if (!json.success) throw new Error(json.error || 'Failed to fetch shirts')
-        setProducts(json.data || [])
-      } catch (err) {
-        console.error('❌ Error:', err)
-        setError('Failed to load shirts.')
-      } finally {
-        setLoading(false)
+      // ✅ HANDLE BOTH RESPONSE FORMATS:
+      // Old format: { success: true, data: [...] }
+      // New format: [...] (array directly)
+      
+      let productArray = [];
+      
+      if (Array.isArray(products)) {
+        // New format: API returns array directly
+        productArray = products;
+      } else if (products?.success && Array.isArray(products.data)) {
+        // Old format: API returns { success: true, data: [...] }
+        productArray = products.data;
+      } else {
+        throw new Error('Invalid response format from API')
       }
+      
+      // ✅ CLIENT-SIDE BACKUP FILTER (for safety)
+      const availableProducts = productArray.filter(product => 
+        product.isAvailable !== false && 
+        (product.stock > 0 || product.quantity > 0)
+      )
+      
+      setProducts(availableProducts)
+    } catch (err) {
+      console.error('❌ Error:', err)
+      setError('Failed to fetch products')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    fetchCategory()
-  }, [])
+  fetchCategory()
+}, [])
 
   return (
 
