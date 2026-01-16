@@ -282,15 +282,20 @@ export default function CartPage() {
                     className="flex gap-4 items-center bg-white/40 backdrop-blur-xl border border-white/50 shadow-xl rounded-2xl p-4 hover:scale-[1.02] transition-transform duration-200 ease-in-out"
                   >
                     <Image
-                      src={item.image && (item.image.startsWith('/') || item.image.startsWith('http'))
-                        ? item.image
-                        : '/images/placeholder.png'}
+                      src={
+                        item.image
+                          ? item.image.startsWith('http')
+                            ? item.image // Cloudinary or external URL
+                            : `/images/${item.image}` // fallback for local images, if any
+                          : '/images/placeholder.png' // ultimate fallback
+                      }
                       alt={item.title || 'Product Image'}
                       width={80}
                       height={80}
                       className="rounded-xl object-cover"
                       onError={(e) => { e.currentTarget.src = '/images/placeholder.png' }}
                     />
+
 
 
                     <div className="flex-1">
