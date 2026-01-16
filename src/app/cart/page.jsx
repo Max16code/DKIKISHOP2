@@ -58,7 +58,7 @@ export default function CartPage() {
     },
     Portharcourt: {
       eta: 'delivery in 1–3 days',
-      rates: { PortHarcourt: 2500 },
+      rates: { PortHarcourt: 100 },
     },
   }
 
