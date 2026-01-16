@@ -18,9 +18,8 @@ export async function GET(req, context) {
   try {
     await dbConnect();
 
-    // ✅ Just use context.params directly, no await
+    // ✅ Use context.params directly
     const cat = context.params?.cat;
-
 
     if (!cat) {
       return NextResponse.json(
@@ -43,7 +42,11 @@ export async function GET(req, context) {
       );
     }
 
-    const products = await Product.find({ category: cleanedCategory }).lean();
+    // ✅ SURGICAL CHANGE: Hide products with quantity === 0
+    const products = await Product.find({
+      category: cleanedCategory,
+      quantity: { $gt: 0 } // <-- only change, everything else untouched
+    }).lean();
 
     return NextResponse.json({ success: true, data: products }, { status: 200 });
 

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { email, name, address, cartItems, totalAmount } = await req.json();
+    const { email, name, phone, address, cartItems, totalAmount } = await req.json();
 
     if (!email || !name || !address || !cartItems?.length) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function POST(req) {
         <h2>New Order Received</h2>
         <p><strong>Customer:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Address:</strong> ${address}</p>
+        <p><strong>Phone:</strong> ${phone}</p><p><strong>Address:</strong> ${address}</p>
         <p><strong>Total:</strong> ₦${Number(totalAmount).toLocaleString()}</p>
         <h3>Items:</h3>
         <ul style="padding: 0;">${itemsHtml}</ul>

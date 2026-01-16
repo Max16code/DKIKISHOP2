@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/orderModel";
-import Product from "@/models/productModel"; // ✅ ADDED
+import Product from "@/models/productModel";
 
 export async function POST(req) {
   try {
@@ -10,6 +10,7 @@ export async function POST(req) {
       cartItems,
       email,
       name,
+      phone,
       address,
       totalAmount,
     } = await req.json();
@@ -21,7 +22,9 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Verify transaction with Paystack
+    /* ===============================
+       PAYSTACK VERIFICATION
+    =============================== */
     const paystackRes = await fetch(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -47,21 +50,51 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Connect to DB
+    /* ===============================
+       DATABASE CONNECTION
+    =============================== */
     await dbConnect();
 
-    /**
-     * ✅ IDPOTENCY CHECK
-     * If the order already exists, DO NOT:
-     * - create another order
-     * - reduce inventory again
-     */
+    /* ===============================
+       IDEMPOTENCY CHECK
+    =============================== */
     const existing = await Order.findOne({ reference });
     if (existing) {
       return NextResponse.json({ success: true, order: existing });
     }
 
-    // ✅ Save order to DB
+    /* ===============================
+       INVENTORY REDUCTION (FIXED)
+       - validates productId
+       - respects item.quantity
+       - fails loudly on insufficient stock
+    =============================== */
+    for (const item of cartItems) {
+      if (!item.productId || !item.quantity) {
+        throw new Error("Invalid cart item structure");
+      }
+
+      const updatedProduct = await Product.findOneAndUpdate(
+        {
+          _id: item.productId,
+          quantity: { $gte: item.quantity },
+        },
+        {
+          $inc: { quantity: -item.quantity },
+        },
+        { new: true }
+      );
+
+      if (!updatedProduct) {
+        throw new Error(
+          `Insufficient stock for product ${item.productId}`
+        );
+      }
+    }
+
+    /* ===============================
+       SAVE ORDER (ONLY AFTER STOCK IS SAFE)
+    =============================== */
     const newOrder = await Order.create({
       email,
       name,
@@ -74,38 +107,23 @@ export async function POST(req) {
       verifiedAt: new Date(),
     });
 
-    /**
-     * ✅ INVENTORY REDUCTION (THE FIX)
-     * Runs ONLY once, AFTER:
-     * - payment is verified
-     * - order is confirmed new
-     */
-    for (const item of cartItems) {
-      await Product.findOneAndUpdate(
-        {
-          _id: item.productId,
-          quantity: { $gt: 0 },
-        },
-        {
-          $inc: { quantity: -1 },
-        },
-        { new: true }
-      );
-    }
-
-    // ✅ Send email to Kikishop admin (non-blocking)
+    /* ===============================
+       EMAIL (NON-BLOCKING)
+    =============================== */
     try {
       await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sendMail`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
-          name,
-          address,
-          cartItems,
-          totalAmount,
+          email,        // customer email
+          name,         // customer name
+          phone,        // ✅ newly added
+          address,      // shipping address
+          cartItems,    // products purchased
+          totalAmount,  // total price
         }),
       });
+
     } catch (mailErr) {
       console.error("Email sending failed:", mailErr);
     }
@@ -113,8 +131,12 @@ export async function POST(req) {
     return NextResponse.json({ success: true, order: newOrder });
   } catch (err) {
     console.error("Payment verification error:", err);
+
     return NextResponse.json(
-      { success: false, message: err.message || "Server error" },
+      {
+        success: false,
+        message: err.message || "Server error",
+      },
       { status: 500 }
     );
   }
