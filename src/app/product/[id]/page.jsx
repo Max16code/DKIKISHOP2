@@ -13,6 +13,7 @@ export default function ProductDetailPage() {
   const { id } = useParams()
   const [product, setProduct] = useState(null)
   const [selectedSize, setSelectedSize] = useState('')
+  const [selectedQuantity, setSelectedQuantity] = useState(1) // NEW: quantity state
   const { addToCart } = useCart()
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function ProductDetailPage() {
       image: product.images?.[0] || product.image || '/images/placeholder.png',
       price: product.price,
       size: selectedSize,
-      quantity: 1,
+      quantity: selectedQuantity, // UPDATED: dynamic quantity
     })
 
     alert('✅ Added to cart!')
@@ -106,11 +107,26 @@ export default function ProductDetailPage() {
             </>
           )}
 
+          {/* NEW: Quantity selector */}
+          {!isOutOfStock && (
+            <div className="mb-4">
+              <label className="block mb-1 text-white font-medium">Quantity:</label>
+              <input
+                type="number"
+                min={1}
+                max={product.quantity} // cannot exceed stock
+                value={selectedQuantity}
+                onChange={(e) => setSelectedQuantity(Number(e.target.value))}
+                className="w-20 p-2 rounded border text-black"
+              />
+            </div>
+          )}
+
           {/* ================================ */}
           {/* CLEANLY INTEGRATED BUTTON LOGIC  */}
           {/* ================================ */}
 
-          {product.quantity === 0 ? (
+          {isOutOfStock ? (
             <button
               disabled
               className="w-full bg-gray-400 text-white font-semibold px-6 py-3 rounded-xl cursor-not-allowed"

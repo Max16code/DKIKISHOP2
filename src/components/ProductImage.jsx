@@ -24,12 +24,26 @@ export default function ProductImage({
   }, [product])
 
   const normalizeUrl = (url) => {
-    if (!url) return fallback
-    if (url.startsWith('/https://') || url.startsWith('/http://')) {
-      return url.slice(1)
-    }
+  if (!url) return fallback
+
+  // Fix accidentally prefixed Cloudinary URLs
+  if (url.startsWith('/https://') || url.startsWith('/http://')) {
+    return url.slice(1)
+  }
+
+  // Cloudinary or any external URL
+  if (url.startsWith('http')) {
     return url
   }
+
+  // Local images without leading slash
+  if (!url.startsWith('/')) {
+    return `/${url}`
+  }
+
+  return url
+}
+
 
   const imgSrc =
     product?.images && product.images.length > 0

@@ -44,15 +44,28 @@ export async function POST(req) {
     })
 
     // 2️⃣ Update inventory atomically
-    for (const item of items) {
-      const product = await Product.findById(item._id)
-      if (!product) continue
+   for (const item of items) {
+  const updated = await Product.findOneAndUpdate(
+    { _id: item._id, quantity: { $gte: item.quantity } }, // ensure enough stock
+    { $inc: { quantity: -item.quantity }, $set: { isAvailable: true } },
+    { new: true }
+  )
 
-      const newQty = Math.max(product.quantity - (item.quantity || 1), 0)
-      product.quantity = newQty
-      product.isAvailable = newQty > 0
-      await product.save()
-    }
+  // If stock was insufficient, fail the order
+  if (!updated) {
+    return NextResponse.json(
+      { success: false, error: `Insufficient stock for ${item.title}` },
+      { status: 400 }
+    )
+  }
+
+  // Update isAvailable for zero quantity
+  if (updated.quantity === 0) {
+    updated.isAvailable = false
+    await updated.save()
+  }
+}
+
 
     return NextResponse.json({ success: true, order: newOrder }, { status: 201 })
   } catch (error) {
