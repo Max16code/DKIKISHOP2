@@ -7,10 +7,10 @@ export async function POST(request) {
   try {
     // 1. Connect to DB (use YOUR existing connection method)
     await dbConnect();
-    
+
     // 2. Get cart items from request
     const { items } = await request.json();
-    
+
     // 3. Basic validation
     if (!items || !Array.isArray(items)) {
       return NextResponse.json({
@@ -19,7 +19,7 @@ export async function POST(request) {
         message: 'Invalid cart data'
       }, { status: 400 });
     }
-    
+
     if (items.length === 0) {
       return NextResponse.json({
         success: true,
@@ -29,12 +29,12 @@ export async function POST(request) {
         total: 0
       });
     }
-    
+
     // 4. Check each product's stock
     const results = [];
     let allValid = true;
     let subtotal = 0;
-    
+
     for (const item of items) {
       // Skip invalid items
       if (!item.productId || !item.quantity) {
@@ -46,11 +46,11 @@ export async function POST(request) {
         allValid = false;
         continue;
       }
-      
+
       try {
         // Find the product
         const product = await Product.findById(item.productId);
-        
+
         if (!product) {
           results.push({
             productId: item.productId,
@@ -60,15 +60,15 @@ export async function POST(request) {
           allValid = false;
           continue;
         }
-        
+
         // Check if available and in stock
         if (!product.isAvailable || product.stock < item.quantity) {
           results.push({
             productId: item.productId,
             productTitle: product.title,
             valid: false,
-            message: product.stock === 0 
-              ? 'Out of stock' 
+            message: product.stock === 0
+              ? 'Out of stock'
               : `Only ${product.stock} available`,
             available: product.stock
           });
@@ -81,7 +81,7 @@ export async function POST(request) {
             price: product.price,
             available: product.stock
           });
-          
+
           // Add to subtotal
           subtotal += product.price * item.quantity;
         }
@@ -95,7 +95,7 @@ export async function POST(request) {
         allValid = false;
       }
     }
-    
+
     // 5. Return the validation results
     return NextResponse.json({
       success: true,
@@ -103,11 +103,11 @@ export async function POST(request) {
       results,
       subtotal,
       total: subtotal, // Add shipping if needed
-      message: allValid 
-        ? 'All items are available' 
+      message: allValid
+        ? 'All items are available'
         : 'Some items need attention'
     });
-    
+
   } catch (error) {
     console.error('Cart validation error:', error);
     return NextResponse.json({

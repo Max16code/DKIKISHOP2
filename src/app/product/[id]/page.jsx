@@ -21,8 +21,9 @@ export default function ProductDetailPage() {
       try {
         const res = await fetch(`/api/product/${id}`)
         const data = await res.json()
+        console.log(data)
         if (data?._id) setProduct(data)
-        else throw new Error('Product not found')
+          else throw new Error('Product not found')
       } catch (err) {
         console.error('❌ Failed to load product:', err)
       }

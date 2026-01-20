@@ -1,7 +1,3 @@
-// 
-
-// deepseek////////
-
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/models/orderModel";
@@ -10,7 +6,7 @@ import mongoose from "mongoose";
 
 export async function POST(req) {
   const session = await mongoose.startSession();
-  
+
   try {
     const {
       reference,
@@ -19,25 +15,27 @@ export async function POST(req) {
       name,
       phone,
       address,
-      totalAmount,
-      subtotal,
-      deliveryFee,
+      totalAmount,      // NAIRA
+      subtotal,         // NAIRA
+      deliveryFee,      // NAIRA
       courier,
       location,
       eta,
     } = await req.json();
 
-    // Validate required fields
-    if (!reference || !email || !totalAmount || !Array.isArray(cartItems)) {
+    // ===============================
+    // BASIC VALIDATION
+    // ===============================
+    if (!reference || !email || !Array.isArray(cartItems) || !cartItems.length) {
       return NextResponse.json(
         { success: false, message: "Invalid request data" },
         { status: 400 }
       );
     }
 
-    /* ===============================
-       PAYSTACK VERIFICATION
-    =============================== */
+    // ===============================
+    // PAYSTACK VERIFICATION
+    // ===============================
     const paystackRes = await fetch(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -50,7 +48,7 @@ export async function POST(req) {
     );
 
     if (!paystackRes.ok) {
-      throw new Error("Failed to reach Paystack for verification");
+      throw new Error("Failed to reach Paystack");
     }
 
     const paystackData = await paystackRes.json();
@@ -63,27 +61,43 @@ export async function POST(req) {
       );
     }
 
-    /* ===============================
-       DATABASE CONNECTION & TRANSACTION START
-    =============================== */
+    // ===============================
+    // AMOUNT VERIFICATION (CRITICAL)
+    // Paystack = kobo → convert to naira
+    // ===============================
+    const paidAmount = payment.amount / 100; // kobo → naira
+    const expectedAmount = Number(totalAmount);
+
+    if (paidAmount !== expectedAmount) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Payment amount mismatch",
+          paid: paidAmount,
+          expected: expectedAmount,
+        },
+        { status: 400 }
+      );
+    }
+
+    // ===============================
+    // DB + TRANSACTION START
+    // ===============================
     await dbConnect();
     session.startTransaction();
 
-    /* ===============================
-       IDEMPOTENCY CHECK (INSIDE TRANSACTION)
-    =============================== */
+    // ===============================
+    // IDEMPOTENCY CHECK
+    // ===============================
     const existing = await Order.findOne({ reference }).session(session);
     if (existing) {
       await session.commitTransaction();
       return NextResponse.json({ success: true, order: existing });
     }
 
-    /* ===============================
-       ENHANCED INVENTORY REDUCTION
-       - Updates both quantity AND stock fields
-       - Updates isAvailable when stock hits 0
-       - Better error handling
-    =============================== */
+    // ===============================
+    // STOCK VALIDATION + DECREMENT
+    // ===============================
     for (const item of cartItems) {
       if (!item.productId || !item.quantity) {
         await session.abortTransaction();
@@ -93,159 +107,109 @@ export async function POST(req) {
         );
       }
 
-      // Find the product with session for transaction safety
       const product = await Product.findById(item.productId).session(session);
-      
+
       if (!product) {
         await session.abortTransaction();
         return NextResponse.json(
-          { 
-            success: false, 
-            message: `Product ${item.productId} not found`,
-            type: 'PRODUCT_NOT_FOUND'
-          },
+          { success: false, message: `Product not found` },
           { status: 404 }
         );
       }
 
-      // Check stock availability
       if (product.stock < item.quantity) {
         await session.abortTransaction();
         return NextResponse.json(
-          { 
-            success: false, 
-            message: `Insufficient stock for "${product.title}". Available: ${product.stock}, Requested: ${item.quantity}`,
-            productTitle: product.title,
-            availableStock: product.stock,
-            requestedQuantity: item.quantity,
-            type: 'STOCK_ERROR'
+          {
+            success: false,
+            message: `Insufficient stock for "${product.title}"`,
+            available: product.stock,
+            requested: item.quantity,
           },
           { status: 400 }
         );
       }
 
-      // ✅ UPDATE BOTH STOCK AND QUANTITY FIELDS
       product.stock -= item.quantity;
-      product.quantity = product.stock; // Keep them in sync
-      
-      // Update availability if stock reaches 0
+      product.quantity = product.stock;
+
       if (product.stock <= 0) {
-        product.isAvailable = false;
         product.stock = 0;
         product.quantity = 0;
+        product.isAvailable = false;
       }
 
       await product.save({ session });
     }
 
-    /* ===============================
-       ENHANCED ORDER SAVING
-       - Include all order details
-       - Track stock before reduction
-    =============================== */
-    const newOrder = await Order.create([{
-      email,
-      name,
-      phone,
-      address,
-      reference,
-      totalAmount,
-      subtotal: subtotal || totalAmount - (deliveryFee || 0),
-      shippingFee: deliveryFee || 0,
-      items: cartItems.map(item => ({
-        ...item,
-        // Store purchased stock for records
-        purchasedStock: 0, // Will be updated after save if needed
-      })),
-      status: "confirmed",
-      paymentStatus: "successful",
-      paymentGateway: "Paystack",
-      courier,
-      location,
-      eta,
-      paidAt: new Date(),
-      // Add shopId for reference
-      shopId: `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-    }], { session });
-
-    await session.commitTransaction();
-
-    /* ===============================
-       POST-TRANSACTION: Update product purchasedStock
-       This is optional but good for records
-    =============================== */
-    try {
-      for (const item of cartItems) {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          // Update the order item with stock before purchase
-          await Order.updateOne(
-            { _id: newOrder[0]._id, "items.productId": item.productId },
-            { 
-              $set: { 
-                "items.$.purchasedStock": product.stock + item.quantity 
-              } 
-            }
-          );
-        }
-      }
-    } catch (updateError) {
-      console.error("Failed to update purchasedStock:", updateError);
-      // Non-critical error, continue
-    }
-
-    /* ===============================
-       EMAIL (NON-BLOCKING)
-    =============================== */
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sendMail`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    // ===============================
+    // ORDER CREATION
+    // ===============================
+    const newOrder = await Order.create(
+      [
+        {
           email,
           name,
           phone,
           address,
-          cartItems,
+          reference,
           totalAmount,
-          subtotal: subtotal || totalAmount - (deliveryFee || 0),
-          deliveryFee: deliveryFee || 0,
+          subtotal: subtotal ?? totalAmount - (deliveryFee || 0),
+          shippingFee: deliveryFee || 0,
+          items: cartItems,
+          status: "confirmed",
+          paymentStatus: "successful",
+          paymentGateway: "Paystack",
           courier,
           location,
           eta,
-          orderId: newOrder[0].shopId,
-          paymentReference: reference,
-        }),
-      });
-    } catch (mailErr) {
-      console.error("Email sending failed:", mailErr);
-    }
+          paidAt: new Date(),
+          shopId: `ORD-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 8)
+            .toUpperCase()}`,
+        },
+      ],
+      { session }
+    );
 
-    return NextResponse.json({ 
-      success: true, 
+    await session.commitTransaction();
+
+    // ===============================
+    // EMAIL (NON-BLOCKING)
+    // ===============================
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sendMail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        name,
+        phone,
+        address,
+        cartItems,
+        totalAmount,
+        subtotal: subtotal ?? totalAmount - (deliveryFee || 0),
+        deliveryFee: deliveryFee || 0,
+        courier,
+        location,
+        eta,
+        orderId: newOrder[0].shopId,
+        paymentReference: reference,
+      }),
+    }).catch(() => {});
+
+    return NextResponse.json({
+      success: true,
       order: newOrder[0],
-      message: "Payment verified and stock updated successfully"
+      message: "Payment verified, order saved, stock updated",
     });
 
   } catch (err) {
-    // Rollback transaction if it's still active
     if (session.inTransaction()) {
       await session.abortTransaction();
     }
-    
-    console.error("Payment verification error:", err);
 
-    // Handle specific stock errors
-    if (err.message.includes("Insufficient stock") || err.message.includes("stock")) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: err.message,
-          type: 'STOCK_ERROR'
-        },
-        { status: 400 }
-      );
-    }
+    console.error("Payment verification error:", err);
 
     return NextResponse.json(
       {
