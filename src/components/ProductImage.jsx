@@ -50,13 +50,21 @@ export default function ProductImage({
   }
 
   // Cloudinary / MongoDB URL normalization
-  const normalizeUrl = (url) => {
-    if (!url) return fallback
-    if (url.startsWith('/https://') || url.startsWith('/http://')) return url.slice(1)
-    if (url.startsWith('http')) return url
-    if (!url.startsWith('/')) return `/${url}`
-    return url
-  }
+ const normalizeUrl = (url) => {
+  if (!url) return fallback
+
+  // Remove leading slash if mistakenly prefixed
+  if (url.match(/^\/https?:\/\//)) return url.slice(1)
+
+  // Absolute URLs (Cloudinary or external)
+  if (url.startsWith('http')) return url
+
+  // Local images
+  if (!url.startsWith('/')) return `/${url}`
+
+  return url
+}
+
 
   const imgList = product?.images?.length
     ? product.images

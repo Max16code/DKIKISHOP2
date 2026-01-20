@@ -1,5 +1,5 @@
 import dbConnect from "@/lib/mongodb";
-import product from "@/models/productModel";
+import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
 import { verifyAdmin } from "@/lib/verifyAdmin";
@@ -40,21 +40,31 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: "At least one product image is required." }, { status: 400 });
     }
 
+    // 🔹 Upload images to Cloudinary (organized by category + unique filenames)
     const imageUrls = [];
     for (const file of imagesFiles) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
       const uploadRes = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream({ folder: "dkikishop/products" }, (err, result) => {
-          if (err) reject(err);
-          else resolve(result);
-        }).end(buffer);
+        cloudinary.uploader.upload_stream(
+          {
+            folder: `dkikishop/products/${category}`,
+            use_filename: true,
+            unique_filename: true,
+            resource_type: "image",
+          },
+          (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          }
+        ).end(buffer);
       });
 
       imageUrls.push(uploadRes.secure_url);
     }
 
+    // ✅ Validate fields
     if (!title || !description || isNaN(price) || price <= 0) {
       return NextResponse.json({ success: false, error: "Required fields missing or invalid." }, { status: 400 });
     }
@@ -67,10 +77,23 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: "Sizes are required." }, { status: 400 });
     }
 
-    const newProduct = new product({ title, description, price, sizes, category, images: imageUrls, quantity });
+    // 🔹 Save product with stock and availability
+    const newProduct = new Product({
+      title,
+      description,
+      price,
+      sizes,
+      category,
+      images: imageUrls,
+      quantity,
+      stock: quantity,          // important for homepage/category filter
+      isAvailable: quantity > 0 // important for homepage/category filter
+    });
+
     await newProduct.save();
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
+
   } catch (err) {
     console.error("❌ Upload error:", err);
     return NextResponse.json({ success: false, error: "Internal server error." }, { status: 500 });

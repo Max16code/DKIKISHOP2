@@ -22,8 +22,11 @@ export async function GET(req, context) {
   try {
     await dbConnect();
 
-    // ✅ Use context.params directly
-    const cat = context.params?.cat;
+   
+    // Await the params first
+    const { params } = await context;
+    const cat = params?.cat;
+
 
     if (!cat) {
       return NextResponse.json(
@@ -46,19 +49,13 @@ export async function GET(req, context) {
       );
     }
 
-    // ✅ GET QUERY PARAMETERS FOR STOCK FILTERING
     const { searchParams } = new URL(req.url);
     const available = searchParams.get('available'); // 'true' or 'false'
-    const showAll = searchParams.get('showAll') === 'true'; // Show all including out of stock
+    const showAll = searchParams.get('showAll') === 'true';
+    const limit = parseInt(searchParams.get('limit') || '50');
 
-    // ✅ BUILD QUERY WITH STOCK MANAGEMENT
-    let query = {
-      category: cleanedCategory
-    };
+    let query = { category: cleanedCategory };
 
-    // ✅ ENHANCED STOCK FILTERING:
-    // If 'available=true' OR no parameter (default behavior), filter out-of-stock
-    // If 'showAll=true', show everything
     if (available !== 'false' && !showAll) {
       query.isAvailable = true;
       query.$or = [
@@ -67,10 +64,17 @@ export async function GET(req, context) {
       ];
     }
 
-    // ✅ Get products with proper filtering
-    const products = await Product.find(query).lean();
+    // ✅ Ensure products have at least one image
+    query.$or = [
+      { image: { $exists: true, $ne: '' } },
+      { images: { $exists: true, $not: { $size: 0 } } }
+    ];
 
-    // ✅ RETURN CONSISTENT FORMAT WITH OTHER APIs
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
     return NextResponse.json(products, { status: 200 });
 
   } catch (error) {

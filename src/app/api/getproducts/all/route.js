@@ -5,22 +5,19 @@
 // app/api/getproducts/all/route.js
 
 import dbConnect from '@/lib/mongodb'
-import product from "@/models/productModel";
+import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
 
-export async function GET(request) {  // ✅ Add request parameter
+export async function GET(request) {
   try {
     await dbConnect();
 
-    // ✅ Get query parameters
     const { searchParams } = new URL(request.url);
     const available = searchParams.get('available'); // 'true' or 'false'
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    // ✅ Build query
     let query = {};
-    
-    // ✅ Filter by availability if requested
+
     if (available === 'true') {
       query.isAvailable = true;
       query.$or = [
@@ -29,14 +26,20 @@ export async function GET(request) {  // ✅ Add request parameter
       ];
     }
 
-    // ✅ Get products with optional filtering
-    const products = await product.find(query)
+    // ✅ Ensure products have an image
+    query.$or = [
+      { image: { $exists: true, $ne: '' } },
+      { images: { $exists: true, $not: { $size: 0 } } }
+    ];
+
+    const products = await Product.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
 
     return NextResponse.json(products);
   } catch (error) {
+    console.error("Fetch products error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch products: " + error.message },
       { status: 500 }

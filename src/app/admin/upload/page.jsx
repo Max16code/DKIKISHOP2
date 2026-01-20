@@ -21,19 +21,18 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // 🔒 Admin Cookie Check
+  // 🔒 Admin check
   useEffect(() => {
     const isLoggedIn =
       document.cookie
         .split('; ')
-        .find(row => row.startsWith('admin_logged_in='))
-        ?.split('=')[1] === 'true';
+        .find(row => row.startsWith('admin_logged_in='))?.split('=')[1] === 'true';
 
     if (!isLoggedIn) router.replace('/admin/login');
     else setLoading(false);
   }, [router]);
 
-  // 🔹 Revoke object URLs on cleanup to avoid memory leaks
+  // 🔹 Cleanup object URLs
   useEffect(() => {
     return () => {
       imageFiles.forEach(file => URL.revokeObjectURL(file));
@@ -65,6 +64,7 @@ export default function UploadPage() {
       formData.append("category", category.toLowerCase());
       formData.append("quantity", quantity);
 
+      // 🔹 Append each image correctly
       imageFiles.forEach(file => formData.append("images", file));
 
       const response = await fetch("/api/admin/upload", {
@@ -79,6 +79,8 @@ export default function UploadPage() {
 
       if (data.success) {
         setMessage("✅ Product uploaded successfully.");
+
+        // Reset form
         setTitle('');
         setDescription('');
         setPrice('');
@@ -131,7 +133,7 @@ export default function UploadPage() {
           <input type="number" className="w-full border p-2 rounded" placeholder="Price (₦)" value={price} onChange={e => setPrice(e.target.value)} />
           <input type="text" className="w-full border p-2 rounded" placeholder="Sizes (comma separated)" value={sizes} onChange={e => setSizes(e.target.value)} />
           <input type="text" className="w-full border p-2 rounded" placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} />
-          <input type="number" min="0" placeholder="Quantity" className="w-full border p-2 rounded" value={quantity} onChange={e => setQuantity(Number(e.target.value))} />
+          <input type="number" min="0" className="w-full border p-2 rounded" placeholder="Quantity" value={quantity} onChange={e => setQuantity(Number(e.target.value))} />
 
           <div>
             <p className="mb-1">Upload Product Images:</p>
