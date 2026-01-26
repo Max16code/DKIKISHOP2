@@ -13,13 +13,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const allowedCategories = ["blazers","shirts","skirts","dresses","activewears","jeans","shorts","accessories"];
+const allowedCategories = [
+  "blazers",
+  "shirts",
+  "skirts",
+  "dresses",
+  "activewears",
+  "jeans",
+  "shorts",
+  "accessories",
+];
 
 export async function POST(req) {
   try {
-    // 🔒 Verify admin
-    if (!verifyAdmin(req)) {
-      return NextResponse.json({ success: false, error: "Unauthorized access." }, { status: 401 });
+    // 🔒 Verify admin (FIXED)
+    const isAdmin = await verifyAdmin(req);
+    if (!isAdmin) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access." },
+        { status: 401 }
+      );
     }
 
     await dbConnect();
@@ -33,15 +46,47 @@ export async function POST(req) {
     const sizesRaw = sanitizeInput(formData.get("sizes") || "");
     const quantity = Number(formData.get("quantity") || 1);
 
-    const sizes = sizesRaw.split(",").map(s => sanitizeInput(s.trim())).filter(Boolean);
+    const sizes = sizesRaw
+      .split(",")
+      .map((s) => sanitizeInput(s.trim()))
+      .filter(Boolean);
+
+    // ✅ Validate fields BEFORE upload
+    if (!title || !description || isNaN(price) || price <= 0) {
+      return NextResponse.json(
+        { success: false, error: "Required fields missing or invalid." },
+        { status: 400 }
+      );
+    }
+
+    if (!allowedCategories.includes(category)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Invalid category. Must be: ${allowedCategories.join(", ")}`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (sizes.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Sizes are required." },
+        { status: 400 }
+      );
+    }
 
     const imagesFiles = formData.getAll("images");
     if (!imagesFiles || imagesFiles.length === 0) {
-      return NextResponse.json({ success: false, error: "At least one product image is required." }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "At least one product image is required." },
+        { status: 400 }
+      );
     }
 
-    // 🔹 Upload images to Cloudinary (organized by category + unique filenames)
+    // 🔹 Upload images to Cloudinary
     const imageUrls = [];
+
     for (const file of imagesFiles) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
@@ -61,23 +106,14 @@ export async function POST(req) {
         ).end(buffer);
       });
 
+      if (!uploadRes?.secure_url) {
+        throw new Error("Cloudinary upload failed");
+      }
+
       imageUrls.push(uploadRes.secure_url);
     }
 
-    // ✅ Validate fields
-    if (!title || !description || isNaN(price) || price <= 0) {
-      return NextResponse.json({ success: false, error: "Required fields missing or invalid." }, { status: 400 });
-    }
-
-    if (!allowedCategories.includes(category)) {
-      return NextResponse.json({ success: false, error: `Invalid category. Must be: ${allowedCategories.join(", ")}` }, { status: 400 });
-    }
-
-    if (sizes.length === 0) {
-      return NextResponse.json({ success: false, error: "Sizes are required." }, { status: 400 });
-    }
-
-    // 🔹 Save product with stock and availability
+    // 🔹 Save product
     const newProduct = new Product({
       title,
       description,
@@ -86,16 +122,21 @@ export async function POST(req) {
       category,
       images: imageUrls,
       quantity,
-      stock: quantity,          // important for homepage/category filter
-      isAvailable: quantity > 0 // important for homepage/category filter
+      stock: quantity,
+      isAvailable: quantity > 0,
     });
 
     await newProduct.save();
 
-    return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
-
+    return NextResponse.json(
+      { success: true, product: newProduct },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("❌ Upload error:", err);
-    return NextResponse.json({ success: false, error: "Internal server error." }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Internal server error." },
+      { status: 500 }
+    );
   }
 }
