@@ -17,6 +17,7 @@ export default function UploadPage() {
   const [quantity, setQuantity] = useState(1);
 
   const [imageFiles, setImageFiles] = useState([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -39,6 +40,35 @@ export default function UploadPage() {
     };
   }, [imageFiles]);
 
+  // -------------------- Upload images to Cloudinary --------------------
+  const uploadImagesToCloudinary = async () => {
+    const urls = [];
+
+    for (const file of imageFiles) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
+
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (!data.secure_url) throw new Error(data.error?.message || 'Cloudinary upload failed');
+
+        urls.push(data.secure_url);
+      } catch (err) {
+        console.error('❌ Cloudinary upload error:', err);
+        throw new Error('Image upload failed');
+      }
+    }
+
+    return urls;
+  };
+
+  // -------------------- Handle form submission --------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -56,23 +86,28 @@ export default function UploadPage() {
     try {
       setUploading(true);
 
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("sizes", sizes);
-      formData.append("category", category.toLowerCase());
-      formData.append("quantity", quantity);
+      // 1️⃣ Upload images to Cloudinary
+      const imageUrls = await uploadImagesToCloudinary();
+      setUploadedImageUrls(imageUrls);
 
-      // 🔹 Append each image correctly
-      imageFiles.forEach(file => formData.append("images", file));
+      // 2️⃣ Send JSON payload to backend
+      const payload = {
+        title,
+        description,
+        price: Number(price),
+        sizes: sizes.split(',').map(s => s.trim()),
+        category: category.toLowerCase(),
+        quantity: Number(quantity),
+        images: imageUrls
+      };
 
-      const response = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY
-        }
+        },
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -88,6 +123,7 @@ export default function UploadPage() {
         setCategory('');
         setQuantity(1);
         setImageFiles([]);
+        setUploadedImageUrls([]);
       } else {
         setMessage(`❌ ${data.error || 'Something went wrong.'}`);
       }

@@ -28,7 +28,8 @@ export default function CategoryPage() {
           return
         }
 
-        setProductData(json.data || [])
+        setProductData(json.products || [])
+
       } catch (err) {
         console.error('❌ API fetch failed:', err)
         setError('Failed to load products.')

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useCart } from '@/context/Cartcontext'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
-import ProductImage from '@/components/ProductImage'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,7 @@ export default function ProductDetailPage() {
   const { id } = useParams()
   const [product, setProduct] = useState(null)
   const [selectedSize, setSelectedSize] = useState('')
-  const [selectedQuantity, setSelectedQuantity] = useState(1) // NEW: quantity state
+  const [selectedQuantity, setSelectedQuantity] = useState(1)
   const { addToCart } = useCart()
 
   useEffect(() => {
@@ -21,9 +21,8 @@ export default function ProductDetailPage() {
       try {
         const res = await fetch(`/api/product/${id}`)
         const data = await res.json()
-        console.log(data)
         if (data?._id) setProduct(data)
-          else throw new Error('Product not found')
+        else throw new Error('Product not found')
       } catch (err) {
         console.error('❌ Failed to load product:', err)
       }
@@ -49,10 +48,10 @@ export default function ProductDetailPage() {
     addToCart({
       _id: product._id,
       title: product.title,
-      image: product.images?.[0] || product.image || '/images/placeholder.png',
+      image: product.images?.[0],
       price: product.price,
       size: selectedSize,
-      quantity: selectedQuantity, // UPDATED: dynamic quantity
+      quantity: selectedQuantity,
     })
 
     alert('✅ Added to cart!')
@@ -67,13 +66,30 @@ export default function ProductDetailPage() {
     >
       <Navbar />
 
-      <div className="max-w-6xl mx-auto mt-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-xl 
+      <div className="max-w-6xl mx-auto mt-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-xl
       p-6 md:p-10 grid md:grid-cols-2 gap-10 items-start">
 
+        {/* ✅ PRODUCT IMAGE */}
         <div className="flex justify-center items-center">
-          <ProductImage product={product} height="h-[850px]" fit="object-contain" />
+          <div className="relative w-full h-[350px] sm:h-[500px] md:h-[650px] rounded-2xl overflow-hidden bg-black/20">
+            <Image
+              src={product.images?.[0]}
+              alt={product.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-contain"
+              priority
+            />
+
+            {isOutOfStock && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold">
+                Out of Stock
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* PRODUCT INFO */}
         <div className="space-y-6 md:mt-10">
 
           <h1 className="text-3xl md:text-4xl font-bold text-yellow-400">
@@ -95,8 +111,8 @@ export default function ProductDetailPage() {
                 value={selectedSize}
                 onChange={(e) => setSelectedSize(e.target.value)}
                 disabled={isOutOfStock}
-                className="w-full rounded-lg px-4 py-2 bg-white/20 text-white border border-white/30 
-                focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full rounded-lg px-4 py-2 bg-white/20 text-white border border-white/30
+                focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-60"
               >
                 <option value="">-- Select Size --</option>
                 {product.sizes.map((size, idx) => (
@@ -108,24 +124,19 @@ export default function ProductDetailPage() {
             </>
           )}
 
-          {/* NEW: Quantity selector */}
           {!isOutOfStock && (
-            <div className="mb-4">
+            <div>
               <label className="block mb-1 text-white font-medium">Quantity:</label>
               <input
                 type="number"
                 min={1}
-                max={product.quantity} // cannot exceed stock
+                max={product.quantity}
                 value={selectedQuantity}
                 onChange={(e) => setSelectedQuantity(Number(e.target.value))}
                 className="w-20 p-2 rounded border text-black"
               />
             </div>
           )}
-
-          {/* ================================ */}
-          {/* CLEANLY INTEGRATED BUTTON LOGIC  */}
-          {/* ================================ */}
 
           {isOutOfStock ? (
             <button
@@ -137,23 +148,18 @@ export default function ProductDetailPage() {
           ) : (
             <button
               onClick={handleAddToCart}
-              className="w-full bg-black text-white hover:bg-gray-900 font-semibold px-6 py-3 rounded-xl transition duration-200 active:scale-95"
+              className="w-full bg-black text-white hover:bg-gray-900 font-semibold px-6 py-3 rounded-xl transition active:scale-95"
             >
               Add to Cart
             </button>
           )}
 
           <div className="text-sm text-gray-400">
-            {isOutOfStock ? (
-              <span>Currently unavailable</span>
-            ) : (
-              <span>Only {product.quantity} left in stock</span>
-            )}
+            {isOutOfStock ? 'Currently unavailable' : `Only ${product.quantity} left in stock`}
           </div>
 
         </div>
       </div>
-
     </motion.div>
   )
 }

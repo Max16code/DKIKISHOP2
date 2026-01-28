@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import ProductImage from '@/components/ProductImage'
+// import ProductImage from '@/components/ProductImage'
 
 export default function Home() {
   const [productData, setProductData] = useState([])
@@ -22,15 +22,15 @@ export default function Home() {
         // CHANGED: Add stock filter parameter
         const res = await fetch('/api/getproducts/all?available=true')
         const data = await res.json()
-        
+
         if (!Array.isArray(data)) throw new Error('Invalid product format')
-        
+
         // CHANGED: Filter products by availability (client-side backup)
-        const availableProducts = data.filter(product => 
-          product.isAvailable !== false && 
+        const availableProducts = data.filter(product =>
+          product.isAvailable !== false &&
           (product.stock > 0 || product.quantity > 0)
         )
-        
+
         setProductData(availableProducts)
       } catch (err) {
         console.error('❌ Error:', err)
@@ -46,10 +46,16 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] overflow-hidden">
       {/* Faint Logo Background */}
-      <div
-        className="absolute inset-0 opacity-5 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url('/images/kikiLogo.jpg')` }}
-      />
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/images/kikiLogo.jpg"
+          alt="Background Logo"
+          fill
+          className="object-cover opacity-5"
+          sizes="100vw"
+          priority
+        />
+      </div>
 
       <Navbar />
 
@@ -63,16 +69,18 @@ export default function Home() {
               P
               <Image
                 src="/images/santa2.png"
-                alt=""
+                alt="Santa Hat"
                 width={24}
                 height={24}
-                className="absolute -top-2 -right-3"
+                className="absolute -top-2 -right-3 w-auto h-auto"
               />
             </span>
           </span>
         </h1>
         <p className="mt-2 text-gray-400">Luxury on a Budget</p>
       </div>
+
+
 
       {/* Status Messages */}
       <div className="relative z-10 mt-10 px-6 text-center">
@@ -84,79 +92,86 @@ export default function Home() {
       </div>
 
       {/* Product Grid */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap- sm:gap-6">
         {productData.map((product, index) => {
           // Calculate stock status
           const isAvailable = product.isAvailable !== false;
           const stock = product.stock || product.quantity || 0;
           const inStock = isAvailable && stock > 0;
           const lowStock = inStock && stock <= 5;
-          
+
           return (
-            <Link href={`/product/${product._id}`} key={product._id || index} passHref>
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className={`p-2 sm:p-3 flex flex-col items-center text-center cursor-pointer shadow-md hover:shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 h-full relative ${
-                  !inStock ? 'opacity-70' : ''
-                }`}
-              >
-                {/* Stock Status Badge */}
-                {!inStock && (
-                  <div className="absolute top-2 left-2 z-20 px-2 py-1 bg-red-600/90 text-white text-xs font-bold rounded-full">
-                    OUT OF STOCK
-                  </div>
-                )}
-                {lowStock && (
-                  <div className="absolute top-2 left-2 z-20 px-2 py-1 bg-yellow-600/90 text-white text-xs font-bold rounded-full">
-                    LOW STOCK
-                  </div>
-                )}
+           <Link href={`/product/${product._id}`} key={product._id || index} passHref>
+  <motion.div
+    whileHover={{ scale: 1.03 }}
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: index * 0.05 }}
+    className={`flex flex-col cursor-pointer shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 relative rounded-lg overflow-hidden ${!inStock ? 'opacity-70' : ''}`}
+  >
+    {/* Product Image */}
+    <div className="relative w-full h-54 sm:h-64 md:h-72 flex items-center justify-center bg-black/10">
+      <Image
+        src={product.images?.[0] || '/images/fallback.jpg'}
+        alt={product.title}
+        fill
+        className={`object-contain transition-opacity duration-300 ${!inStock ? 'opacity-50 grayscale' : ''}`}
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        priority={index < 6}
+      />
 
-                {/* Responsive Product Image */}
-                <ProductImage
-                  product={product}
-                  heightMobile="h-40"
-                  heightTablet="sm:h-48"
-                  heightDesktop="md:h-56"
-                  fit="object-contain"
-                  showStockBadge={false} // We'll show our own badge
-                  showOutOfStockOverlay={!inStock} // Show overlay if out of stock
-                />
+      {/* Stock badges */}
+      {!inStock && (
+        <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded-full z-10">
+          OUT OF STOCK
+        </div>
+      )}
+      {lowStock && (
+        <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-600 text-white text-xs font-bold rounded-full z-10">
+          LOW STOCK
+        </div>
+      )}
 
-                <h2 className="text-sm sm:text-base font-semibold text-white mt-2 line-clamp-1">
-                  {product.title}
-                </h2>
+      {/* Out of stock overlay */}
+      {!inStock && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold z-5">
+          Unavailable
+        </div>
+      )}
+    </div>
 
-                <p className="text-xs text-gray-400 line-clamp-2 mt-1">
-                  {product.description}
-                </p>
+    {/* Product Info */}
+    <div className="p-2 sm:p-3 flex flex-col items-start text-left">
+      <h2 className="text-sm sm:text-base font-semibold text-white line-clamp-1">
+        {product.title}
+      </h2>
 
-                <p className="text-yellow-400 font-bold text-sm mt-1">
-                  ₦{Number(product.price).toLocaleString()}
-                </p>
+      <p className="text-xs text-gray-400 line-clamp-2 mt-1">
+        {product.description}
+      </p>
 
-                {/* Stock Indicator */}
-                <div className="mt-1 text-xs">
-                  {inStock ? (
-                    <span className={lowStock ? 'text-yellow-400' : 'text-green-400'}>
-                      {lowStock ? `Only ${stock} left!` : 'In Stock'}
-                    </span>
-                  ) : (
-                    <span className="text-red-400">Out of Stock</span>
-                  )}
-                </div>
+      <p className="text-yellow-400 font-bold text-sm mt-1">
+        ₦{Number(product.price).toLocaleString()}
+      </p>
 
-                <p className="text-[10px] text-gray-400 mt-1">
-                  Sizes:{' '}
-                  {Array.isArray(product.sizes) && product.sizes.length > 0
-                    ? product.sizes.join(', ')
-                    : 'N/A'}
-                </p>
-              </motion.div>
-            </Link>
+      {/* Stock Indicator */}
+      <div className="mt-1 text-xs">
+        {inStock ? (
+          <span className={lowStock ? 'text-yellow-400' : 'text-green-400'}>
+            {lowStock ? `Only ${stock} left!` : 'In Stock'}
+          </span>
+        ) : (
+          <span className="text-red-400">Out of Stock</span>
+        )}
+      </div>
+
+      <p className="text-[10px] text-gray-400 mt-1">
+        Sizes: {Array.isArray(product.sizes) && product.sizes.length > 0 ? product.sizes.join(', ') : 'N/A'}
+      </p>
+    </div>
+  </motion.div>
+</Link>
+
           )
         })}
       </div>

@@ -16,45 +16,45 @@ export default function SkirtsPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-  const fetchCategory = async () => {
-    try {
-      // ✅ ADD STOCK FILTER: 'available=true'
-      const res = await fetch('/api/getproducts/skirts?available=true')
-      const products = await res.json()
+    const fetchCategory = async () => {
+      try {
+        // ✅ ADD STOCK FILTER: 'available=true'
+        const res = await fetch('/api/getproducts/skirts?available=true')
+        const products = await res.json()
 
-      // ✅ HANDLE BOTH RESPONSE FORMATS:
-      // Old format: { success: true, data: [...] }
-      // New format: [...] (array directly)
-      
-      let productArray = [];
-      
-      if (Array.isArray(products)) {
-        // New format: API returns array directly
-        productArray = products;
-      } else if (products?.success && Array.isArray(products.data)) {
-        // Old format: API returns { success: true, data: [...] }
-        productArray = products.data;
-      } else {
-        throw new Error('Invalid response format from API')
+        // ✅ HANDLE BOTH RESPONSE FORMATS:
+        // Old format: { success: true, data: [...] }
+        // New format: [...] (array directly)
+
+        let productArray = [];
+
+        if (Array.isArray(products)) {
+          // New format: API returns array directly
+          productArray = products;
+        } else if (products?.success && Array.isArray(products.data)) {
+          // Old format: API returns { success: true, data: [...] }
+          productArray = products.data;
+        } else {
+          throw new Error('Invalid response format from API')
+        }
+
+        // ✅ CLIENT-SIDE BACKUP FILTER (for safety)
+        const availableProducts = productArray.filter(product =>
+          product.isAvailable !== false &&
+          (product.stock > 0 || product.quantity > 0)
+        )
+
+        setProducts(availableProducts)
+      } catch (err) {
+        console.error('❌ Error:', err)
+        setError('Failed to fetch products')
+      } finally {
+        setLoading(false)
       }
-      
-      // ✅ CLIENT-SIDE BACKUP FILTER (for safety)
-      const availableProducts = productArray.filter(product => 
-        product.isAvailable !== false && 
-        (product.stock > 0 || product.quantity > 0)
-      )
-      
-      setProducts(availableProducts)
-    } catch (err) {
-      console.error('❌ Error:', err)
-      setError('Failed to fetch products')
-    } finally {
-      setLoading(false)
     }
-  }
 
-  fetchCategory()
-}, [])
+    fetchCategory()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] text-white px-6 py-10">
@@ -77,8 +77,12 @@ export default function SkirtsPage() {
             href={`/product/${product._id}`}
             className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:scale-[1.02] transition-all shadow-lg hover:shadow-pink-500/30"
           >
-            {/* ✅ Use ProductImage component */}
-                          <ProductImage product={product} />
+            <Image
+              src={product.images[0]}
+              alt={product.title}
+              fill
+              className="object-contain rounded-xl"
+            />
 
 
 

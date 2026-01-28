@@ -31,12 +31,22 @@ const ProductSchema = new mongoose.Schema({
     default: [],
   },
   category: {
-    type: String,
-    required: true,
-    lowercase: true,
-    trim: true,
-    enum: ['jeans', 'shirts', 'skirts', 'activewears', 'shorts', 'accessories'], // Add validation
-  },
+  type: String,
+  required: true,
+  lowercase: true,
+  trim: true,
+  enum: [
+    'blazers', 
+    'shirts', 
+    'skirts', 
+    'dresses', 
+    'activewears', 
+    'jeans', 
+    'shorts', 
+    'accessories'
+  ],
+},
+
   // Renamed 'quantity' to 'stock' for clarity (but keep quantity for now)
   quantity: {
     type: Number,

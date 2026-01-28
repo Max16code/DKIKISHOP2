@@ -11,46 +11,46 @@ export default function ShortsPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
-   useEffect(() => {
-  const fetchCategory = async () => {
-    try {
-      // ✅ ADD STOCK FILTER: 'available=true'
-      const res = await fetch('/api/getproducts/shorts?available=true')
-      const products = await res.json()
+    useEffect(() => {
+        const fetchCategory = async () => {
+            try {
+                // ✅ ADD STOCK FILTER: 'available=true'
+                const res = await fetch('/api/getproducts/shorts?available=true')
+                const products = await res.json()
 
-      // ✅ HANDLE BOTH RESPONSE FORMATS:
-      // Old format: { success: true, data: [...] }
-      // New format: [...] (array directly)
-      
-      let productArray = [];
-      
-      if (Array.isArray(products)) {
-        // New format: API returns array directly
-        productArray = products;
-      } else if (products?.success && Array.isArray(products.data)) {
-        // Old format: API returns { success: true, data: [...] }
-        productArray = products.data;
-      } else {
-        throw new Error('Invalid response format from API')
-      }
-      
-      // ✅ CLIENT-SIDE BACKUP FILTER (for safety)
-      const availableProducts = productArray.filter(product => 
-        product.isAvailable !== false && 
-        (product.stock > 0 || product.quantity > 0)
-      )
-      
-      setProducts(availableProducts)
-    } catch (err) {
-      console.error('❌ Error:', err)
-      setError('Failed to fetch products')
-    } finally {
-      setLoading(false)
-    }
-  }
+                // ✅ HANDLE BOTH RESPONSE FORMATS:
+                // Old format: { success: true, data: [...] }
+                // New format: [...] (array directly)
 
-  fetchCategory()
-}, [])
+                let productArray = [];
+
+                if (Array.isArray(products)) {
+                    // New format: API returns array directly
+                    productArray = products;
+                } else if (products?.success && Array.isArray(products.data)) {
+                    // Old format: API returns { success: true, data: [...] }
+                    productArray = products.data;
+                } else {
+                    throw new Error('Invalid response format from API')
+                }
+
+                // ✅ CLIENT-SIDE BACKUP FILTER (for safety)
+                const availableProducts = productArray.filter(product =>
+                    product.isAvailable !== false &&
+                    (product.stock > 0 || product.quantity > 0)
+                )
+
+                setProducts(availableProducts)
+            } catch (err) {
+                console.error('❌ Error:', err)
+                setError('Failed to fetch products')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchCategory()
+    }, [])
 
     return (
         <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] overflow-hidden">
@@ -90,8 +90,13 @@ export default function ShortsPage() {
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                         className="rounded-3xl overflow-hidden backdrop-blur-xl border border-white/10 bg-white/5 shadow-2xl hover:shadow-yellow-400/30 transition-shadow duration-300"
                     >
-                       {/* ✅ Use ProductImage component */}
-                                     <ProductImage product={product} />
+                        <Image
+                            src={product.images[0]}
+                            alt={product.title}
+                            fill
+                            className="object-contain rounded-xl"
+                        />
+
 
 
 
