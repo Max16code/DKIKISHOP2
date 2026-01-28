@@ -128,37 +128,51 @@ export default function CartPage() {
   const reference = crypto.randomUUID()
 
   const handler = window.PaystackPop.setup({
-    key: process.env.NEXT_PUBLIC_PAYSTACK_KEY,
-    email,
-    amount: Number(grandTotal) * 100, // kobo
-    currency: 'NGN',
-    ref: reference,
+  key: process.env.NEXT_PUBLIC_PAYSTACK_KEY,
+  email,
+  amount: Number(grandTotal) * 100, // kobo
+  currency: 'NGN',
+  ref: reference,
 
-    onClose: function () {
-      alert('Payment was cancelled')
+  // 🔥 THIS IS THE MISSING LINK
+  metadata: {
+    buyer: {
+      name,
+      phone,
+      address,
+      town,
+      service,
+      portDeliveryOption,
     },
 
-    callback: function (response) {
-      // DO NOT make this async
-      // DO NOT throw errors here
+    cartItems: cartItems.map(item => ({
+      _id: item._id,
+      qty: item.quantity,
+      size: item.size || null,
+      price: item.price,
+    })),
+  },
 
-      console.log('Payment success:', response.reference)
+  onClose: function () {
+    alert('Payment was cancelled')
+  },
 
-      // Call backend AFTER payment
-      fetch('/api/orders/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reference: response.reference,
-          buyerInfo,
-          cartItems,
-          totalAmount: grandTotal,
-        }),
-      })
+  callback: function (response) {
+    console.log('Payment success:', response.reference)
 
-      alert('Payment successful!')
-    },
-  })
+    fetch('/api/orders/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reference: response.reference,
+      }),
+    })
+
+    alert('Payment successful!')
+    clearCart()
+  },
+})
+
 
   // MUST be directly triggered by button click
   handler.openIframe()
