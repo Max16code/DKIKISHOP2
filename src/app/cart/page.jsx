@@ -128,7 +128,7 @@ export default function CartPage() {
   const reference = crypto.randomUUID()
 
   const handler = window.PaystackPop.setup({
-  key: process.env.NEXT_PUBLIC_PAYSTACK_KEY,
+  key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
   email,
   amount: Number(grandTotal) * 100, // kobo
   currency: 'NGN',
