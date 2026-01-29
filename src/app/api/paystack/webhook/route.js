@@ -13,7 +13,7 @@ export async function POST(req) {
     const body = await req.json();
     const signature = req.headers.get("x-paystack-signature");
 
-    // Verify webhook signature
+    // ---------------- Verify webhook signature ----------------
     const crypto = await import("crypto");
     const hash = crypto
       .createHmac("sha512", PAYSTACK_SECRET)
@@ -41,7 +41,7 @@ export async function POST(req) {
     if (!items || items.length === 0)
       throw new Error("No cart items in metadata");
 
-    // Save order in DB
+    // ---------------- Save order ----------------
     const order = await Order.create({
       items,
       customerName: metadata.buyer.name,
@@ -59,7 +59,7 @@ export async function POST(req) {
       createdAt: new Date(),
     });
 
-    // Decrement stock
+    // ---------------- Decrement stock ----------------
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product) continue;
@@ -78,7 +78,7 @@ export async function POST(req) {
       },
     });
 
-    // Email to customer
+    // ---------------- Email to customer ----------------
     const customerHtml = `
       <h2>Thank you for your purchase, ${metadata.buyer.name}!</h2>
       <p>Order Reference: <strong>${reference}</strong></p>
@@ -112,7 +112,7 @@ export async function POST(req) {
       html: customerHtml,
     });
 
-    // Email to admin
+    // ---------------- Email to admin ----------------
     const adminHtml = `
       <h2>New Order Received</h2>
       <p>Customer: ${metadata.buyer.name} (${customer.email})</p>
