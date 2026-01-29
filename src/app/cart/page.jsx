@@ -119,11 +119,11 @@ export default function CartPage() {
       metadata: {
         buyer: { name, phone, address, town, service, portDeliveryOption },
         cartItems: cartItems.map(item => ({
-          productId: item._id,       // <-- fixed
-          title: item.title,         // for buyer/admin email
-          image: item.image,         // for buyer email
+          productId: item._id,
+          title: item.title,
+          image: item.image,
           size: item.size || null,
-          quantity: item.quantity,   // <-- fixed
+          quantity: item.quantity,
           price: item.price,
         })),
         totalAmount: grandTotal,
@@ -133,42 +133,19 @@ export default function CartPage() {
         alert('Payment was cancelled')
       },
 
+      // ✅ FIX: Do not call orders/complete here
       callback: function (response) {
         console.log('Payment success:', response.reference)
         setIsProcessing(true)
 
-        fetch('/api/orders/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            reference: response.reference,
-            buyerInfo,
-            cartItems: cartItems.map(item => ({
-              productId: item._id,
-              title: item.title,
-              image: item.image,
-              size: item.size || null,
-              quantity: item.quantity,
-              price: item.price,
-            })),
-            totalAmount: grandTotal,
-          }),
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              alert('Payment successful! Check your email for receipt.')
-              clearCart()
-            } else {
-              alert('Payment recorded but email/order failed: ' + data.error)
-            }
-            setIsProcessing(false)
-          })
-          .catch(err => {
-            console.error(err)
-            alert('Something went wrong during order processing.')
-            setIsProcessing(false)
-          })
+        // Alert user
+        alert(
+          `Payment successful! Your order is being processed. You will receive a confirmation email shortly.`
+        )
+
+        // Clear cart locally
+        clearCart()
+        setIsProcessing(false)
       },
     })
 

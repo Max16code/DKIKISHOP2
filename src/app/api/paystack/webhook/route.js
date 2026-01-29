@@ -1,56 +1,76 @@
 // /src/app/api/paystack/webhook/route.js
-import dbConnect from "@/lib/mongodb";
-import Product from "@/models/productModel";
-import Order from "@/models/orderModel";
-import { Resend } from "resend";
+import dbConnect from "@/lib/mongodb"
+import Product from "@/models/productModel"
+import Order from "@/models/orderModel"
+import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req) {
-  await dbConnect();
+  await dbConnect()
 
-  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-
-  // Paystack sends raw JSON
-  const body = await req.json();
-  const signature = req.headers.get("x-paystack-signature");
-
-  // Verify webhook signature
-  const crypto = await import("crypto");
-  const hash = crypto.createHmac("sha512", PAYSTACK_SECRET)
-                     .update(JSON.stringify(body))
-                     .digest("hex");
-
-  if (hash !== signature) {
-    return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 400 });
-  }
-
-  // Only process successful payments
-  if (body.event !== "charge.success") {
-    return new Response(JSON.stringify({ message: "Event ignored" }), { status: 200 });
-  }
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY
 
   try {
-    const { metadata, customer, reference, amount } = body.data;
-    const items = metadata?.cartItems;
+    const body = await req.json()
+    const signature = req.headers.get("x-paystack-signature")
 
-    if (!items || items.length === 0) throw new Error("No cart items");
+    // Verify webhook signature
+    const crypto = await import("crypto")
+    const hash = crypto.createHmac("sha512", PAYSTACK_SECRET)
+                       .update(JSON.stringify(body))
+                       .digest("hex")
 
-    // Save order
-    const order = await Order.create({
-      items,
+    if (hash !== signature) {
+      return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 400 })
+    }
+
+    // Only process successful payments
+    if (body.event !== "charge.success") {
+      return new Response(JSON.stringify({ message: "Event ignored" }), { status: 200 })
+    }
+
+    const { data } = body
+    const { metadata, customer, reference, amount } = data
+    const items = metadata?.cartItems
+    const buyerInfo = metadata?.buyer
+
+    if (!items || items.length === 0) throw new Error("No cart items in metadata")
+
+    // Build order data with all required fields
+    const orderData = {
+      shopId: "dkikishop",                     // <-- example shop ID
+      items: items.map(i => ({
+        productId: i.productId,
+        title: i.title,
+        image: i.image || "",
+        size: i.size || null,
+        quantity: i.quantity,
+        price: i.price,
+      })),
       email: customer.email,
-      amount: amount / 100,
+      customerName: buyerInfo?.name || "",
+      phone: buyerInfo?.phone || "",
+      shippingAddress: {
+        street: buyerInfo?.address || "",
+        city: buyerInfo?.town || "",
+      },
+      subtotal: items.reduce((acc, i) => acc + i.price * i.quantity, 0),
+      totalAmount: metadata.totalAmount || amount / 100,
       paystackRef: reference,
+      status: "paid",
       createdAt: new Date(),
-    });
+    }
+
+    // Save order to DB
+    const order = await Order.create(orderData)
 
     // Decrement stock
     for (const item of items) {
-      const product = await Product.findById(item._id);
-      if (!product) continue;
-      product.quantity = Math.max(0, product.quantity - item.quantity);
-      await product.save();
+      const product = await Product.findById(item.productId)
+      if (!product) continue
+      product.quantity = Math.max(0, product.quantity - item.quantity)
+      await product.save()
     }
 
     // Buyer Email
@@ -60,9 +80,9 @@ export async function POST(req) {
       subject: "Your Dkikishop Order Was Successful 🎉",
       html: `<h2>Thanks for your purchase!</h2>
              <p>Order Reference: ${reference}</p>
-             <ul>${items.map(i => `<li>${i.quantity} × ${i._id}</li>`).join("")}</ul>
-             <p>Total: ₦${amount / 100}</p>`,
-    });
+             <ul>${items.map(i => `<li>${i.quantity} × ${i.title}</li>`).join("")}</ul>
+             <p>Total: ₦${orderData.totalAmount.toLocaleString()}</p>`,
+    })
 
     // Admin Email
     await resend.emails.send({
@@ -71,14 +91,14 @@ export async function POST(req) {
       subject: "🛒 New Order Received",
       html: `<p>New order by ${customer.email}</p>
              <p>Reference: ${reference}</p>
-             <ul>${items.map(i => `<li>${i.quantity} × ${i._id}</li>`).join("")}</ul>
-             <p>Total: ₦${amount / 100}</p>`,
-    });
+             <ul>${items.map(i => `<li>${i.quantity} × ${i.title}</li>`).join("")}</ul>
+             <p>Total: ₦${orderData.totalAmount.toLocaleString()}</p>`,
+    })
 
-    return new Response(JSON.stringify({ message: "Processed successfully" }), { status: 200 });
+    return new Response(JSON.stringify({ message: "Webhook processed successfully" }), { status: 200 })
 
   } catch (err) {
-    console.error("Webhook error:", err);
-    return new Response(JSON.stringify({ error: "Processing failed" }), { status: 500 });
+    console.error("Webhook error:", err)
+    return new Response(JSON.stringify({ error: "Order processing failed", details: err.message }), { status: 500 })
   }
 }
