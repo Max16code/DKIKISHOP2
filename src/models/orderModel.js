@@ -1,127 +1,97 @@
 import mongoose from 'mongoose'
 
 const orderSchema = new mongoose.Schema({
-  // Customer Information
+  // ---------------- Customer Information ----------------
+  customerName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   email: {
     type: String,
+    required: true,
     trim: true,
     lowercase: true,
   },
-  phone: String,
-  customerName: String,
-  
-  // Shipping Address
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+
+  // ---------------- Shipping Address ----------------
   shippingAddress: {
-    street: String,
-    city: String,
+    street: { type: String, required: true },
+    city: { type: String, required: true },
     state: String,
+    postalCode: String,
     country: {
       type: String,
       default: 'Nigeria',
     },
-    postalCode: String,
   },
-  
-  // Order Items (Enhanced)
+
+  // ---------------- Order Items ----------------
   items: [{
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
       required: true
     },
-    title: {
-      type: String,
-      required: true
-    },
+    title: { type: String, required: true },
     size: String,
-    price: {
-      type: Number,
-      required: true,
-      min: 0
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
+    price: { type: Number, required: true, min: 0 },
+    quantity: { 
+      type: Number, 
+      required: true, 
+      min: 1, 
       validate: {
         validator: Number.isInteger,
         message: 'Quantity must be a whole number'
       }
     },
     image: String,
-    purchasedStock: Number // Stock at time of purchase
+    purchasedStock: Number // stock at time of purchase
   }],
-  
-  // Order Totals
-  subtotal: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  shippingFee: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  totalAmount: {
-    type: Number,
-    required: true,
-    min: 0
-  },
 
-  // // Payment & Order Info
-  // reference: {
-  //   type: String,
-  //   sparse: true // Allows null/multiple nulls
-  // },
-  paymentMethod: {
-    type: String,
-    default: 'paystack'
-  },
+  // ---------------- Order Totals ----------------
+  subtotal: { type: Number, required: true, min: 0 },
+  shippingFee: { type: Number, default: 0, min: 0 },
+  totalAmount: { type: Number, required: true, min: 0 },
+
+  // ---------------- Payment & Order Info ----------------
+  reference: { type: String, unique: true, sparse: true },
+  paymentMethod: { type: String, default: 'paystack' },
   paymentStatus: {
     type: String,
     enum: ['pending', 'processing', 'successful', 'failed', 'refunded'],
     default: 'pending'
   },
-  
-  // Shop/Store Information
-  shopId: {
-    type: String,
-    required: true,
-  },
-  
-  // Order Status
+  paidAt: Date,
+
+  // ---------------- Shop / Order Tracking ----------------
+  shopId: { type: String, required: true },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
-  
-  // Delivery/Tracking
   trackingNumber: String,
   deliveryNotes: String,
-  
-  // Timestamps
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-  paidAt: Date,
-  shippedAt: Date,
-  deliveredAt: Date,
-  
-  // Metadata
+
+  // ---------------- Metadata ----------------
   notes: String,
   ipAddress: String,
   userAgent: String,
+
+  // ---------------- Timestamps ----------------
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  shippedAt: Date,
+  deliveredAt: Date,
 })
 
 // ===== Pre-save hooks =====
-
 // Auto-update updatedAt timestamp
 orderSchema.pre('save', function(next) {
   this.updatedAt = new Date();
@@ -138,10 +108,7 @@ orderSchema.pre('save', async function(next) {
   next();
 });
 
-// ===== Static & instance methods =====
-// ... Keep all your createWithStockValidation, confirmPayment, validateCart, cancelOrder, canShip methods here unchanged ...
-
-// ===== Indexes (placed AFTER schema declaration) =====
+// ===== Indexes =====
 orderSchema.index({ reference: 1 }, { unique: true, sparse: true });
 orderSchema.index({ shopId: 1 });
 orderSchema.index({ email: 1 });

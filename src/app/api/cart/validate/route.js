@@ -1,23 +1,22 @@
 // /app/api/cart/validate/route.js
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb'; // Use your existing DB connection
-import Product from '@/models/productModel'; // Use your actual Product model path
+import dbConnect from '@/lib/mongodb';
+import Product from '@/models/productModel';
 
 export async function POST(request) {
   try {
-    // 1. Connect to DB (use YOUR existing connection method)
+    // 1️⃣ Connect to DB
     await dbConnect();
 
-    // 2. Get cart items from request
+    // 2️⃣ Get cart items from request
     const { items } = await request.json();
 
-    // 3. Basic validation
+    // 3️⃣ Basic validation
     if (!items || !Array.isArray(items)) {
-      return NextResponse.json({
-        success: false,
-        valid: false,
-        message: 'Invalid cart data'
-      }, { status: 400 });
+      return NextResponse.json(
+        { success: false, valid: false, message: 'Invalid cart data' },
+        { status: 400 }
+      );
     }
 
     if (items.length === 0) {
@@ -26,11 +25,11 @@ export async function POST(request) {
         valid: true,
         message: 'Cart is empty',
         subtotal: 0,
-        total: 0
+        total: 0,
       });
     }
 
-    // 4. Check each product's stock
+    // 4️⃣ Check each product's stock
     const results = [];
     let allValid = true;
     let subtotal = 0;
@@ -40,8 +39,10 @@ export async function POST(request) {
       if (!item.productId || !item.quantity) {
         results.push({
           productId: item.productId || 'unknown',
+          size: item.size || null,
+          quantity: item.quantity || 0,
           valid: false,
-          message: 'Missing product information'
+          message: 'Missing product information',
         });
         allValid = false;
         continue;
@@ -54,32 +55,39 @@ export async function POST(request) {
         if (!product) {
           results.push({
             productId: item.productId,
+            size: item.size || null,
+            quantity: item.quantity,
             valid: false,
-            message: 'Product not found'
+            message: 'Product not found',
           });
           allValid = false;
           continue;
         }
 
-        // Check if available and in stock
-        if (!product.isAvailable || product.stock < item.quantity) {
+        // Check availability
+        if (!product.isAvailable || product.quantity < item.quantity) {
           results.push({
             productId: item.productId,
             productTitle: product.title,
+            size: item.size || null,
+            quantity: item.quantity,
             valid: false,
-            message: product.stock === 0
-              ? 'Out of stock'
-              : `Only ${product.stock} available`,
-            available: product.stock
+            message:
+              product.quantity === 0
+                ? 'Out of stock'
+                : `Only ${product.quantity} available`,
+            available: product.quantity,
           });
           allValid = false;
         } else {
           results.push({
             productId: item.productId,
             productTitle: product.title,
+            size: item.size || null,
+            quantity: item.quantity,
             valid: true,
             price: product.price,
-            available: product.stock
+            available: product.quantity,
           });
 
           // Add to subtotal
@@ -89,32 +97,37 @@ export async function POST(request) {
         console.error(`Error checking product ${item.productId}:`, error);
         results.push({
           productId: item.productId,
+          size: item.size || null,
+          quantity: item.quantity,
           valid: false,
-          message: 'Error checking availability'
+          message: 'Error checking availability',
         });
         allValid = false;
       }
     }
 
-    // 5. Return the validation results
+    // 5️⃣ Return validation results
     return NextResponse.json({
       success: true,
       valid: allValid,
       results,
       subtotal,
-      total: subtotal, // Add shipping if needed
+      total: subtotal, // frontend can add shipping/delivery
       message: allValid
         ? 'All items are available'
-        : 'Some items need attention'
+        : 'Some items need attention',
     });
-
   } catch (error) {
     console.error('Cart validation error:', error);
-    return NextResponse.json({
-      success: false,
-      valid: false,
-      message: 'Server error during validation',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        valid: false,
+        message: 'Server error during validation',
+        error:
+          process.env.NODE_ENV === 'development' ? error.message : undefined,
+      },
+      { status: 500 }
+    );
   }
 }

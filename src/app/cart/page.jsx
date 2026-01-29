@@ -4,7 +4,6 @@ import { useCart } from '@/context/Cartcontext'
 import Navbar from '@/components/Navbar'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { v4 as uuidv4 } from 'uuid'
 
 // ---------------- DELIVERY CONFIG ----------------
 const deliveryConfig = {
@@ -18,8 +17,7 @@ const deliveryConfig = {
       nnewi: 4600, onitsha: 4600, owerri: 4600, umuahia: 4600, abakaliki: 4600, asaba: 4600,
       auchi: 4600, bayelsa: 4600, benin: 4600, calabar: 4600, ughelli: 4600, eket: 4600,
       uyo: 4600, warri: 4600, yenagoa: 4600, abeokuta: 5500, adoekiti: 5500, akure: 5500,
-      ibadan: 5500, ileife: 5500, ilorin: 5500, ogbomosho: 5500, ondotown: 5500,
-      osogbo: 5500,
+      ibadan: 5500, ileife: 5500, ilorin: 5500, ogbomosho: 5500, ondotown: 5500, osogbo: 5500,
     },
   },
   GUO: {
@@ -34,9 +32,7 @@ const deliveryConfig = {
   },
   Portharcourt: {
     eta: 'Delivery in 1–3 days',
-    rates: {
-      PortHarcourt: 100,
-    },
+    rates: { PortHarcourt: 100 },
   },
 }
 
@@ -66,11 +62,9 @@ export default function CartPage() {
     document.body.appendChild(script)
   }, [])
 
-  // Calculate subtotal & grand total
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
   const grandTotal = subtotal + deliveryFee
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setBuyerInfo((prev) => ({ ...prev, [name]: value }))
@@ -79,21 +73,18 @@ export default function CartPage() {
   // Update delivery fee whenever town/service changes
   useEffect(() => {
     if (!buyerInfo.town || !buyerInfo.service) return setDeliveryFee(0)
-
     if (buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt') {
       const fee = buyerInfo.portDeliveryOption === 'delivery' ? 2500 : 0
       setDeliveryFee(fee)
       setEta('Delivery in 1–3 days')
       return
     }
-
     const service = deliveryConfig[buyerInfo.service]
     const fee = service.rates[buyerInfo.town] || 0
     setDeliveryFee(fee)
     setEta(service.eta)
   }, [buyerInfo.town, buyerInfo.service, buyerInfo.portDeliveryOption])
 
-  // Show review page
   const handleReview = () => {
     const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
     if (!cartItems.length) return alert('Cart is empty.')
@@ -105,79 +96,84 @@ export default function CartPage() {
     setShowReview(true)
   }
 
+  // ---------------- PAYSTACK HANDLER ----------------
   const handlePaystack = () => {
-  const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
+    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
+    if (!cartItems.length) return alert('Cart is empty.')
+    if (!name || !email || !phone || !address || !town)
+      return alert('Please fill in all delivery details.')
+    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
+      return alert('Please select pickup or delivery for Port Harcourt.')
 
-  // Validation
-  if (!cartItems.length) return alert('Cart is empty.')
-  if (!name || !email || !phone || !address || !town)
-    return alert('Please fill in all delivery details.')
+    if (!window.PaystackPop) return alert('Paystack not loaded yet')
 
-  if (
-    service === 'Portharcourt' &&
-    town === 'PortHarcourt' &&
-    !portDeliveryOption
-  ) {
-    return alert('Please select pickup or delivery for Port Harcourt.')
-  }
+    const reference = crypto.randomUUID()
 
-  if (!window.PaystackPop) {
-    return alert('Paystack not loaded yet')
-  }
+    const handler = window.PaystackPop.setup({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+      email,
+      amount: Number(grandTotal) * 100,
+      currency: 'NGN',
+      ref: reference,
 
-  const reference = crypto.randomUUID()
+      metadata: {
+        buyer: { name, phone, address, town, service, portDeliveryOption },
+        cartItems: cartItems.map(item => ({
+          productId: item._id,       // <-- fixed
+          title: item.title,         // for buyer/admin email
+          image: item.image,         // for buyer email
+          size: item.size || null,
+          quantity: item.quantity,   // <-- fixed
+          price: item.price,
+        })),
+        totalAmount: grandTotal,
+      },
 
-  const handler = window.PaystackPop.setup({
-  key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-  email,
-  amount: Number(grandTotal) * 100, // kobo
-  currency: 'NGN',
-  ref: reference,
+      onClose: function () {
+        alert('Payment was cancelled')
+      },
 
-  // 🔥 THIS IS THE MISSING LINK
-  metadata: {
-    buyer: {
-      name,
-      phone,
-      address,
-      town,
-      service,
-      portDeliveryOption,
-    },
+      callback: function (response) {
+        console.log('Payment success:', response.reference)
+        setIsProcessing(true)
 
-    cartItems: cartItems.map(item => ({
-      _id: item._id,
-      qty: item.quantity,
-      size: item.size || null,
-      price: item.price,
-    })),
-  },
-
-  onClose: function () {
-    alert('Payment was cancelled')
-  },
-
-  callback: function (response) {
-    console.log('Payment success:', response.reference)
-
-    fetch('/api/orders/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reference: response.reference,
-      }),
+        fetch('/api/orders/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reference: response.reference,
+            buyerInfo,
+            cartItems: cartItems.map(item => ({
+              productId: item._id,
+              title: item.title,
+              image: item.image,
+              size: item.size || null,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+            totalAmount: grandTotal,
+          }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              alert('Payment successful! Check your email for receipt.')
+              clearCart()
+            } else {
+              alert('Payment recorded but email/order failed: ' + data.error)
+            }
+            setIsProcessing(false)
+          })
+          .catch(err => {
+            console.error(err)
+            alert('Something went wrong during order processing.')
+            setIsProcessing(false)
+          })
+      },
     })
 
-    alert('Payment successful!')
-    clearCart()
-  },
-})
-
-
-  // MUST be directly triggered by button click
-  handler.openIframe()
-}
-
+    handler.openIframe()
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -188,6 +184,7 @@ export default function CartPage() {
         {cartItems.length === 0 ? (
           <p className="text-gray-400 text-lg">Your cart is empty.</p>
         ) : !showReview ? (
+          // ---------------- DELIVERY & CART FORM ----------------
           <div className="grid md:grid-cols-2 gap-10">
             {/* Cart Items */}
             <div className="space-y-6">
@@ -230,8 +227,6 @@ export default function CartPage() {
                 <input type="text" name="address" placeholder="Street/House Address" value={buyerInfo.address} onChange={handleInputChange} className="w-full p-2 rounded text-black" />
                 <input type="tel" name="phone" placeholder="Phone Number" value={buyerInfo.phone} onChange={handleInputChange} className="w-full p-2 rounded text-black" />
 
-                <p className="text-sm text-yellow-300 italic">Please select your choice of delivery (for customers outside Rivers State)</p>
-
                 <select name="service" value={buyerInfo.service} onChange={handleInputChange} className="w-full p-2 rounded text-black">
                   {Object.keys(deliveryConfig).map((service) => (
                     <option key={service} value={service}>
@@ -244,26 +239,20 @@ export default function CartPage() {
                   <option value="">Select Town</option>
                   {buyerInfo.service &&
                     Object.keys(deliveryConfig[buyerInfo.service].rates).map((town) => (
-                      <option key={town} value={town}>
-                        {town}
-                      </option>
+                      <option key={town} value={town}>{town}</option>
                     ))}
-
                 </select>
 
                 {buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt' && (
                   <div className="mt-2 space-y-2">
-                    <p className="text-sm text-yellow-300 italic">Choose how you want your order delivered:</p>
-                    <div className="flex flex-col space-y-2">
-                      <label className="flex items-center space-x-2">
-                        <input type="radio" name="portDeliveryOption" value="delivery" checked={buyerInfo.portDeliveryOption === 'delivery'} onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'delivery' }))} />
-                        <span>Delivery to your location (₦2,500)</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input type="radio" name="portDeliveryOption" value="pickup" checked={buyerInfo.portDeliveryOption === 'pickup'} onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'pickup' }))} />
-                        <span>Pick up from store (₦0)</span>
-                      </label>
-                    </div>
+                    <label className="flex items-center space-x-2">
+                      <input type="radio" name="portDeliveryOption" value="delivery" checked={buyerInfo.portDeliveryOption === 'delivery'} onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'delivery' }))} />
+                      <span>Delivery to your location (₦2,500)</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input type="radio" name="portDeliveryOption" value="pickup" checked={buyerInfo.portDeliveryOption === 'pickup'} onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'pickup' }))} />
+                      <span>Pick up from store (₦0)</span>
+                    </label>
                   </div>
                 )}
               </div>
@@ -278,7 +267,6 @@ export default function CartPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Order Review</h2>
 
-            {/* Buyer Info */}
             <div className="bg-white/10 p-4 rounded space-y-2">
               <p><strong>Name:</strong> {buyerInfo.name}</p>
               <p><strong>Email:</strong> {buyerInfo.email}</p>
@@ -292,7 +280,6 @@ export default function CartPage() {
               <p><strong>Grand Total:</strong> ₦{grandTotal.toLocaleString()}</p>
             </div>
 
-            {/* Cart Items Review */}
             <div className="bg-white/20 p-4 rounded space-y-2 max-h-96 overflow-y-auto">
               {cartItems.map((item) => (
                 <div key={'review-' + item._id + item.size} className="flex items-center space-x-3 bg-white/10 p-2 rounded">

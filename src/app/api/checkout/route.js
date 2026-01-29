@@ -59,18 +59,22 @@ export async function POST(req) {
       paidAt: new Date(),
     })
 
-    /* ------------------ 3️⃣ DECREMENT STOCK ------------------ */
     for (const item of cartItems) {
       const product = await Product.findById(item.productId)
 
-      if (!product || product.quantity < item.quantity) {
+      if (!product || product.stock < item.quantity) {
         throw new Error(`${item.title} is out of stock`)
       }
 
-      product.quantity -= item.quantity
-      product.isAvailable = product.quantity > 0
+      console.log(`Before decrement: ${product.title} stock=${product.stock}`)
+
+      product.stock -= item.quantity
+      product.isAvailable = product.stock > 0
       await product.save()
+
+      console.log(`After decrement: ${product.title} stock=${product.stock}`)
     }
+
 
     /* ------------------ 4️⃣ EMAIL TRANSPORT (PRODUCTION SAFE) ------------------ */
     const transporter = nodemailer.createTransport({
@@ -91,44 +95,128 @@ export async function POST(req) {
       )
       .join('')
 
-    /* ------------------ 6️⃣ BUYER EMAIL ------------------ */
-    try {
-      await transporter.sendMail({
-        from: `"Dkikishop" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Order Confirmation',
-        html: `
-        <h2>Payment Successful</h2>
-        <p>Thank you ${name}, your order has been received.</p>
-        <p><b>Reference:</b> ${reference}</p>
-        <p><b>Total:</b> ₦${paidAmount.toLocaleString()}</p>
-        <ul>${itemsHTML}</ul>
-      `,
-      })
-      console.log('buyer email sent successfully')
-    } catch (err) {
-      console.error('Buyer email failed:', err)
-    }
+    // ---------------- 6️⃣ Buyer Email (Polished Receipt) ----------------
+    const itemsTableHTML = cartItems
+      .map(
+        (item) => `
+    <tr>
+      <td style="padding: 10px; border: 1px solid #ddd;">
+        <img src="${item.image}" width="100" style="display:block;" />
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd;">
+        ${item.title}<br/>
+        <small>Size: ${item.size}</small>
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align:center;">
+        ₦${item.price.toLocaleString()}
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align:center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align:right;">
+        ₦${(item.price * item.quantity).toLocaleString()}
+      </td>
+    </tr>`
+      )
+      .join('')
 
-    /* ------------------ 7️⃣ ADMIN EMAIL ------------------ */
-    try {
-      await transporter.sendMail({
-        from: `"Dkikishop Orders" <${process.env.EMAIL_USER}>`,
-        to: process.env.ADMIN_EMAIL,
-        subject: 'New Dkikishop Order',
-        html: `
-        <h2>New Order Received</h2>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Address:</b> ${address}</p>
-        <p><b>Total:</b> ₦${paidAmount.toLocaleString()}</p>
-        <ul>${itemsHTML}</ul>
-      `,
-      })
-      console.log('Admin email sent successfully')
-    } catch (err) {
-      console.error('Admin email failed:', err)
-    }
+    await transporter.sendMail({
+      from: `"Dkikishop" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your Dkikishop Order Receipt',
+      html: `
+    <div style="font-family: Arial, sans-serif; color:#333; max-width:600px; margin:auto;">
+      <h2 style="color:#1a73e8;">Payment Successful ✅</h2>
+      <p>Hi ${name},</p>
+      <p>Thank you for your purchase! Here’s your order summary:</p>
+
+      <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+          <tr style="background-color:#f2f2f2;">
+            <th style="padding: 10px; border:1px solid #ddd;">Image</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Product</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Price</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Qty</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsTableHTML}
+        </tbody>
+      </table>
+
+      <p style="text-align:right; margin-top:20px; font-size:16px;">
+        <strong>Total Paid: ₦${paidAmount.toLocaleString()}</strong>
+      </p>
+
+      <p><b>Delivery Address:</b> ${address}</p>
+      <p><b>Payment Reference:</b> ${reference}</p>
+
+      <p style="margin-top:30px;">We appreciate your business! 💙<br/>- Dkikishop Team</p>
+    </div>
+  `,
+    })
+
+
+    // ---------------- 7️⃣ Admin Email (Polished) ----------------
+    const adminItemsTableHTML = cartItems
+      .map(
+        (item) => `
+    <tr>
+      <td style="padding: 10px; border: 1px solid #ddd;">
+        <img src="${item.image}" width="100" style="display:block;" />
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd;">
+        ${item.title}<br/>
+        <small>Size: ${item.size}</small>
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align:center;">
+        ₦${item.price.toLocaleString()}
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align:center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 10px; border: 1px solid #ddd; text-align:right;">
+        ₦${(item.price * item.quantity).toLocaleString()}
+      </td>
+    </tr>`
+      )
+      .join('')
+
+    await transporter.sendMail({
+      from: `"Dkikishop Orders" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: 'New Dkikishop Order Received',
+      html: `
+    <div style="font-family: Arial, sans-serif; color:#333; max-width:700px; margin:auto;">
+      <h2>New Order Received 🛒</h2>
+      <p><b>Buyer Name:</b> ${name}</p>
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Delivery Address:</b> ${address}</p>
+      <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+          <tr style="background-color:#f2f2f2;">
+            <th style="padding: 10px; border:1px solid #ddd;">Image</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Product</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Price</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Qty</th>
+            <th style="padding: 10px; border:1px solid #ddd;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${adminItemsTableHTML}
+        </tbody>
+      </table>
+      <p style="text-align:right; margin-top:20px; font-size:16px;">
+        <strong>Total Amount: ₦${paidAmount.toLocaleString()}</strong>
+      </p>
+      <p><b>Payment Reference:</b> ${reference}</p>
+      <p style="margin-top:30px;">- Dkikishop Team</p>
+    </div>
+  `,
+    })
+    console.log('Admin email sent successfully')
+
 
     return NextResponse.json({ success: true, orderId: order._id })
   } catch (err) {
