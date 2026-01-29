@@ -92,25 +92,31 @@ export async function POST(req) {
       .join('')
 
     /* ------------------ 6️⃣ BUYER EMAIL ------------------ */
-    await transporter.sendMail({
-      from: `"Dkikishop" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Order Confirmation',
-      html: `
+    try {
+      await transporter.sendMail({
+        from: `"Dkikishop" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Order Confirmation',
+        html: `
         <h2>Payment Successful</h2>
         <p>Thank you ${name}, your order has been received.</p>
         <p><b>Reference:</b> ${reference}</p>
         <p><b>Total:</b> ₦${paidAmount.toLocaleString()}</p>
         <ul>${itemsHTML}</ul>
       `,
-    })
+      })
+      console.log('buyer email sent successfully')
+    } catch (err) {
+      console.error('Buyer email failed:', err)
+    }
 
     /* ------------------ 7️⃣ ADMIN EMAIL ------------------ */
-    await transporter.sendMail({
-      from: `"Dkikishop Orders" <${process.env.EMAIL_USER}>`,
-      to: process.env.ADMIN_EMAIL,
-      subject: 'New Dkikishop Order',
-      html: `
+    try {
+      await transporter.sendMail({
+        from: `"Dkikishop Orders" <${process.env.EMAIL_USER}>`,
+        to: process.env.ADMIN_EMAIL,
+        subject: 'New Dkikishop Order',
+        html: `
         <h2>New Order Received</h2>
         <p><b>Name:</b> ${name}</p>
         <p><b>Email:</b> ${email}</p>
@@ -118,7 +124,11 @@ export async function POST(req) {
         <p><b>Total:</b> ₦${paidAmount.toLocaleString()}</p>
         <ul>${itemsHTML}</ul>
       `,
-    })
+      })
+      console.log('Admin email sent successfully')
+    } catch (err) {
+      console.error('Admin email failed:', err)
+    }
 
     return NextResponse.json({ success: true, orderId: order._id })
   } catch (err) {
