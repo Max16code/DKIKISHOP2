@@ -98,70 +98,70 @@ export default function CartPage() {
 
   // ---------------- PAYSTACK HANDLER ----------------
   const handlePaystack = () => {
-  const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo;
-  if (!cartItems.length) return alert('Cart is empty.');
-  if (!name || !email || !phone || !address || !town)
-    return alert('Please fill in all delivery details.');
-  if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
-    return alert('Please select pickup or delivery for Port Harcourt.');
+    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo;
+    if (!cartItems.length) return alert('Cart is empty.');
+    if (!name || !email || !phone || !address || !town)
+      return alert('Please fill in all delivery details.');
+    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
+      return alert('Please select pickup or delivery for Port Harcourt.');
 
-  if (!window.PaystackPop) return alert('Paystack not loaded yet');
+    if (!window.PaystackPop) return alert('Paystack not loaded yet');
 
-  const reference = crypto.randomUUID();
+    const reference = crypto.randomUUID();
 
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const grandTotal = subtotal + deliveryFee;
+    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const grandTotal = subtotal + deliveryFee;
 
-  const handler = window.PaystackPop.setup({
-    key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-    email,
-    amount: grandTotal * 100, // NGN kobo
-    currency: 'NGN',
-    ref: reference,
-    metadata: {
-      customerName: name,
+    const handler = window.PaystackPop.setup({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
       email,
-      phone,
-      shippingAddress: {
-        street: address,
-        city: town,
-        state: '',
-        postalCode: '',
-        country: 'Nigeria'
+      amount: grandTotal * 100, // NGN kobo
+      currency: 'NGN',
+      ref: reference,
+      metadata: {
+        customer: {
+          name,
+          email,
+          phone,
+          address,
+          town,
+          service,
+          portDeliveryOption
+        },
+        cartItems: cartItems.map(item => ({
+          productId: item._id,
+          title: item.title,
+          size: item.size || null,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image
+        })),
+        subtotal,
+        deliveryFee,
+        totalAmount: grandTotal,
+        eta
       },
-      cartItems: cartItems.map(item => ({
-        productId: item._id,
-        title: item.title,
-        size: item.size || null,
-        quantity: item.quantity,
-        price: item.price,
-        image: item.image
-      })),
-      subtotal,
-      deliveryFee,
-      totalAmount: grandTotal,
-      eta
-    },
+
     onClose: function () {
-      alert('Payment was cancelled');
-    },
-    callback: function (response) {
-      console.log('Payment success:', response.reference);
-      alert('Payment successful! Your order is being processed.');
+        alert('Payment was cancelled');
+      },
+      callback: function (response) {
+        console.log('Payment success:', response.reference);
+        alert('Payment successful! Your order is being processed.');
 
-      // Call your webhook to save order
-      fetch('/api/paystack/webhook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference: response.reference, metadata: this.metadata, paid_at: new Date() })
-      });
+        // Call your webhook to save order
+        fetch('/api/paystack/webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reference: response.reference, metadata: this.metadata, paid_at: new Date() })
+        });
 
-      clearCart();
-    },
-  });
+        clearCart();
+      },
+    });
 
-  handler.openIframe();
-};
+    handler.openIframe();
+  };
 
 
   return (
