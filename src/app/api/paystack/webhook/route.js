@@ -1,93 +1,87 @@
+import crypto from 'crypto'
 import dbConnect from '@/utils/db'
 import Order from '@/models/orderModel'
+import { sendOrderEmails } from '@/lib/sendOrderEmails'
 
 export async function POST(req) {
   try {
-    const body = await req.json()
+    // 1️⃣ Get raw body
+    const rawBody = await req.text()
 
-    const {
-      reference,
-      paid_at,
-      metadata
-    } = body
+    // 2️⃣ Verify Paystack signature
+    const signature = req.headers.get('x-paystack-signature')
+    const hash = crypto
+      .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+      .update(rawBody)
+      .digest('hex')
+
+    if (hash !== signature) {
+      return new Response('Invalid signature', { status: 401 })
+    }
+
+    // 3️⃣ Parse verified body
+    const body = JSON.parse(rawBody)
+
+    if (body.event !== 'charge.success') {
+      return new Response('Event ignored', { status: 200 })
+    }
+
+    const data = body.data
+    const metadata = data.metadata
+
+    if (
+      !metadata ||
+      !metadata.customerName ||
+      !metadata.email ||
+      !Array.isArray(metadata.cartItems)
+    ) {
+      throw new Error('Invalid metadata: missing customer or cart info')
+    }
 
     await dbConnect()
 
-    /* ============================
-       VALIDATE METADATA (STRICT)
-    ============================ */
-    if (
-      !metadata ||
-      !metadata.customer ||
-      !metadata.customer.name ||
-      !metadata.customer.email ||
-      !metadata.cartItems ||
-      metadata.cartItems.length === 0
-    ) {
-      throw new Error('Invalid metadata structure')
-    }
-
-    const {
-      customer,
-      cartItems,
-      subtotal,
-      deliveryFee,
-      totalAmount,
-      eta
-    } = metadata
-
-    /* ============================
-       CREATE ORDER
-    ============================ */
     const order = await Order.create({
-      reference,
+      reference: data.reference,
 
-      customerName: customer.name,
-      email: customer.email,
-      phone: customer.phone || '',
+      customerName: metadata.customerName,
+      email: metadata.email,
+      phone: metadata.phone,
 
       shippingAddress: {
-        street: customer.address,
-        city: customer.town,
-        state: '',
-        postalCode: '',
-        country: 'Nigeria'
+        street: metadata.shippingAddress.street,
+        city: metadata.shippingAddress.city,
+        state: metadata.shippingAddress.state || '',
+        postalCode: metadata.shippingAddress.postalCode || '',
+        country: metadata.shippingAddress.country || 'Nigeria',
       },
 
-      items: cartItems.map(item => ({
+      items: metadata.cartItems.map(item => ({
         productId: item.productId,
         title: item.title,
         size: item.size || null,
         quantity: item.quantity,
         price: item.price,
         image: item.image,
-        purchasedStock: item.quantity
       })),
 
-      subtotal,
-      shippingFee: deliveryFee || 0,
-      totalAmount,
+      subtotal: Number(metadata.subtotal),
+      shippingFee: Number(metadata.deliveryFee || 0),
+      totalAmount: Number(metadata.totalAmount),
 
-      eta,
-      deliveryService: customer.service || '',
-      portDeliveryOption: customer.portDeliveryOption || '',
+      eta: metadata.eta,
 
       paymentMethod: 'paystack',
       paymentStatus: 'successful',
-      paidAt: paid_at ? new Date(paid_at) : new Date()
+      paidAt: new Date(data.paid_at),
     })
+
+    await sendOrderEmails(order)
 
     console.log('✅ Order saved:', order.reference)
 
-    return new Response(
-      JSON.stringify({ status: 'success', orderId: order._id }),
-      { status: 200 }
-    )
+    return new Response(JSON.stringify({ success: true }), { status: 200 })
   } catch (err) {
     console.error('❌ Webhook error:', err)
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500 }
-    )
+    return new Response(err.message, { status: 500 })
   }
 }
