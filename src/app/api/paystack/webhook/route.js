@@ -1,104 +1,54 @@
-import crypto from 'crypto'
-import { headers } from 'next/headers'
-import dbConnect from '@/lib/mongodb'
-import Order from '@/models/orderModel'
-import { sendOrderEmails } from '@/lib/sendOrderEmails'
-
+import dbConnect from '@/utils/db';
+import Order from '@/models/orderModel';
 
 export async function POST(req) {
-    // 1️⃣ Get raw body (Paystack requires raw body for signature verification)
-    const body = await req.text()
+  try {
+    const { reference, metadata, paid_at } = await req.json();
 
-    // 2️⃣ Verify Paystack signature
-    const signature = headers().get('x-paystack-signature')
+    await dbConnect();
 
-    const hash = crypto
-        .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
-        .update(body)
-        .digest('hex')
-
-    if (hash !== signature) {
-        console.error('❌ Invalid Paystack signature')
-        return new Response('Invalid signature', { status: 401 })
+    // Validate required metadata
+    if (!metadata || !metadata.customerName || !metadata.email || !metadata.cartItems?.length) {
+      throw new Error('Invalid metadata: missing customer or cart info');
     }
 
-    // 3️⃣ Parse event
-    const event = JSON.parse(body)
+    const order = await Order.create({
+      reference,
+      customerName: metadata.customerName,
+      email: metadata.email,
+      phone: metadata.phone,
+      shippingAddress: {
+        street: metadata.shippingAddress.street,
+        city: metadata.shippingAddress.city,
+        state: metadata.shippingAddress.state || '',
+        postalCode: metadata.shippingAddress.postalCode || '',
+        country: metadata.shippingAddress.country || 'Nigeria'
+      },
+      items: metadata.cartItems.map(item => ({
+        productId: item.productId,
+        title: item.title,
+        size: item.size || null,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image,
+        purchasedStock: item.quantity
+      })),
+      subtotal: metadata.subtotal,
+      shippingFee: metadata.deliveryFee || 0,
+      totalAmount: metadata.totalAmount,
+      paymentMethod: 'paystack',
+      paymentStatus: 'successful',
+      paidAt: paid_at ? new Date(paid_at) : new Date()
+    });
 
-    // 4️⃣ Only handle successful charges
-    if (event.event !== 'charge.success') {
-        return new Response('Ignored event', { status: 200 })
-    }
+    console.log('✅ Order saved:', order.reference);
 
-    const data = event.data
+    // Optionally: trigger email function here
+    // await sendOrderEmails(order);
 
-    /**
-     * EXPECTED METADATA (must exist from payment initialization):
-     * metadata: {
-     *   orderId,
-     *   cartItems,
-     *   deliveryAddress,
-     *   customer
-     * }
-     */
-    const {
-        reference,
-        amount,
-        paid_at,
-        customer,
-        metadata
-    } = data
-
-    if (!metadata || !metadata.cartItems) {
-        console.error('❌ Missing order metadata')
-        return new Response('Missing metadata', { status: 400 })
-    }
-
-    try {
-        // 5️⃣ Connect to DB
-        await dbConnect()
-
-        // 6️⃣ Prevent duplicate order creation
-        const existingOrder = await Order.findOne({ reference })
-        if (existingOrder) {
-            return new Response('Order already exists', { status: 200 })
-        }
-
-        // 7️⃣ Create order
-        const order = await Order.create({
-            reference,
-            orderId: metadata.orderId,
-            customer: {
-                email: customer.email,
-                phone: metadata.customer?.phone || '',
-                name: metadata.customer?.name || '',
-                service: metadata.customer?.service || '',
-                portDeliveryOption: metadata.customer?.portDeliveryOption || '',
-            },
-            items: metadata.cartItems,
-            deliveryAddress: metadata.deliveryAddress,
-            totalAmount: metadata.totalAmount / 1, // already in Naira
-            paymentStatus: 'paid',
-            paymentProvider: 'paystack',
-            paidAt: paid_at,
-
-            // ✅ New fields
-            eta: metadata.eta || '',
-            deliveryFee: metadata.deliveryFee || 0,
-        })
-
-        // 🔔 THIS LINE is what removes the dull import
-        try {
-            await sendOrderEmails({ order })
-        } catch (err) {
-            console.error('Email failed:', err)
-        }
-
-        return new Response('Order processed', { status: 200 })
-
-
-    } catch (error) {
-        console.error('❌ Webhook error:', error)
-        return new Response('Server error', { status: 500 })
-    }
+    return new Response(JSON.stringify({ status: 'success', order: order._id }), { status: 200 });
+  } catch (err) {
+    console.error('❌ Webhook error:', err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+  }
 }

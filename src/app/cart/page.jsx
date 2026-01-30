@@ -98,65 +98,70 @@ export default function CartPage() {
 
   // ---------------- PAYSTACK HANDLER ----------------
   const handlePaystack = () => {
-    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
-    if (!cartItems.length) return alert('Cart is empty.')
-    if (!name || !email || !phone || !address || !town)
-      return alert('Please fill in all delivery details.')
-    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
-      return alert('Please select pickup or delivery for Port Harcourt.')
+  const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo;
+  if (!cartItems.length) return alert('Cart is empty.');
+  if (!name || !email || !phone || !address || !town)
+    return alert('Please fill in all delivery details.');
+  if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
+    return alert('Please select pickup or delivery for Port Harcourt.');
 
-    if (!window.PaystackPop) return alert('Paystack not loaded yet')
+  if (!window.PaystackPop) return alert('Paystack not loaded yet');
 
-    const reference = crypto.randomUUID()
-    const orderId = reference // unique order ID
+  const reference = crypto.randomUUID();
 
-    const handler = window.PaystackPop.setup({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const grandTotal = subtotal + deliveryFee;
+
+  const handler = window.PaystackPop.setup({
+    key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+    email,
+    amount: grandTotal * 100, // NGN kobo
+    currency: 'NGN',
+    ref: reference,
+    metadata: {
+      customerName: name,
       email,
-      amount: Number(grandTotal) * 100,
-      currency: 'NGN',
-      ref: reference,
-
-      metadata: {
-        orderId,
-        cartItems: cartItems.map(item => ({
-          productId: item._id,
-          title: item.title,
-          image: item.image,
-          size: item.size || null,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        deliveryAddress: `${address}, ${town}`,
-        customer: {
-          name,
-          email,
-          phone,
-          service,
-          portDeliveryOption: portDeliveryOption || null,
-        },
-        eta,           // ✅ Estimated delivery time
-        deliveryFee,   // ✅ Delivery fee in Naira
-        totalAmount: grandTotal
+      phone,
+      shippingAddress: {
+        street: address,
+        city: town,
+        state: '',
+        postalCode: '',
+        country: 'Nigeria'
       },
+      cartItems: cartItems.map(item => ({
+        productId: item._id,
+        title: item.title,
+        size: item.size || null,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image
+      })),
+      subtotal,
+      deliveryFee,
+      totalAmount: grandTotal,
+      eta
+    },
+    onClose: function () {
+      alert('Payment was cancelled');
+    },
+    callback: function (response) {
+      console.log('Payment success:', response.reference);
+      alert('Payment successful! Your order is being processed.');
 
-      onClose: function () {
-        alert('Payment was cancelled')
-      },
+      // Call your webhook to save order
+      fetch('/api/paystack/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference: response.reference, metadata: this.metadata, paid_at: new Date() })
+      });
 
-      callback: function (response) {
-        console.log('Payment success:', response.reference)
-        setIsProcessing(true)
-        alert(
-          `Payment successful! Your order is being processed. You will receive a confirmation email shortly.`
-        )
-        clearCart()
-        setIsProcessing(false)
-      },
-    })
+      clearCart();
+    },
+  });
 
-    handler.openIframe()
-  }
+  handler.openIframe();
+};
 
 
   return (
