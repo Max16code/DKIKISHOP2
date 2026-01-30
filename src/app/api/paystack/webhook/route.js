@@ -1,157 +1,104 @@
-// /src/app/api/paystack/webhook/route.js
-import dbConnect from "@/lib/mongodb";
-import Product from "@/models/productModel";
-import Order from "@/models/orderModel";
-import nodemailer from "nodemailer";
+import crypto from 'crypto'
+import { headers } from 'next/headers'
+import dbConnect from '@/lib/mongodb'
+import Order from '@/models/orderModel'
+import { sendOrderEmails } from '@/lib/sendOrderEmails'
+
 
 export async function POST(req) {
-  await dbConnect();
+    // 1️⃣ Get raw body (Paystack requires raw body for signature verification)
+    const body = await req.text()
 
-  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+    // 2️⃣ Verify Paystack signature
+    const signature = headers().get('x-paystack-signature')
 
-  try {
-    const body = await req.json();
-    const signature = req.headers.get("x-paystack-signature");
-
-    // ---------------- Verify webhook signature ----------------
-    const crypto = await import("crypto");
     const hash = crypto
-      .createHmac("sha512", PAYSTACK_SECRET)
-      .update(JSON.stringify(body))
-      .digest("hex");
+        .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+        .update(body)
+        .digest('hex')
 
     if (hash !== signature) {
-      return new Response(
-        JSON.stringify({ error: "Invalid signature" }),
-        { status: 400 }
-      );
+        console.error('❌ Invalid Paystack signature')
+        return new Response('Invalid signature', { status: 401 })
     }
 
-    // Only process successful payments
-    if (body.event !== "charge.success") {
-      return new Response(
-        JSON.stringify({ message: "Event ignored" }),
-        { status: 200 }
-      );
+    // 3️⃣ Parse event
+    const event = JSON.parse(body)
+
+    // 4️⃣ Only handle successful charges
+    if (event.event !== 'charge.success') {
+        return new Response('Ignored event', { status: 200 })
     }
 
-    const { metadata, customer, reference, amount } = body.data;
-    const items = metadata?.cartItems;
+    const data = event.data
 
-    if (!items || items.length === 0)
-      throw new Error("No cart items in metadata");
+    /**
+     * EXPECTED METADATA (must exist from payment initialization):
+     * metadata: {
+     *   orderId,
+     *   cartItems,
+     *   deliveryAddress,
+     *   customer
+     * }
+     */
+    const {
+        reference,
+        amount,
+        paid_at,
+        customer,
+        metadata
+    } = data
 
-    // ---------------- Save order ----------------
-    const order = await Order.create({
-      items,
-      customerName: metadata.buyer.name,
-      email: customer.email,
-      phone: metadata.buyer.phone,
-      shippingAddress: {
-        street: metadata.buyer.address,
-        city: metadata.buyer.town,
-      },
-      service: metadata.buyer.service,
-      portDeliveryOption: metadata.buyer.portDeliveryOption || null,
-      totalAmount: metadata.totalAmount,
-      paystackRef: reference,
-      status: "paid",
-      createdAt: new Date(),
-    });
-
-    // ---------------- Decrement stock ----------------
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product) continue;
-      product.quantity = Math.max(0, product.quantity - item.quantity);
-      await product.save();
+    if (!metadata || !metadata.cartItems) {
+        console.error('❌ Missing order metadata')
+        return new Response('Missing metadata', { status: 400 })
     }
 
-    // ---------------- Nodemailer Setup ----------------
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    try {
+        // 5️⃣ Connect to DB
+        await dbConnect()
 
-    // ---------------- Email to customer ----------------
-    const customerHtml = `
-      <h2>Thank you for your purchase, ${metadata.buyer.name}!</h2>
-      <p>Order Reference: <strong>${reference}</strong></p>
-      <p>Delivery Service: <strong>${metadata.buyer.service}</strong></p>
-      ${
-        metadata.buyer.service === "Portharcourt"
-          ? `<p>PortHarcourt Option: <strong>${metadata.buyer.portDeliveryOption}</strong></p>`
-          : ""
-      }
-      <p>Shipping Address: ${metadata.buyer.address}, ${metadata.buyer.town}</p>
-      <ul>
-        ${items
-          .map(
-            (i) =>
-              `<li>${i.quantity} × ${i.title} (₦${i.price.toLocaleString()})</li>`
-          )
-          .join("")}
-      </ul>
-      <p><strong>Total Paid: ₦${metadata.totalAmount.toLocaleString()}</strong></p>
-      <p>Estimated Delivery: ${
-        metadata.buyer.service === "Portharcourt"
-          ? "1–3 days"
-          : "2–5 days depending on your location"
-      }</p>
-    `;
+        // 6️⃣ Prevent duplicate order creation
+        const existingOrder = await Order.findOne({ reference })
+        if (existingOrder) {
+            return new Response('Order already exists', { status: 200 })
+        }
 
-    await transporter.sendMail({
-      from: `"Dkikishop" <${process.env.SMTP_USER}>`,
-      to: customer.email,
-      subject: "Your Dkikishop Order Was Successful 🎉",
-      html: customerHtml,
-    });
+        // 7️⃣ Create order
+        const order = await Order.create({
+            reference,
+            orderId: metadata.orderId,
+            customer: {
+                email: customer.email,
+                phone: metadata.customer?.phone || '',
+                name: metadata.customer?.name || '',
+                service: metadata.customer?.service || '',
+                portDeliveryOption: metadata.customer?.portDeliveryOption || '',
+            },
+            items: metadata.cartItems,
+            deliveryAddress: metadata.deliveryAddress,
+            totalAmount: metadata.totalAmount / 1, // already in Naira
+            paymentStatus: 'paid',
+            paymentProvider: 'paystack',
+            paidAt: paid_at,
 
-    // ---------------- Email to admin ----------------
-    const adminHtml = `
-      <h2>New Order Received</h2>
-      <p>Customer: ${metadata.buyer.name} (${customer.email})</p>
-      <p>Phone: ${metadata.buyer.phone}</p>
-      <p>Order Reference: <strong>${reference}</strong></p>
-      <p>Delivery Service: <strong>${metadata.buyer.service}</strong></p>
-      ${
-        metadata.buyer.service === "Portharcourt"
-          ? `<p>PortHarcourt Option: <strong>${metadata.buyer.portDeliveryOption}</strong></p>`
-          : ""
-      }
-      <p>Shipping Address: ${metadata.buyer.address}, ${metadata.buyer.town}</p>
-      <ul>
-        ${items
-          .map(
-            (i) =>
-              `<li>${i.quantity} × ${i.title} (₦${i.price.toLocaleString()})</li>`
-          )
-          .join("")}
-      </ul>
-      <p><strong>Total Paid: ₦${metadata.totalAmount.toLocaleString()}</strong></p>
-    `;
+            // ✅ New fields
+            eta: metadata.eta || '',
+            deliveryFee: metadata.deliveryFee || 0,
+        })
 
-    await transporter.sendMail({
-      from: `"Dkikishop" <${process.env.SMTP_USER}>`,
-      to: process.env.ADMIN_EMAIL,
-      subject: `🛒 New Order Received: ${reference}`,
-      html: adminHtml,
-    });
+        // 🔔 THIS LINE is what removes the dull import
+        try {
+            await sendOrderEmails({ order })
+        } catch (err) {
+            console.error('Email failed:', err)
+        }
 
-    return new Response(
-      JSON.stringify({ message: "Webhook processed successfully" }),
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error("Webhook error:", err);
-    return new Response(
-      JSON.stringify({ error: "Webhook processing failed", details: err.message }),
-      { status: 500 }
-    );
-  }
+        return new Response('Order processed', { status: 200 })
+
+
+    } catch (error) {
+        console.error('❌ Webhook error:', error)
+        return new Response('Server error', { status: 500 })
+    }
 }

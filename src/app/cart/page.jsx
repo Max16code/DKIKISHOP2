@@ -108,6 +108,7 @@ export default function CartPage() {
     if (!window.PaystackPop) return alert('Paystack not loaded yet')
 
     const reference = crypto.randomUUID()
+    const orderId = reference // unique order ID
 
     const handler = window.PaystackPop.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -117,7 +118,7 @@ export default function CartPage() {
       ref: reference,
 
       metadata: {
-        buyer: { name, phone, address, town, service, portDeliveryOption },
+        orderId,
         cartItems: cartItems.map(item => ({
           productId: item._id,
           title: item.title,
@@ -126,24 +127,29 @@ export default function CartPage() {
           quantity: item.quantity,
           price: item.price,
         })),
-        totalAmount: grandTotal,
+        deliveryAddress: `${address}, ${town}`,
+        customer: {
+          name,
+          email,
+          phone,
+          service,
+          portDeliveryOption: portDeliveryOption || null,
+        },
+        eta,           // ✅ Estimated delivery time
+        deliveryFee,   // ✅ Delivery fee in Naira
+        totalAmount: grandTotal
       },
 
       onClose: function () {
         alert('Payment was cancelled')
       },
 
-      // ✅ FIX: Do not call orders/complete here
       callback: function (response) {
         console.log('Payment success:', response.reference)
         setIsProcessing(true)
-
-        // Alert user
         alert(
           `Payment successful! Your order is being processed. You will receive a confirmation email shortly.`
         )
-
-        // Clear cart locally
         clearCart()
         setIsProcessing(false)
       },
@@ -151,6 +157,7 @@ export default function CartPage() {
 
     handler.openIframe()
   }
+
 
   return (
     <div className="min-h-screen bg-black text-white">
