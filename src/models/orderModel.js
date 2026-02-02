@@ -40,7 +40,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true, min: 0 },
 
   // ---------------- Payment & Order Info ----------------
-  reference: { type: String, unique: true, sparse: true }, // ✅ keep inline only
+  reference: { type: String, unique: true, sparse: true }, // only unique field
   paymentMethod: { type: String, default: 'paystack' },
   paymentStatus: {
     type: String,
@@ -51,13 +51,10 @@ const orderSchema = new mongoose.Schema({
 
   // ---------------- Shop / Order Tracking ----------------
   shopId: { 
-    type: String, 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
     required: true,
-    default: function() {
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-      return `ORD-${timestamp}-${random}`;
-    }
+    index: true  // fast queries, NOT unique
   },
   status: {
     type: String,
@@ -92,7 +89,7 @@ orderSchema.pre('save', function(next) {
 })
 
 // ===== Indexes =====
-// Removed duplicate index on reference
+// Only index shopId for queries (no unique)
 orderSchema.index({ shopId: 1 })
 orderSchema.index({ email: 1 })
 orderSchema.index({ status: 1 })
