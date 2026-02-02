@@ -2,6 +2,7 @@
 import crypto from 'crypto';
 import dbConnect from '@/utils/db';
 import Order from '@/models/orderModel';
+import Product from '@/models/productModel'; // ← Added import for Product model
 import { sendOrderEmails } from '@/lib/sendOrderEmails';
 
 export async function POST(req) {
@@ -90,6 +91,13 @@ export async function POST(req) {
       return new Response('Duplicate (ignored)', { status: 200 });
     }
 
+    // Extract shopId from the first cart item (assuming single-shop order)
+    const shopId = metadata.cartItems[0]?.shopId;
+    if (!shopId) {
+      console.warn('No shopId found in cart items — using fallback or skipping deduction');
+      // You can set a default or throw if required
+    }
+
     const order = await Order.create({
       reference: data.reference,
 
@@ -135,10 +143,44 @@ export async function POST(req) {
         fees: data.fees / 100,
       },
 
-      // Temporary fix for required field — replace with real shop ID from your DB
-      // shopId: '697780d848d182949a9fc132', // ← UPDATE THIS VALUE LATER
+      shopId: shopId || 'fallback-shop-id', // ← Dynamic shopId from metadata (fallback if missing)
     });
 
+    // ── INVENTORY DEDUCTION ────────────────────────────────────────────────────────
+    try {
+      console.log(`Starting stock deduction for order ${order.reference}`);
+
+      for (const item of metadata.cartItems) {
+        try {
+          const updatedProduct = await Product.decrementStock(
+            item.productId,
+            item.quantity
+          );
+
+          console.log(
+            `Stock deducted successfully: ${item.title} ` +
+            `(ID: ${item.productId}) -${item.quantity} ` +
+            `(new stock: ${updatedProduct.stock})`
+          );
+        } catch (itemErr) {
+          console.error(
+            `Stock deduction FAILED for item ${item.title} (ID: ${item.productId}):`,
+            itemErr.message
+          );
+          // Optional: flag the order for manual review
+          // order.stockIssue = order.stockIssue || '';
+          // order.stockIssue += `Failed for ${item.title}: ${itemErr.message}; `;
+          // await order.save();
+        }
+      }
+
+      console.log(`Stock deduction completed for order ${order.reference}`);
+    } catch (deductErr) {
+      console.error('Unexpected error during stock deduction:', deductErr.message);
+      // Order is still saved — Paystack got 200
+    }
+
+    // ── Send emails ────────────────────────────────────────────────────────────────
     try {
       await sendOrderEmails(order);
       console.log('Emails queued for order:', order.reference);

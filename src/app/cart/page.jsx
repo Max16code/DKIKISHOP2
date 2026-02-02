@@ -39,6 +39,7 @@ const deliveryConfig = {
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isValidating, setIsValidating] = useState(false)
   const [buyerInfo, setBuyerInfo] = useState({
     name: '',
     email: '',
@@ -96,6 +97,39 @@ export default function CartPage() {
     setShowReview(true)
   }
 
+  // ---------------- CART VALIDATION BEFORE PAY ----------------
+  const validateCartBeforePay = async () => {
+    setIsValidating(true)
+    try {
+      const res = await fetch('/api/cart/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cartItems })
+      })
+
+      const data = await res.json()
+
+      if (!data.success || !data.valid) {
+        // Build user-friendly error message
+        const issues = data.results
+          ?.filter(r => !r.valid)
+          ?.map(r => `- ${r.productTitle || 'Item'}: ${r.message}`)
+          ?.join('\n') || 'Some items are unavailable.'
+
+        alert(`Cart validation failed:\n${issues}\n\nPlease update your cart and try again.`)
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error('Cart validation failed:', err)
+      alert('Could not validate cart right now. Please try again later.')
+      return false
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
   // ---------------- PAYSTACK HANDLER ----------------
   const handlePaystack = () => {
     const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo;
@@ -111,6 +145,15 @@ export default function CartPage() {
 
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const grandTotal = subtotal + deliveryFee;
+
+    // Safety check for shopId (still good to keep)
+    const missingShopId = cartItems.some(item => !item.shopId);
+    if (missingShopId) {
+      console.warn(
+        'Warning: One or more cart items missing shopId. ' +
+        'Orders may use fallback in webhook.'
+      );
+    }
 
     const handler = window.PaystackPop.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -134,7 +177,8 @@ export default function CartPage() {
           size: item.size || null,
           quantity: item.quantity,
           price: item.price,
-          image: item.image
+          image: item.image,
+          shopId: item.shopId || null      // shopId flows here
         })),
         subtotal,
         deliveryFee,
@@ -142,19 +186,22 @@ export default function CartPage() {
         eta
       },
 
-    onClose: function () {
+      onClose: function () {
         alert('Payment was cancelled');
       },
       callback: function (response) {
         console.log('Payment success:', response.reference);
         alert('Payment successful! Your order is being processed.');
 
-        // Call your webhook to save order
         fetch('/api/paystack/webhook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reference: response.reference, metadata: this.metadata, paid_at: new Date() })
-        });
+          body: JSON.stringify({ 
+            reference: response.reference, 
+            metadata: this.metadata, 
+            paid_at: new Date() 
+          })
+        }).catch(err => console.error('Frontend webhook notify failed:', err));
 
         clearCart();
       },
@@ -163,6 +210,16 @@ export default function CartPage() {
     handler.openIframe();
   };
 
+  // Combined handler: validate first → then pay
+  const handleProceedToPay = async () => {
+    setIsProcessing(true);
+    const isValid = await validateCartBeforePay();
+
+    if (isValid) {
+      handlePaystack();
+    }
+    setIsProcessing(false);
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -173,7 +230,6 @@ export default function CartPage() {
         {cartItems.length === 0 ? (
           <p className="text-gray-400 text-lg">Your cart is empty.</p>
         ) : !showReview ? (
-          // ---------------- DELIVERY & CART FORM ----------------
           <div className="grid md:grid-cols-2 gap-10">
             {/* Cart Items */}
             <div className="space-y-6">
@@ -284,11 +340,11 @@ export default function CartPage() {
             </div>
 
             <button
-              onClick={handlePaystack}
-              disabled={isProcessing}
+              onClick={handleProceedToPay}  // ← Changed to new handler
+              disabled={isProcessing || isValidating}
               className="w-full mt-4 px-6 py-3 bg-yellow-400 text-black font-semibold rounded-xl hover:bg-yellow-300 transition disabled:opacity-50"
             >
-              Pay & Complete Order
+              {isValidating ? 'Validating Cart...' : isProcessing ? 'Processing...' : 'Pay & Complete Order'}
             </button>
 
             <button

@@ -1,5 +1,3 @@
-// 
-
 import mongoose from "mongoose";
 
 const ProductSchema = new mongoose.Schema({
@@ -31,30 +29,37 @@ const ProductSchema = new mongoose.Schema({
     default: [],
   },
   category: {
-  type: String,
-  required: true,
-  lowercase: true,
-  trim: true,
-  enum: [
-    'blazers', 
-    'shirts', 
-    'skirts', 
-    'dresses', 
-    'activewears', 
-    'jeans', 
-    'shorts', 
-    'accessories'
-  ],
-},
+    type: String,
+    required: true,
+    lowercase: true,
+    trim: true,
+    enum: [
+      'blazers', 
+      'shirts', 
+      'skirts', 
+      'dresses', 
+      'activewears', 
+      'jeans', 
+      'shorts', 
+      'accessories'
+    ],
+  },
 
-  // Renamed 'quantity' to 'stock' for clarity (but keep quantity for now)
+  // ── NEW: Shop association (required for dynamic shopId) ─────────────────────
+  shopId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',                // assumes you have a Shop model
+    required: true,
+    index: true,
+  },
+
+  // ── Stock / Inventory Management ───────────────────────────────────────────
   quantity: {
     type: Number,
-    required: true, // Make required
+    required: true,
     default: 0,
     min: 0,
   },
-  // Add stock alias for consistency
   stock: {
     type: Number,
     default: 0,
@@ -64,7 +69,8 @@ const ProductSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  // Add metadata fields
+
+  // Metadata fields
   createdAt: {
     type: Date,
     default: Date.now,
@@ -73,57 +79,60 @@ const ProductSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  // For featured products on home page
   isFeatured: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
-// ✅ Middleware: Sync stock with quantity and update isAvailable
+// ── Pre-save middleware ────────────────────────────────────────────────────────
 ProductSchema.pre("save", function (next) {
-  // Sync stock with quantity if stock is not set
-  if (this.stock === undefined) {
+  // Sync stock ↔ quantity
+  if (this.stock === undefined || this.stock === null) {
     this.stock = this.quantity;
+  } else {
+    this.quantity = this.stock; // always keep them in sync
   }
-  
-  // Update availability based on stock
+
+  // Update availability
   if (this.stock <= 0) {
     this.isAvailable = false;
     this.stock = 0;
-    this.quantity = 0; // Keep quantity in sync
+    this.quantity = 0;
   } else {
     this.isAvailable = true;
-    this.quantity = this.stock; // Keep quantity in sync
   }
-  
+
   this.updatedAt = new Date();
   next();
 });
 
-// ✅ Static method to safely decrement stock
-ProductSchema.statics.decrementStock = async function(productId, quantity) {
+// ── Static method: atomic stock decrement (used in webhook) ────────────────────
+ProductSchema.statics.decrementStock = async function (productId, quantity) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const product = await this.findById(productId).session(session);
-    
+
     if (!product) {
-      throw new Error('Product not found');
+      throw new Error(`Product not found: ${productId}`);
     }
-    
+
     if (product.stock < quantity) {
-      throw new Error(`Insufficient stock. Available: ${product.stock}, Requested: ${quantity}`);
+      throw new Error(
+        `Insufficient stock for product ${productId}. ` +
+        `Available: ${product.stock}, Requested: ${quantity}`
+      );
     }
-    
-    // Update stock and quantity
+
+    // Atomic update
     product.stock -= quantity;
-    product.quantity = product.stock; // Keep in sync
-    
-    // Save the product
+    product.quantity = product.stock; // keep sync
+    product.isAvailable = product.stock > 0;
+
     await product.save({ session });
-    
+
     await session.commitTransaction();
     return product;
   } catch (error) {
@@ -134,14 +143,15 @@ ProductSchema.statics.decrementStock = async function(productId, quantity) {
   }
 };
 
-// ✅ Virtual for checking if product is in stock
-ProductSchema.virtual('inStock').get(function() {
+// ── Virtual: inStock checker ──────────────────────────────────────────────────
+ProductSchema.virtual('inStock').get(function () {
   return this.stock > 0 && this.isAvailable;
 });
 
-// ✅ Index for better query performance
+// ── Indexes ────────────────────────────────────────────────────────────────────
 ProductSchema.index({ category: 1, isAvailable: 1, stock: 1 });
 ProductSchema.index({ isAvailable: 1, stock: 1 });
+ProductSchema.index({ shopId: 1, isAvailable: 1 });      // useful for shop-specific listings
 
-// ✅ Prevent model overwrite on hot reload
+// Prevent model overwrite during hot reload
 export default mongoose.models?.Product || mongoose.model("Product", ProductSchema);

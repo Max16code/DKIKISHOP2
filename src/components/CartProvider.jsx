@@ -20,12 +20,21 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = (product) => {
+    // Safety check in development
+    if (!product.shopId && process.env.NODE_ENV !== 'production') {
+      console.warn(
+        `Warning: Product ${product.title || product._id} is missing shopId. ` +
+        'Orders may use fallback shopId.'
+      );
+    }
+
     setCartItems((prev) => {
       const existing = prev.find(
         (item) => item._id === product._id && item.size === product.size
       );
 
       if (existing) {
+        // Update quantity — keep original shopId
         return prev.map((item) =>
           item._id === product._id && item.size === product.size
             ? { ...item, quantity: item.quantity + 1 }
@@ -44,6 +53,7 @@ export const CartProvider = ({ children }) => {
             size: product.size || null,
             image: safeImage,
             quantity: 1,
+            shopId: product.shopId || null,  // ← Added: shopId from product
           },
         ];
       }
