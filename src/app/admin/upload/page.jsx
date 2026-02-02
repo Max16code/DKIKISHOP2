@@ -91,6 +91,7 @@ export default function UploadPage() {
       setUploadedImageUrls(imageUrls);
 
       // 2️⃣ Send JSON payload to backend
+      // Inside handleSubmit, after uploading images
       const payload = {
         title,
         description,
@@ -98,7 +99,8 @@ export default function UploadPage() {
         sizes: sizes.split(',').map(s => s.trim()),
         category: category.toLowerCase(),
         quantity: Number(quantity),
-        images: imageUrls
+        images: imageUrls,
+        shopId: '697780d848d182949a9fc132'   // ← ADD THIS (use your real shop ID or fallback)
       };
 
       const response = await fetch('/api/admin/upload', {
