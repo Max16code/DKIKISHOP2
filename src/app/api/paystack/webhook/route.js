@@ -5,6 +5,13 @@ import Order from '@/models/orderModel';
 import { sendOrderEmails } from '@/lib/sendOrderEmails';
 
 export async function POST(req) {
+  const headersList = Object.fromEntries(req.headers.entries());
+  console.log('=== NEW WEBHOOK REQUEST ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Incoming headers:', JSON.stringify(headersList, null, 2));
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  
   let rawBody = '';
 
   try {
