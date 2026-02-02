@@ -50,7 +50,15 @@ const orderSchema = new mongoose.Schema({
   paidAt: Date,
 
   // ---------------- Shop / Order Tracking ----------------
-  shopId: { type: String, required: true },
+  shopId: { 
+    type: String, 
+    required: true,
+    default: function() {
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+      return `ORD-${timestamp}-${random}`;
+    }
+  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
@@ -80,15 +88,6 @@ const orderSchema = new mongoose.Schema({
 // ===== Pre-save hooks =====
 orderSchema.pre('save', function(next) {
   this.updatedAt = new Date()
-  next()
-})
-
-orderSchema.pre('save', async function(next) {
-  if (!this.shopId) {
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-    this.shopId = `ORD-${timestamp}-${random}`
-  }
   next()
 })
 
