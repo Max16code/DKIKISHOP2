@@ -136,7 +136,7 @@ export async function POST(req) {
       },
 
       // Temporary fix for required field — replace with real shop ID from your DB
-      shopId: '697780d848d182949a9fc132', // ← UPDATE THIS VALUE LATER
+      // shopId: '697780d848d182949a9fc132', // ← UPDATE THIS VALUE LATER
     });
 
     try {
