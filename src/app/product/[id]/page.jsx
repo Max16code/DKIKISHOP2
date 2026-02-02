@@ -18,41 +18,49 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch product + real-time stock refresh
+  // Fetch product (initial + polling)
   useEffect(() => {
-    const fetchProduct = async () => {
+    if (!id) return;
+
+    const fetchProduct = async (isInitial = false) => {
       try {
-        setLoading(true)
-        const res = await fetch(`/api/product/${id}`)
-        if (!res.ok) throw new Error('Product not found')
-        const data = await res.json()
-        setProduct(data)
+        if (isInitial) setLoading(true);
+        const res = await fetch(`/api/product/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch product');
+        const data = await res.json();
+
+        // Merge to avoid unnecessary re-renders
+        setProduct(prev => ({ ...prev, ...data }));
+        setError(null);
       } catch (err) {
-        console.error('❌ Failed to load product:', err)
-        setError(err.message)
+        console.error('❌ Failed to load product:', err);
+        setError(err.message);
       } finally {
-        setLoading(false)
+        if (isInitial) setLoading(false);
       }
-    }
+    };
 
-    if (id) fetchProduct()
+    // Initial fetch
+    fetchProduct(true);
 
-    // Real-time stock polling (every 25 seconds)
+    // Polling (only when tab is visible)
     const interval = setInterval(() => {
-      if (id && !loading) fetchProduct()
-    }, 25000)
+      if (document.visibilityState === 'visible') {
+        fetchProduct(); // silent poll
+      }
+    }, 60000); // 60 seconds - safe & efficient
 
-    return () => clearInterval(interval)
-  }, [id, loading])
+    return () => clearInterval(interval);
+  }, [id]); // Only depend on id - NO loading/product deps
 
-  const isOutOfStock = product && (product.stock <= 0 || !product.isAvailable)
+  const isOutOfStock = product && (product.stock <= 0 || !product.isAvailable);
 
-  const canAddToCart = !isOutOfStock && selectedQuantity <= product?.stock && selectedQuantity >= 1
+  const canAddToCart = !isOutOfStock && selectedQuantity <= (product?.stock || 0) && selectedQuantity >= 1;
 
   const handleAddToCart = () => {
-    if (isOutOfStock) return alert('🚫 Item is out of stock.')
-    if (!selectedSize && product?.sizes?.length > 0) return alert('Please select a size')
-    if (selectedQuantity > product.stock) return alert(`Only ${product.stock} available`)
+    if (isOutOfStock) return alert('🚫 Item is out of stock.');
+    if (product?.sizes?.length > 0 && !selectedSize) return alert('Please select a size');
+    if (selectedQuantity > product.stock) return alert(`Only ${product.stock} available`);
 
     addToCart({
       _id: product._id,
@@ -62,17 +70,17 @@ export default function ProductDetailPage() {
       size: selectedSize || null,
       quantity: selectedQuantity,
       shopId: product.shopId || null
-    })
+    });
 
-    alert(`✅ Added ${selectedQuantity} to cart!`)
-  }
+    alert(`✅ Added ${selectedQuantity} to cart!`);
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
         <p className="text-lg animate-pulse">Loading product...</p>
       </div>
-    )
+    );
   }
 
   if (error || !product) {
@@ -80,7 +88,7 @@ export default function ProductDetailPage() {
       <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
         <p className="text-lg text-red-500">Product not found or error loading.</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -172,8 +180,8 @@ export default function ProductDetailPage() {
                 max={product.stock}
                 value={selectedQuantity}
                 onChange={(e) => {
-                  const val = Number(e.target.value)
-                  setSelectedQuantity(Math.max(1, Math.min(val, product.stock)))
+                  const val = Number(e.target.value);
+                  setSelectedQuantity(Math.max(1, Math.min(val, product.stock)));
                 }}
                 className="w-24 p-2 rounded border text-black bg-white/90"
               />
@@ -194,7 +202,7 @@ export default function ProductDetailPage() {
           ) : (
             <button
               onClick={handleAddToCart}
-              disabled={!canAddToCart || !selectedSize && product.sizes?.length > 0}
+              disabled={!canAddToCart || (product.sizes?.length > 0 && !selectedSize)}
               className={`w-full font-semibold px-6 py-4 rounded-xl transition text-lg ${
                 canAddToCart && (!product.sizes?.length || selectedSize)
                   ? 'bg-yellow-500 hover:bg-yellow-600 text-black active:scale-95'
