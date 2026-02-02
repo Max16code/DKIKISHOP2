@@ -90,7 +90,7 @@ orderSchema.pre('save', function(next) {
 
 // ===== Indexes =====
 // Only index shopId for queries (no unique)
-orderSchema.index({ shopId: 1 })
+
 orderSchema.index({ email: 1 })
 orderSchema.index({ status: 1 })
 orderSchema.index({ paymentStatus: 1 })
