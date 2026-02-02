@@ -15,23 +15,59 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedQuantity, setSelectedQuantity] = useState(1)
   const { addToCart } = useCart()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
+  // Fetch product + real-time stock refresh
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        setLoading(true)
         const res = await fetch(`/api/product/${id}`)
+        if (!res.ok) throw new Error('Product not found')
         const data = await res.json()
-        if (data?._id) setProduct(data)
-        else throw new Error('Product not found')
+        setProduct(data)
       } catch (err) {
         console.error('❌ Failed to load product:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
       }
     }
 
     if (id) fetchProduct()
-  }, [id])
 
-  if (!product) {
+    // Real-time stock polling (every 25 seconds)
+    const interval = setInterval(() => {
+      if (id && !loading) fetchProduct()
+    }, 25000)
+
+    return () => clearInterval(interval)
+  }, [id, loading])
+
+  const isOutOfStock = product && (product.stock <= 0 || !product.isAvailable)
+
+  const canAddToCart = !isOutOfStock && selectedQuantity <= product?.stock && selectedQuantity >= 1
+
+  const handleAddToCart = () => {
+    if (isOutOfStock) return alert('🚫 Item is out of stock.')
+    if (!selectedSize && product?.sizes?.length > 0) return alert('Please select a size')
+    if (selectedQuantity > product.stock) return alert(`Only ${product.stock} available`)
+
+    addToCart({
+      _id: product._id,
+      title: product.title,
+      image: product.images?.[0],
+      price: product.price,
+      size: selectedSize || null,
+      quantity: selectedQuantity,
+      shopId: product.shopId || null
+    })
+
+    alert(`✅ Added ${selectedQuantity} to cart!`)
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
         <p className="text-lg animate-pulse">Loading product...</p>
@@ -39,22 +75,12 @@ export default function ProductDetailPage() {
     )
   }
 
-  const isOutOfStock = product.quantity <= 0
-
-  const handleAddToCart = () => {
-    if (isOutOfStock) return alert('🚫 Item is out of stock.')
-    if (!selectedSize) return alert('Please select a size')
-
-    addToCart({
-      _id: product._id,
-      title: product.title,
-      image: product.images?.[0],
-      price: product.price,
-      size: selectedSize,
-      quantity: selectedQuantity,
-    })
-
-    alert('✅ Added to cart!')
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
+        <p className="text-lg text-red-500">Product not found or error loading.</p>
+      </div>
+    )
   }
 
   return (
@@ -69,11 +95,11 @@ export default function ProductDetailPage() {
       <div className="max-w-6xl mx-auto mt-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-xl
       p-6 md:p-10 grid md:grid-cols-2 gap-10 items-start">
 
-        {/* ✅ PRODUCT IMAGE */}
+        {/* PRODUCT IMAGE */}
         <div className="flex justify-center items-center">
           <div className="relative w-full h-[350px] sm:h-[500px] md:h-[650px] rounded-2xl overflow-hidden bg-black/20">
             <Image
-              src={product.images?.[0]}
+              src={product.images?.[0] || '/images/placeholder.png'}
               alt={product.title}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
@@ -82,7 +108,7 @@ export default function ProductDetailPage() {
             />
 
             {isOutOfStock && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-lg font-semibold">
+              <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white text-2xl md:text-4xl font-bold">
                 Out of Stock
               </div>
             )}
@@ -104,6 +130,18 @@ export default function ProductDetailPage() {
             ₦{Number(product.price).toLocaleString()}
           </p>
 
+          {/* Stock status */}
+          <div className="text-lg font-medium">
+            {isOutOfStock ? (
+              <span className="text-red-500">Out of Stock</span>
+            ) : (
+              <span className="text-green-400">
+                In Stock: {product.stock} left
+              </span>
+            )}
+          </div>
+
+          {/* Sizes */}
           {product.sizes?.length > 0 && (
             <>
               <label className="block mb-2 font-medium text-white">Choose Size:</label>
@@ -124,39 +162,52 @@ export default function ProductDetailPage() {
             </>
           )}
 
+          {/* Quantity Selector */}
           {!isOutOfStock && (
             <div>
               <label className="block mb-1 text-white font-medium">Quantity:</label>
               <input
                 type="number"
                 min={1}
-                max={product.quantity}
+                max={product.stock}
                 value={selectedQuantity}
-                onChange={(e) => setSelectedQuantity(Number(e.target.value))}
-                className="w-20 p-2 rounded border text-black"
+                onChange={(e) => {
+                  const val = Number(e.target.value)
+                  setSelectedQuantity(Math.max(1, Math.min(val, product.stock)))
+                }}
+                className="w-24 p-2 rounded border text-black bg-white/90"
               />
+              {selectedQuantity > product.stock && (
+                <p className="text-red-400 text-sm mt-1">Maximum available: {product.stock}</p>
+              )}
             </div>
           )}
 
+          {/* Add to Cart Button */}
           {isOutOfStock ? (
             <button
               disabled
-              className="w-full bg-gray-400 text-white font-semibold px-6 py-3 rounded-xl cursor-not-allowed"
+              className="w-full bg-gray-600 text-white font-semibold px-6 py-4 rounded-xl cursor-not-allowed text-lg"
             >
               Out of Stock
             </button>
           ) : (
             <button
               onClick={handleAddToCart}
-              className="w-full bg-black text-white hover:bg-gray-900 font-semibold px-6 py-3 rounded-xl transition active:scale-95"
+              disabled={!canAddToCart || !selectedSize && product.sizes?.length > 0}
+              className={`w-full font-semibold px-6 py-4 rounded-xl transition text-lg ${
+                canAddToCart && (!product.sizes?.length || selectedSize)
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-black active:scale-95'
+                  : 'bg-gray-600 text-white cursor-not-allowed'
+              }`}
             >
-              Add to Cart
+              {canAddToCart && (!product.sizes?.length || selectedSize)
+                ? `Add ${selectedQuantity} to Cart`
+                : product.sizes?.length > 0 && !selectedSize
+                ? 'Select Size First'
+                : 'Add to Cart'}
             </button>
           )}
-
-          <div className="text-sm text-gray-400">
-            {isOutOfStock ? 'Currently unavailable' : `Only ${product.quantity} left in stock`}
-          </div>
 
         </div>
       </div>

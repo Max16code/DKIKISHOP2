@@ -47,7 +47,7 @@ export const CartProvider = ({ children }) => {
         return [
           ...prev,
           {
-            _id: product._id,
+            productId: product._id,   // ← Change from _id to productId
             title: product.title,
             price: product.price,
             size: product.size || null,
@@ -62,7 +62,7 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = (productId, size) =>
     setCartItems((prev) =>
-      prev.filter((item) => !(item._id === productId && item.size === size))
+      prev.filter((item) => !(item.productId === productId && item.size === size))
     );
 
   const clearCart = () => setCartItems([]);
@@ -70,7 +70,7 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = (productId, size, quantity) =>
     setCartItems((prev) =>
       prev.map((item) =>
-        item._id === productId && item.size === size
+        item.productId === productId && item.size === size
           ? { ...item, quantity }
           : item
       )
