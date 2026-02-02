@@ -115,6 +115,9 @@ export async function POST(req) {
       },
       // If shopId is required in schema → add it here (temporary fix)
       // shopId: 'your-default-shop-id' || metadata.shopId,
+      // FIX: Provide shopId (replace with your actual ID)
+      shopId: '697780d848d182949a9fc132',  // ← CHANGE THIS TO A VALID SHOP _id !!!
+    });
     });
 
     try {
