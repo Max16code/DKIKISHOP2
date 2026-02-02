@@ -98,37 +98,42 @@ export default function CartPage() {
   }
 
   // ---------------- CART VALIDATION BEFORE PAY ----------------
-  const validateCartBeforePay = async () => {
-    setIsValidating(true)
-    try {
-      const res = await fetch('/api/cart/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cartItems })
-      })
+  // ---------------- CART VALIDATION BEFORE PAY ----------------
+const validateCartBeforePay = async () => {
+  setIsValidating(true);
+  try {
+    const res = await fetch('/api/cart/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: cartItems })
+    });
 
-      const data = await res.json()
+    const data = await res.json();
 
-      if (!data.success || !data.valid) {
-        // Build user-friendly error message
-        const issues = data.results
-          ?.filter(r => !r.valid)
-          ?.map(r => `- ${r.productTitle || 'Item'}: ${r.message}`)
-          ?.join('\n') || 'Some items are unavailable.'
+    if (!data.success || !data.valid) {
+      // Build user-friendly error message from backend results
+      const issues = data.results
+        ?.filter(r => !r.valid)
+        ?.map(r => `- ${r.productTitle || r.productId || 'Item'}: ${r.message}`)
+        ?.join('\n') || 'Some items are unavailable.';
 
-        alert(`Cart validation failed:\n${issues}\n\nPlease update your cart and try again.`)
-        return false
-      }
-
-      return true
-    } catch (err) {
-      console.error('Cart validation failed:', err)
-      alert('Could not validate cart right now. Please try again later.')
-      return false
-    } finally {
-      setIsValidating(false)
+      alert(`Cart validation failed:\n${issues}\n\nPlease update your cart and try again.`);
+      return false;
     }
+
+    return true;
+  } catch (err) {
+    console.error('Cart validation fetch error:', err);
+    let msg = 'Network/server error. Please try again later.';
+    if (err.message?.includes('500')) {
+      msg = 'Server error validating cart — please contact support or try again.';
+    }
+    alert(`Could not validate cart: ${msg}`);
+    return false;
+  } finally {
+    setIsValidating(false);
   }
+};
 
   // ---------------- PAYSTACK HANDLER ----------------
   const handlePaystack = () => {

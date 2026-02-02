@@ -2,16 +2,21 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/models/productModel';
+import mongoose from 'mongoose';
 
 export async function POST(request) {
   try {
     await dbConnect();
 
-    const { items } = await request.json();
+    const body = await request.json();
+    console.log('VALIDATION BODY RECEIVED:', JSON.stringify(body, null, 2));
+
+    const { items } = body;
 
     if (!items || !Array.isArray(items)) {
+      console.warn('Items not array or missing');
       return NextResponse.json(
-        { success: false, valid: false, message: 'Invalid cart data' },
+        { success: false, valid: false, message: 'Invalid cart data - items must be an array' },
         { status: 400 }
       );
     }
@@ -29,108 +34,106 @@ export async function POST(request) {
     const results = [];
     let allValid = true;
     let subtotal = 0;
-
-    // Collect all shopIds to enforce single-shop cart
     const shopIds = new Set();
 
     for (const item of items) {
-      // Skip obviously invalid items
-      if (!item.productId || !Number.isInteger(item.quantity) || item.quantity < 1) {
+      const productId = item.productId || item._id; // fallback for old cart format
+      const quantity = Number(item.quantity);
+
+      if (!productId || !mongoose.isValidObjectId(productId)) {
+        console.warn('Invalid product ID format:', productId);
         results.push({
-          productId: item.productId || 'unknown',
+          productId: productId || 'unknown',
           size: item.size || null,
-          quantity: item.quantity || 0,
+          quantity,
           valid: false,
-          message: 'Invalid product ID or quantity',
+          message: 'Invalid product ID (must be valid MongoDB ID)',
         });
         allValid = false;
         continue;
       }
 
-      try {
-        const product = await Product.findById(item.productId).lean();
-
-        if (!product) {
-          results.push({
-            productId: item.productId,
-            size: item.size || null,
-            quantity: item.quantity,
-            valid: false,
-            message: 'Product not found',
-          });
-          allValid = false;
-          continue;
-        }
-
-        // Enforce single-shop cart
-        if (product.shopId) {
-          shopIds.add(product.shopId.toString());
-          if (shopIds.size > 1) {
-            results.push({
-              productId: item.productId,
-              size: item.size || null,
-              quantity: item.quantity,
-              valid: false,
-              message: 'Items from multiple shops are not allowed in one order',
-            });
-            allValid = false;
-            continue;
-          }
-        }
-
-        // Size validation (if selected)
-        if (item.size && !product.sizes?.includes(item.size)) {
-          results.push({
-            productId: item.productId,
-            productTitle: product.title,
-            size: item.size,
-            quantity: item.quantity,
-            valid: false,
-            message: `Size ${item.size} no longer available`,
-          });
-          allValid = false;
-          continue;
-        }
-
-        // Stock check (use stock field as source of truth)
-        if (!product.isAvailable || product.stock < item.quantity) {
-          results.push({
-            productId: item.productId,
-            productTitle: product.title,
-            size: item.size || null,
-            quantity: item.quantity,
-            valid: false,
-            message:
-              product.stock === 0
-                ? 'Out of stock'
-                : `Only ${product.stock} available`,
-            available: product.stock,
-          });
-          allValid = false;
-        } else {
-          results.push({
-            productId: item.productId,
-            productTitle: product.title,
-            size: item.size || null,
-            quantity: item.quantity,
-            valid: true,
-            price: product.price,
-            available: product.stock,
-            shopId: product.shopId?.toString(), // optional: return for frontend
-          });
-
-          subtotal += product.price * item.quantity;
-        }
-      } catch (error) {
-        console.error(`Error validating product ${item.productId}:`, error);
+      if (!Number.isInteger(quantity) || quantity < 1) {
         results.push({
-          productId: item.productId,
+          productId,
           size: item.size || null,
-          quantity: item.quantity,
+          quantity,
           valid: false,
-          message: 'Server error checking availability',
+          message: 'Quantity must be a positive integer',
         });
         allValid = false;
+        continue;
+      }
+
+      const product = await Product.findById(productId).lean();
+
+      if (!product) {
+        results.push({
+          productId,
+          size: item.size || null,
+          quantity,
+          valid: false,
+          message: 'Product not found',
+        });
+        allValid = false;
+        continue;
+      }
+
+      // Single-shop enforcement
+      if (product.shopId) {
+        shopIds.add(product.shopId.toString());
+        if (shopIds.size > 1) {
+          results.push({
+            productId,
+            size: item.size || null,
+            quantity,
+            valid: false,
+            message: 'Items from multiple shops not allowed in one order',
+          });
+          allValid = false;
+          continue;
+        }
+      }
+
+      // Size check
+      if (item.size && !product.sizes?.includes(item.size)) {
+        results.push({
+          productId,
+          productTitle: product.title,
+          size: item.size,
+          quantity,
+          valid: false,
+          message: `Size ${item.size} no longer available`,
+        });
+        allValid = false;
+        continue;
+      }
+
+      // Stock check
+      if (!product.isAvailable || product.stock < quantity) {
+        results.push({
+          productId,
+          productTitle: product.title,
+          size: item.size || null,
+          quantity,
+          valid: false,
+          message: product.stock === 0 ? 'Out of stock' : `Only ${product.stock} available`,
+          available: product.stock,
+        });
+        allValid = false;
+      } else {
+        results.push({
+          productId,
+          productTitle: product.title,
+          size: item.size || null,
+          quantity,
+          valid: true,
+          price: product.price,
+          available: product.stock,
+          shopId: product.shopId?.toString(),
+        });
+
+        subtotal += product.price * quantity;
       }
     }
 
@@ -139,20 +142,22 @@ export async function POST(request) {
       valid: allValid,
       results,
       subtotal,
-      total: subtotal, // frontend adds delivery fee if needed
-      message: allValid
-        ? 'All items are available'
-        : 'Some items are unavailable or out of stock',
-      shopId: shopIds.size === 1 ? [...shopIds][0] : null, // return the single shopId if consistent
+      total: subtotal,
+      message: allValid ? 'All items available' : 'Some items unavailable or out of stock',
+      shopId: shopIds.size === 1 ? [...shopIds][0] : null,
     });
   } catch (error) {
-    console.error('Cart validation server error:', error);
+    console.error('Cart validation error:', {
+      message: error.message,
+      stack: error.stack?.substring(0, 800) || 'No stack',
+    });
+
     return NextResponse.json(
       {
         success: false,
         valid: false,
         message: 'Server error during cart validation',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        errorDetail: error.message, // always return detail for debug
       },
       { status: 500 }
     );
