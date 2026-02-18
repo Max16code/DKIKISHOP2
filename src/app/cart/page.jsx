@@ -272,12 +272,12 @@ const validateCartBeforePay = async () => {
             <div className="bg-white/10 p-6 rounded-xl space-y-4">
               <h2 className="text-2xl font-semibold mb-4">Delivery Details</h2>
               <div className="space-y-3">
-                <input type="text" name="name" placeholder="Full Name" value={buyerInfo.name} onChange={handleInputChange} className="w-full p-2 rounded text-black" />
-                <input type="email" name="email" placeholder="Email" value={buyerInfo.email} onChange={handleInputChange} className="w-full p-2 rounded text-black" />
-                <input type="text" name="address" placeholder="Street/House Address" value={buyerInfo.address} onChange={handleInputChange} className="w-full p-2 rounded text-black" />
-                <input type="tel" name="phone" placeholder="Phone Number" value={buyerInfo.phone} onChange={handleInputChange} className="w-full p-2 rounded text-black" />
+                <input type="text" name="name" placeholder="Full Name" value={buyerInfo.name} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+                <input type="email" name="email" placeholder="Email" value={buyerInfo.email} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+                <input type="text" name="address" placeholder="Street/House Address" value={buyerInfo.address} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+                <input type="tel" name="phone" placeholder="Phone Number" value={buyerInfo.phone} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
 
-                <select name="service" value={buyerInfo.service} onChange={handleInputChange} className="w-full p-2 rounded text-black">
+                <select name="service" value={buyerInfo.service} onChange={handleInputChange} className="w-full p-2 rounded text-white">
                   {Object.keys(deliveryConfig).map((service) => (
                     <option key={service} value={service}>
                       {service === 'Portharcourt' ? 'Portharcourt (for Portharcourt residents only)' : service}
@@ -285,7 +285,7 @@ const validateCartBeforePay = async () => {
                   ))}
                 </select>
 
-                <select name="town" value={buyerInfo.town} onChange={handleInputChange} className="w-full p-2 rounded text-black">
+                <select name="town" value={buyerInfo.town} onChange={handleInputChange} className="w-full p-2 rounded text-white">
                   <option value="">Select Town</option>
                   {buyerInfo.service &&
                     Object.keys(deliveryConfig[buyerInfo.service].rates).map((town) => (

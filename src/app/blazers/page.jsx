@@ -65,7 +65,7 @@ export default function BlazersPage() {
         <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
           Blazers
         </h1>
-        <p className="mt-2 text-gray-400">Timeless power pieces for every occasion</p>
+        <p className="mt-2 text-gray-100">Timeless power pieces for every occasion</p>
       </div>
 
       {/* Status Messages - identical to home */}
@@ -78,7 +78,7 @@ export default function BlazersPage() {
       </div>
 
       {/* Product Grid - exact same structure, classes & hover effects as home */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6">
         {products.map((product, index) => {
           const isAvailable = product.isAvailable !== false
           const stock = product.stock || product.quantity || 0
