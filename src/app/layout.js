@@ -19,12 +19,15 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
 
-        {/* FIX: Viewport meta tag - this forces phones to use device width and prevents collapse to 1 column */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+        {/* FIX: This viewport meta tag is REQUIRED for iOS Chrome/Safari to respect mobile widths and Tailwind grid-cols-2 */}
+        <meta 
+          name="viewport" 
+          content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" 
+        />
 
-        {/* Optional but highly recommended for mobile usability */}
-        <meta name="format-detection" content="telephone=no" /> {/* prevents auto phone linking */}
-        <meta name="apple-mobile-web-app-capable" content="yes" /> {/* allows full-screen mode */}
+        {/* Optional but recommended for iOS/Chrome mobile */}
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
       </Head>
 
