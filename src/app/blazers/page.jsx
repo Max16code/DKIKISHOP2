@@ -70,7 +70,7 @@ export default function BlazersPage() {
       </div>
 
       {/* Product Grid - identical structure, spacing, columns, gap as home */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap- sm:gap-6">
         {productData.map((product, index) => {
           // Calculate stock status - identical to home
           const isAvailable = product.isAvailable !== false;

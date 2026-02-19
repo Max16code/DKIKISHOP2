@@ -1,6 +1,3 @@
-// 
-
-// deepseek//////
 
 'use client'
 
@@ -64,17 +61,7 @@ export default function Home() {
         <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
           Welcome to{' '}
           <span className="text-yellow-400">
-            DKIKISHO
-            <span className="relative inline-block">
-              P
-              <Image
-                src="/images/santa2.png"
-                alt="Santa Hat"
-                width={24}
-                height={24}
-                className="absolute -top-2 -right-3 w-auto h-auto"
-              />
-            </span>
+            DKIKISHOP
           </span>
         </h1>
         <p className="mt-2 text-gray-400">Luxury on a Budget</p>
