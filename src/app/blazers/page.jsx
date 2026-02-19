@@ -7,32 +7,24 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export default function BlazersPage() {
-  const [products, setProducts] = useState([])
+  const [productData, setProductData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchCategory = async () => {
+    const getProducts = async () => {
       try {
         const res = await fetch('/api/getproducts/blazers?available=true')
         const data = await res.json()
 
-        let productArray = []
+        if (!Array.isArray(data)) throw new Error('Invalid product format')
 
-        if (Array.isArray(data)) {
-          productArray = data
-        } else if (data?.success && Array.isArray(data.data)) {
-          productArray = data.data
-        } else {
-          throw new Error('Invalid response format from API')
-        }
-
-        const availableProducts = productArray.filter(product =>
+        const availableProducts = data.filter(product =>
           product.isAvailable !== false &&
           (product.stock > 0 || product.quantity > 0)
         )
 
-        setProducts(availableProducts)
+        setProductData(availableProducts)
       } catch (err) {
         console.error('❌ Error:', err)
         setError('Failed to fetch blazers')
@@ -41,12 +33,12 @@ export default function BlazersPage() {
       }
     }
 
-    fetchCategory()
+    getProducts()
   }, [])
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#1f1f1f] to-[#121212] overflow-hidden">
-      {/* Faint Logo Background - exact same as home */}
+      {/* Faint Logo Background - identical to home */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/kikiLogo.jpg"
@@ -60,30 +52,31 @@ export default function BlazersPage() {
 
       <Navbar />
 
-      {/* Category Title - styled exactly like home welcome */}
+      {/* Title - styled exactly like home welcome */}
       <div className="relative z-10 text-center mt-24">
         <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
           Blazers
         </h1>
-        <p className="mt-2 text-gray-100">Timeless power pieces for every occasion</p>
+        <p className="mt-2 text-gray-400">Timeless power pieces for every occasion</p>
       </div>
 
       {/* Status Messages - identical to home */}
       <div className="relative z-10 mt-10 px-6 text-center">
-        {loading && <p className="text-gray-500">Loading blazers...</p>}
+        {loading && <p className="text-gray-500">Loading products...</p>}
         {error && <p className="text-red-500">{error}</p>}
-        {!loading && products.length === 0 && !error && (
-          <p className="text-gray-500">No blazers available at the moment.</p>
+        {!loading && productData.length === 0 && !error && (
+          <p className="text-gray-500">No products available at the moment.</p>
         )}
       </div>
 
-      {/* Product Grid - exact same structure, classes & hover effects as home */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6">
-        {products.map((product, index) => {
-          const isAvailable = product.isAvailable !== false
-          const stock = product.stock || product.quantity || 0
-          const inStock = isAvailable && stock > 0
-          const lowStock = inStock && stock <= 5
+      {/* Product Grid - identical structure, spacing, columns, gap as home */}
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+        {productData.map((product, index) => {
+          // Calculate stock status - identical to home
+          const isAvailable = product.isAvailable !== false;
+          const stock = product.stock || product.quantity || 0;
+          const inStock = isAvailable && stock > 0;
+          const lowStock = inStock && stock <= 5;
 
           return (
             <Link href={`/product/${product._id}`} key={product._id || index} passHref>
@@ -94,7 +87,7 @@ export default function BlazersPage() {
                 transition={{ duration: 0.5, delay: index * 0.05 }}
                 className={`flex flex-col cursor-pointer shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 relative rounded-lg overflow-hidden ${!inStock ? 'opacity-70' : ''}`}
               >
-                {/* Product Image - exact same treatment */}
+                {/* Product Image - identical to home */}
                 <div className="relative w-full h-54 sm:h-64 md:h-72 flex items-center justify-center bg-black/10">
                   <Image
                     src={product.images?.[0] || '/images/fallback.jpg'}
@@ -117,7 +110,7 @@ export default function BlazersPage() {
                     </div>
                   )}
 
-                  {/* Out of stock overlay - exact match */}
+                  {/* Out of stock overlay - identical to home */}
                   {!inStock && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold z-5">
                       Unavailable
@@ -125,7 +118,7 @@ export default function BlazersPage() {
                   )}
                 </div>
 
-                {/* Product Info - exact same layout, typography, colors */}
+                {/* Product Info - identical to home */}
                 <div className="p-2 sm:p-3 flex flex-col items-start text-left">
                   <h2 className="text-sm sm:text-base font-semibold text-white line-clamp-1">
                     {product.title}
@@ -139,7 +132,7 @@ export default function BlazersPage() {
                     ₦{Number(product.price).toLocaleString()}
                   </p>
 
-                  {/* Stock Indicator */}
+                  {/* Stock Indicator - identical to home */}
                   <div className="mt-1 text-xs">
                     {inStock ? (
                       <span className={lowStock ? 'text-yellow-400' : 'text-green-400'}>
