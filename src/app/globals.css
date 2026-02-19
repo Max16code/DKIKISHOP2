@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Force 2-column grid on phones - insurance policy */
+@media (max-width: 767px) {
+  .force-mobile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 1rem !important; /* adjust to match your gap-4 */
+  }
+}

@@ -80,7 +80,7 @@ export default function JeansPage() {
       </div>
 
       {/* Product Grid - exact same structure, classes & hover effects as home */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+      <div className="relative z-10 mt-10 px-2 sm:px-4 force-mobile-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
         {products.map((product, index) => {
           const isAvailable = product.isAvailable !== false
           const stock = product.stock || product.quantity || 0
