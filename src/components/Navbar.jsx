@@ -19,7 +19,8 @@ export default function Navbar() {
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },
     { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
-    { name: 'Accessories', href: '/category/accessories' } // 🆕 Added
+    { name: 'Accessories', href: '/category/accessories' }, // 🆕 Added
+    { name: 'Contact', href: '/Contact' },
   ]
 
   return (
