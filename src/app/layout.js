@@ -29,7 +29,9 @@ export default function RootLayout({ children }) {
       </Head>
 
       <body style={{ fontFamily: 'Geist Sans, sans-serif' }} className="antialiased">
+        <CartProvider>
         {/* Fixed background logo */}
+
         <div className="fixed inset-0 -z-10 opacity-10 pointer-events-none">
           <Image
             src="/images/kikiLogo.jpg"
@@ -40,7 +42,7 @@ export default function RootLayout({ children }) {
           />
         </div>
 
-        <CartProvider>
+        
           <PageWrapper>
             {children}
           </PageWrapper>

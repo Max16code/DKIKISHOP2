@@ -20,7 +20,6 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = (product) => {
-    // Safety check in development
     if (!product.shopId && process.env.NODE_ENV !== 'production') {
       console.warn(
         `Warning: Product ${product.title || product._id} is missing shopId. ` +
@@ -34,7 +33,6 @@ export const CartProvider = ({ children }) => {
       );
 
       if (existing) {
-        // Update quantity — keep original shopId
         return prev.map((item) =>
           item._id === product._id && item.size === product.size
             ? { ...item, quantity: item.quantity + 1 }
@@ -47,13 +45,13 @@ export const CartProvider = ({ children }) => {
         return [
           ...prev,
           {
-            productId: product._id,   // ← Change from _id to productId
+            productId: product._id,
             title: product.title,
             price: product.price,
             size: product.size || null,
             image: safeImage,
             quantity: 1,
-            shopId: product.shopId || null,  // ← Added: shopId from product
+            shopId: product.shopId || null,
           },
         ];
       }
@@ -67,14 +65,16 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => setCartItems([]);
 
-  const updateQuantity = (productId, size, quantity) =>
-    setCartItems((prev) =>
-      prev.map((item) =>
+  const updateQuantity = (productId, size, quantity) => {
+    setCartItems((prev) => {
+      const updatedItems = prev.map((item) =>
         item.productId === productId && item.size === size
           ? { ...item, quantity }
           : item
-      )
-    );
+      );
+      return [...updatedItems];
+    });
+  };
 
   return (
     <CartContext.Provider
@@ -83,7 +83,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         removeFromCart,
         clearCart,
-        updateQuantity,
+        updateQuantity,  // now included correctly
       }}
     >
       {children}

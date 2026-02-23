@@ -69,7 +69,8 @@ export default function ProductDetailPage() {
       price: product.price,
       size: selectedSize || null,
       quantity: selectedQuantity,
-      shopId: product.shopId || null
+      shopId: product.shopId || null,
+      stock: product.stock ?? product.quantity ?? 9999
     });
 
     alert(`✅ Added ${selectedQuantity} to cart!`);
@@ -170,23 +171,61 @@ export default function ProductDetailPage() {
             </>
           )}
 
-          {/* Quantity Selector */}
+          {/* Quantity Selector - Premium buttons style */}
           {!isOutOfStock && (
             <div>
-              <label className="block mb-1 text-white font-medium">Quantity:</label>
-              <input
-                type="number"
-                min={1}
-                max={product.stock}
-                value={selectedQuantity}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setSelectedQuantity(Math.max(1, Math.min(val, product.stock)));
-                }}
-                className="w-24 p-2 rounded border text-black bg-white/90"
-              />
-              {selectedQuantity > product.stock && (
-                <p className="text-red-400 text-sm mt-1">Maximum available: {product.stock}</p>
+              <label className="block mb-2 text-white font-medium">Quantity:</label>
+
+              <div className="flex items-center gap-3">
+                {/* Decrement button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedQuantity(prev => Math.max(1, prev - 1))}
+                  disabled={selectedQuantity <= 1}
+                  className={`
+          w-10 h-10 flex items-center justify-center 
+          bg-white/10 border border-white/20 rounded-full 
+          text-white text-xl font-bold 
+          hover:bg-yellow-500/20 hover:border-yellow-400/50 
+          disabled:opacity-40 disabled:cursor-not-allowed 
+          transition-all duration-200
+        `}
+                >
+                  -
+                </button>
+
+                {/* Display quantity (non-editable, centered) */}
+                <div className="
+        w-16 h-10 flex items-center justify-center 
+        bg-black/50 border border-white/20 rounded-lg 
+        text-white font-semibold text-lg
+      ">
+                  {selectedQuantity}
+                </div>
+
+                {/* Increment button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedQuantity(prev => Math.min(prev + 1, product.stock))}
+                  disabled={selectedQuantity >= product.stock}
+                  className={`
+          w-10 h-10 flex items-center justify-center 
+          bg-white/10 border border-white/20 rounded-full 
+          text-white text-xl font-bold 
+          hover:bg-yellow-500/20 hover:border-yellow-400/50 
+          disabled:opacity-40 disabled:cursor-not-allowed 
+          transition-all duration-200
+        `}
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Max stock warning */}
+              {selectedQuantity >= product.stock && (
+                <p className="text-yellow-400 text-sm mt-2 font-medium">
+                  Maximum available: {product.stock}
+                </p>
               )}
             </div>
           )}
@@ -203,17 +242,16 @@ export default function ProductDetailPage() {
             <button
               onClick={handleAddToCart}
               disabled={!canAddToCart || (product.sizes?.length > 0 && !selectedSize)}
-              className={`w-full font-semibold px-6 py-4 rounded-xl transition text-lg ${
-                canAddToCart && (!product.sizes?.length || selectedSize)
+              className={`w-full font-semibold px-6 py-4 rounded-xl transition text-lg ${canAddToCart && (!product.sizes?.length || selectedSize)
                   ? 'bg-yellow-500 hover:bg-yellow-600 text-black active:scale-95'
                   : 'bg-gray-600 text-white cursor-not-allowed'
-              }`}
+                }`}
             >
               {canAddToCart && (!product.sizes?.length || selectedSize)
                 ? `Add ${selectedQuantity} to Cart`
                 : product.sizes?.length > 0 && !selectedSize
-                ? 'Select Size First'
-                : 'Add to Cart'}
+                  ? 'Select Size First'
+                  : 'Add to Cart'}
             </button>
           )}
 

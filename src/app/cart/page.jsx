@@ -97,73 +97,68 @@ export default function CartPage() {
     setShowReview(true)
   }
 
-  // ---------------- CART VALIDATION BEFORE PAY ----------------
-  // ---------------- CART VALIDATION BEFORE PAY ----------------
-const validateCartBeforePay = async () => {
-  setIsValidating(true);
-  try {
-    const res = await fetch('/api/cart/validate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cartItems })
-    });
+  const validateCartBeforePay = async () => {
+    setIsValidating(true)
+    try {
+      const res = await fetch('/api/cart/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cartItems })
+      })
 
-    const data = await res.json();
+      const data = await res.json()
 
-    if (!data.success || !data.valid) {
-      // Build user-friendly error message from backend results
-      const issues = data.results
-        ?.filter(r => !r.valid)
-        ?.map(r => `- ${r.productTitle || r.productId || 'Item'}: ${r.message}`)
-        ?.join('\n') || 'Some items are unavailable.';
+      if (!data.success || !data.valid) {
+        const issues = data.results
+          ?.filter(r => !r.valid)
+          ?.map(r => `- ${r.productTitle || r.productId || 'Item'}: ${r.message}`)
+          ?.join('\n') || 'Some items are unavailable.'
 
-      alert(`Cart validation failed:\n${issues}\n\nPlease update your cart and try again.`);
-      return false;
+        alert(`Cart validation failed:\n${issues}\n\nPlease update your cart and try again.`)
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error('Cart validation fetch error:', err)
+      let msg = 'Network/server error. Please try again later.'
+      if (err.message?.includes('500')) {
+        msg = 'Server error validating cart — please contact support or try again.'
+      }
+      alert(`Could not validate cart: ${msg}`)
+      return false
+    } finally {
+      setIsValidating(false)
     }
-
-    return true;
-  } catch (err) {
-    console.error('Cart validation fetch error:', err);
-    let msg = 'Network/server error. Please try again later.';
-    if (err.message?.includes('500')) {
-      msg = 'Server error validating cart — please contact support or try again.';
-    }
-    alert(`Could not validate cart: ${msg}`);
-    return false;
-  } finally {
-    setIsValidating(false);
   }
-};
 
-  // ---------------- PAYSTACK HANDLER ----------------
   const handlePaystack = () => {
-    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo;
-    if (!cartItems.length) return alert('Cart is empty.');
+    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
+    if (!cartItems.length) return alert('Cart is empty.')
     if (!name || !email || !phone || !address || !town)
-      return alert('Please fill in all delivery details.');
+      return alert('Please fill in all delivery details.')
     if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
-      return alert('Please select pickup or delivery for Port Harcourt.');
+      return alert('Please select pickup or delivery for Port Harcourt.')
 
-    if (!window.PaystackPop) return alert('Paystack not loaded yet');
+    if (!window.PaystackPop) return alert('Paystack not loaded yet')
 
-    const reference = crypto.randomUUID();
+    const reference = crypto.randomUUID()
 
-    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    const grandTotal = subtotal + deliveryFee;
+    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    const grandTotal = subtotal + deliveryFee
 
-    // Safety check for shopId (still good to keep)
-    const missingShopId = cartItems.some(item => !item.shopId);
+    const missingShopId = cartItems.some(item => !item.shopId)
     if (missingShopId) {
       console.warn(
         'Warning: One or more cart items missing shopId. ' +
         'Orders may use fallback in webhook.'
-      );
+      )
     }
 
     const handler = window.PaystackPop.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
       email,
-      amount: grandTotal * 100, // NGN kobo
+      amount: grandTotal * 100,
       currency: 'NGN',
       ref: reference,
       metadata: {
@@ -183,7 +178,7 @@ const validateCartBeforePay = async () => {
           quantity: item.quantity,
           price: item.price,
           image: item.image,
-          shopId: item.shopId || null      // shopId flows here
+          shopId: item.shopId || null
         })),
         subtotal,
         deliveryFee,
@@ -192,39 +187,38 @@ const validateCartBeforePay = async () => {
       },
 
       onClose: function () {
-        alert('Payment was cancelled');
+        alert('Payment was cancelled')
       },
       callback: function (response) {
-        console.log('Payment success:', response.reference);
-        alert('Payment successful! Your order is being processed.');
+        console.log('Payment success:', response.reference)
+        alert('Payment successful! Your order is being processed.')
 
         fetch('/api/paystack/webhook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            reference: response.reference, 
-            metadata: this.metadata, 
-            paid_at: new Date() 
+          body: JSON.stringify({
+            reference: response.reference,
+            metadata: this.metadata,
+            paid_at: new Date()
           })
-        }).catch(err => console.error('Frontend webhook notify failed:', err));
+        }).catch(err => console.error('Frontend webhook notify failed:', err))
 
-        clearCart();
+        clearCart()
       },
-    });
+    })
 
-    handler.openIframe();
-  };
+    handler.openIframe()
+  }
 
-  // Combined handler: validate first → then pay
   const handleProceedToPay = async () => {
-    setIsProcessing(true);
-    const isValid = await validateCartBeforePay();
+    setIsProcessing(true)
+    const isValid = await validateCartBeforePay()
 
     if (isValid) {
-      handlePaystack();
+      handlePaystack()
     }
-    setIsProcessing(false);
-  };
+    setIsProcessing(false)
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -245,16 +239,64 @@ const validateCartBeforePay = async () => {
                     <h2 className="text-lg font-semibold">{item.title}</h2>
                     {item.size && <p className="text-gray-300">Size: {item.size}</p>}
                     <p className="text-green-400 font-bold">₦{(item.price * item.quantity).toLocaleString()}</p>
+
+                    {/* ── Updated quantity controls with stock limit ── */}
                     <div className="flex items-center mt-2 space-x-2">
+                      <button
+                        onClick={() => {
+                          if (item.quantity > 1) {
+                            updateQuantity(item._id, item.size, item.quantity - 1)
+                          } else {
+                            removeFromCart(item._id, item.size)
+                          }
+                        }}
+                        disabled={item.quantity <= 1}
+                        className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+                      >
+                        −
+                      </button>
+
                       <input
                         type="number"
                         min={1}
+                        max={item.stock ?? 9999}
                         value={item.quantity}
-                        onChange={(e) => updateQuantity(item._id, item.size, Number(e.target.value))}
-                        className="w-20 p-1 rounded text-black"
+                        onChange={(e) => {
+                          const val = Number(e.target.value)
+                          const max = item.stock ?? 9999
+                          if (val >= 1 && val <= max) {
+                            updateQuantity(item._id, item.size, val)
+                          }
+                        }}
+                        className="w-16 text-center p-1.5 rounded bg-black/60 border border-gray-600 text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <button onClick={() => removeFromCart(item._id, item.size)} className="px-3 py-1 bg-red-600 rounded hover:bg-red-500 transition">Remove</button>
+
+                      <button
+                        onClick={() => {
+                          if (item.quantity < (item.stock ?? 9999)) {
+                            updateQuantity(item._id, item.size, item.quantity + 1)
+                          }
+                        }}
+                        disabled={item.quantity >= (item.stock ?? 9999)}
+                        className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+                      >
+                        +
+                      </button>
+
+                      <button
+                        onClick={() => removeFromCart(item._id, item.size)}
+                        className="ml-3 px-3 py-1.5 bg-red-700/80 hover:bg-red-600 rounded text-sm"
+                      >
+                        Remove
+                      </button>
                     </div>
+
+                    {/* Stock limit message when at maximum */}
+                    {item.stock != null && item.quantity >= item.stock && item.stock > 0 && (
+                      <p className="text-xs text-amber-400 mt-1">
+                        Only {item.stock} available in stock
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -345,7 +387,7 @@ const validateCartBeforePay = async () => {
             </div>
 
             <button
-              onClick={handleProceedToPay}  // ← Changed to new handler
+              onClick={handleProceedToPay}
               disabled={isProcessing || isValidating}
               className="w-full mt-4 px-6 py-3 bg-yellow-400 text-black font-semibold rounded-xl hover:bg-yellow-300 transition disabled:opacity-50"
             >
