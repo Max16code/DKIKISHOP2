@@ -104,7 +104,7 @@ export default function Navbar() {
 
             {/* Contact in Mobile Dropdown */}
             <Link
-              href="/contact"
+              href="/Contact"
               className="block text-lg font-medium text-black hover:text-pink-600 transition"
               onClick={() => setIsOpen(false)}
             >
