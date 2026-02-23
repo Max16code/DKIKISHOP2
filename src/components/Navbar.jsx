@@ -20,7 +20,7 @@ export default function Navbar() {
     { name: 'Activewears', href: '/category/activewears' },
     { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
     { name: 'Accessories', href: '/category/accessories' }, // 🆕 Added
-    { name: 'Contact', href: '/Contact' },
+    
   ]
 
   return (
@@ -49,15 +49,7 @@ export default function Navbar() {
                 className="rounded-full object-cover shadow-md hover:opacity-90 transition"
               />
 
-              {/* Santa Hat Overlay */}
-              <Image
-                src="/images/santa2.png" // your downloaded transparent PNG
-                alt=""
-                width={24}  // set your desired width
-                height={24} // set your desired height
-                className="absolute -top-2 -right-2"
-                
-              />
+              
             </div>
 
 
@@ -79,7 +71,7 @@ export default function Navbar() {
           {/* Right Side: Contact + Cart */}
           <div className="flex items-center gap-4 z-10">
             <Link
-              href="/contact"
+              href="/Contact"
               className="text-black font-medium hover:text-pink-600 transition hidden md:inline"
             >
               Contact
