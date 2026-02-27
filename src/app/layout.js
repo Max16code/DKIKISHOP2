@@ -7,6 +7,10 @@ import PageWrapper from '@/components/PageWrapper'
 export const metadata = {
   title: "Dkikishop",
   description: "Luxury on a budget",
+  icons: {
+    icon: '/kikishop.png',  // Path to your file in /public
+    
+  },
 };
 
 export default function RootLayout({ children }) {
