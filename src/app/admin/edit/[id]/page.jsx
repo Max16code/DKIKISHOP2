@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import ProductImage from '@/components/ProductImage';
 
 export default function EditProductPage() {
   const { id } = useParams();
@@ -13,11 +14,12 @@ export default function EditProductPage() {
     description: '',
     category: '',
     size: '',
-    image: '',
+    images: [], // ✅ support array
   });
 
   const [loading, setLoading] = useState(true);
 
+  // ✅ Fetch product info
   useEffect(() => {
     fetch(`/api/product/${id}`)
       .then(res => res.json())
@@ -28,7 +30,11 @@ export default function EditProductPage() {
           description: data.description || '',
           category: data.category || '',
           size: Array.isArray(data.size) ? data.size.join(', ') : data.size || '',
-          image: typeof data.image === 'string' ? data.image : '',
+          images: Array.isArray(data.images)
+            ? data.images
+            : data.image
+              ? [data.image]
+              : [], // ✅ always an array
         });
         setLoading(false);
       })
@@ -38,10 +44,21 @@ export default function EditProductPage() {
       });
   }, [id]);
 
+  // ✅ Handle form input
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ✅ Update images (comma separated)
+  const handleImagesChange = (e) => {
+    const imgs = e.target.value
+      .split(',')
+      .map(img => img.trim())
+      .filter(Boolean);
+    setFormData({ ...formData, images: imgs });
+  };
+
+  // ✅ Update product
   const handleUpdate = async (e) => {
     e.preventDefault();
 
@@ -49,13 +66,12 @@ export default function EditProductPage() {
       ...formData,
       price: parseFloat(formData.price),
       size: formData.size.split(',').map(s => s.trim()),
+      images: formData.images.map(img => img.startsWith('/') ? img : `/${img}`),
     };
 
     const res = await fetch(`/api/updateproduct/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedData),
     });
 
@@ -72,7 +88,28 @@ export default function EditProductPage() {
   return (
     <div className="max-w-xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
+
       <form onSubmit={handleUpdate} className="space-y-4">
+
+        {/* ✅ Image Preview Section */}
+        {(formData.images?.length > 0 || formData.image) && (
+          <div className="mb-4">
+            <ProductImage
+              product={{
+                ...formData,
+                images: formData.images?.length > 0
+                  ? formData.images
+                  : formData.image
+                    ? [formData.image]
+                    : [],
+              }}
+              height="h-[350px]"
+              fit="object-cover"
+            />
+          </div>
+        )}
+
+
         {/* Title */}
         <div>
           <label className="block font-medium mb-1">Title</label>
@@ -137,15 +174,15 @@ export default function EditProductPage() {
           />
         </div>
 
-        {/* Image */}
+        {/* ✅ Multiple Image URLs */}
         <div>
-          <label className="block font-medium mb-1">Image URL</label>
+          <label className="block font-medium mb-1">Image URLs (comma separated)</label>
           <input
-            name="image"
-            value={formData.image}
-            onChange={handleChange}
+            name="images"
+            value={formData.images.join(', ')}
+            onChange={handleImagesChange}
             className="w-full border px-3 py-2 rounded"
-            placeholder="/images/sample.jpg"
+            placeholder="/img1.jpg, /img2.jpg"
             required
           />
         </div>

@@ -1,36 +1,58 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from "next/navigation"
 import Navbar from '@/components/Navbar'
 
 export default function AdminOrdersPage() {
+  const router = useRouter()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // 🔒 STEP 1 — Admin authentication check
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch('/api/orders')
-        const data = await res.json()
-        setOrders(data.orders || [])
-      } catch (error) {
-        console.error('Failed to fetch orders:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    const isLoggedIn =
+      document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("admin_logged_in="))
+        ?.split("=")[1] === "true"
 
-    fetchOrders()
+    if (!isLoggedIn) {
+      router.replace("/admin/login")
+    } else {
+      fetchOrders()
+    }
   }, [])
+
+  // 🔒 STEP 2 — Fetch orders securely
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: "GET",
+        credentials: "include", // ensures cookies sent for auth
+      })
+      const data = await res.json()
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to load orders")
+      }
+
+      setOrders(data.orders || [])
+    } catch (error) {
+      console.error("❌ Failed to fetch orders:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) return <p className="p-6 text-center">Loading orders...</p>
 
   return (
     <div className="min-h-screen px-4 py-6">
       <Navbar />
       <h1 className="text-2xl font-bold mb-4">Admin Orders</h1>
 
-      {loading ? (
-        <p>Loading orders...</p>
-      ) : orders.length === 0 ? (
+      {orders.length === 0 ? (
         <p>No orders yet.</p>
       ) : (
         <ul className="space-y-4">

@@ -1,108 +1,60 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
-import Navbar from '@/components/Navbar'
 
+// Create a component that uses useSearchParams
 function SuccessContent() {
   const searchParams = useSearchParams()
   const reference = searchParams.get('reference')
-
-  const [order, setOrder] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [deleting, setDeleting] = useState(false)
-
-  useEffect(() => {
-    const fetchOrderAndDeleteProducts = async () => {
-      try {
-        const res = await fetch(`/api/orders/${reference}`)
-        const data = await res.json()
-
-        if (data.success) {
-          setOrder(data.data)
-
-          // Begin deleting purchased products
-          if (data.data.items && data.data.items.length > 0) {
-            setDeleting(true)
-            for (const item of data.data.items) {
-              const deleteRes = await fetch(`/api/deleteproduct/${item._id}`, {
-                method: 'DELETE',
-              })
-              const result = await deleteRes.json()
-              console.log(`🗑️ Deleted product ${item._id}:`, result)
-            }
-            setDeleting(false)
-          }
-        }
-      } catch (err) {
-        console.error('❌ Error loading or deleting order:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (reference) fetchOrderAndDeleteProducts()
-  }, [reference])
-
+  const orderId = searchParams.get('order')
+  
   return (
-    <div className="max-w-xl mx-auto text-center space-y-4">
-      {loading ? (
-        <p className="text-gray-400">Fetching your order...</p>
-      ) : order ? (
-        <>
-          <h1 className="text-3xl font-semibold text-green-400">✅ Payment Successful</h1>
-          <p className="text-sm text-gray-400">Thank you for your purchase!</p>
-
-          <div className="mt-6 p-4 rounded-xl border border-white/10 bg-white/5 shadow-md text-left">
-            <p className="text-sm">
-              <span className="font-medium text-white">Shop ID:</span>{' '}
-              <span className="text-yellow-400 font-mono">{order.shopId}</span>
-            </p>
-            <p className="text-sm">
-              <span className="font-medium">Reference:</span>{' '}
-              <span className="text-gray-400">{order.reference}</span>
-            </p>
-            <p className="text-sm">
-              <span className="font-medium">Amount:</span>{' '}
-              <span className="text-green-300">₦{Number(order.totalAmount).toLocaleString()}</span>
-            </p>
-
-            <div className="mt-4">
-              <p className="text-white font-medium mb-1">Items:</p>
-              <ul className="list-disc list-inside text-sm text-gray-300">
-                {order.items.map((item, index) => (
-                  <li key={index}>
-                    {item.title} — {item.size} — ₦{item.price} × {item.quantity}
-                  </li>
-                ))}
-              </ul>
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
+        <p className="text-gray-600 mb-4">Thank you for your purchase</p>
+        
+        {reference && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <p className="text-sm text-gray-600">Reference:</p>
+            <p className="font-mono text-gray-800">{reference}</p>
           </div>
-
-          {deleting && (
-            <p className="text-yellow-400 text-xs italic mt-4">
-              Removing purchased items from store...
-            </p>
-          )}
-
-          <p className="text-xs text-gray-500 mt-6 italic">
-            Your order will be processed shortly. We appreciate your trust in DKIKISHOP.
-          </p>
-        </>
-      ) : (
-        <p className="text-red-400">No order found for this reference.</p>
-      )}
+        )}
+        
+        <p className="text-gray-600 mb-6">
+          Your order has been confirmed. You'll receive an email with the details shortly.
+        </p>
+        
+        <a
+          href="/"
+          className="inline-block px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Continue Shopping
+        </a>
+      </div>
     </div>
   )
 }
 
+// Main page component with Suspense
 export default function SuccessPage() {
   return (
-    <div className="min-h-screen bg-black text-white px-4 pt-24">
-      <Navbar />
-      <Suspense fallback={<div className="text-center text-gray-400">Loading success details...</div>}>
-        <SuccessContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading order details...</p>
+        </div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   )
 }
