@@ -1,12 +1,12 @@
-// api/admin/upload/route.js
+// src/app/api/admin/upload/route.js
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
-import { verifyAdmin } from "@/lib/verifyAdmin";
+import { getSession } from "@/lib/session"; // ← use iron-session
 
 export async function POST(req) {
-  // Define allowed categories inside the handler (no more ReferenceError)
+  // Define allowed categories
   const allowedCategories = [
     "jeans",
     "blazers",
@@ -19,10 +19,14 @@ export async function POST(req) {
   ];
 
   try {
-    const isAdmin = await verifyAdmin(req);
-    if (!isAdmin) {
+    // NEW: Use iron-session instead of verifyAdmin
+    const session = await getSession();
+    if (!session || !session.isAdmin) {
+      console.log('Unauthorized upload - no valid admin session');
       return NextResponse.json({ success: false, error: "Unauthorized access." }, { status: 401 });
     }
+
+    console.log('Admin upload authorized - session OK');
 
     await dbConnect();
 
@@ -41,7 +45,7 @@ export async function POST(req) {
     const sizes = Array.isArray(body.sizes) ? body.sizes.map(s => sanitizeInput(s.trim())).filter(Boolean) : [];
     const quantity = Number(body.quantity || 1);
     const images = Array.isArray(body.images) ? body.images : [];
-    const shopId = body.shopId || '697780d848d182949a9fc132'; // fallback (replace with real default later)
+    const shopId = body.shopId || '697780d848d182949a9fc132';
 
     // Validation
     if (!title || !description || isNaN(price) || price <= 0 || !category || sizes.length === 0 || images.length === 0 || !shopId) {
@@ -73,13 +77,14 @@ export async function POST(req) {
 
     await newProduct.save();
 
+    console.log('Product created successfully:', newProduct._id);
+
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
 
   } catch (err) {
     console.error("Upload route error:", {
       message: err.message,
       stack: err.stack?.substring(0, 800) || 'No stack',
-      body: req.body ? 'Body present' : 'No body'
     });
 
     return NextResponse.json(

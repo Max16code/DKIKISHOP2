@@ -3,13 +3,13 @@ import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 
 export const sessionOptions = {
-  password: process.env.IRON_SESSION_PASSWORD || '', // fallback to empty (will be checked later)
+  password: process.env.IRON_SESSION_PASSWORD || '',
   cookieName: 'kikishop_admin_sid',
   cookieOptions: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
     path: '/',
   },
 };
@@ -22,6 +22,8 @@ export async function getSession() {
     throw new Error('Server configuration error: session secret missing');
   }
 
-  const cookieStore = cookies();
+  // IMPORTANT: await cookies() in async function
+  const cookieStore = await cookies();  // ← add await here
+
   return getIronSession(cookieStore, sessionOptions);
 }
