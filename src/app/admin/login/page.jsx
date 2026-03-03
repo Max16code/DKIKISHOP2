@@ -9,16 +9,15 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔐 Auto-redirect if already logged in
+  // Check if already logged in via session cookie
   useEffect(() => {
-    const cookie = document.cookie
-      .split("; ")
-      .find((c) => c.startsWith("admin_logged_in="));
-
-    const isLoggedIn = cookie?.split("=")[1] === "true";
-    if (isLoggedIn) {
-      router.replace("/admin/dashboard");
+    async function checkSession() {
+      const res = await fetch("/api/admin/check", { credentials: "include" });
+      if (res.ok) {
+        router.replace("/admin/dashboard");
+      }
     }
+    checkSession();
   }, [router]);
 
   const handleLogin = async () => {
@@ -35,20 +34,17 @@ export default function AdminLoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
+        credentials: "include", // Important: sends/receives cookies
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         setError(data.error || "Wrong password");
-        setLoading(false);
         return;
       }
 
-      // 🔐 Set cookie for 1 hour
-      document.cookie = "admin_logged_in=true; path=/; max-age=3600";
-
-      // Redirect to dashboard
+      // Success → redirect (cookie is set server-side)
       router.replace("/admin/dashboard");
     } catch (err) {
       console.error("Login error:", err);
@@ -69,6 +65,7 @@ export default function AdminLoginPage() {
         placeholder="Enter password"
         className="w-full p-2 rounded mb-4 text-black"
         onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+        disabled={loading}
       />
 
       <button
