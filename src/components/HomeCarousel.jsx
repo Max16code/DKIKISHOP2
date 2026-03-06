@@ -4,6 +4,8 @@
 import { useEffect, useCallback, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
+import { ShoppingCart } from 'lucide-react'
+import Link from 'next/link'
 
 const transitionStyles = [
     'transition-all duration-1000 ease-in-out opacity-0 scale-95 data-[active=true]:opacity-100 data-[active=true]:scale-100',
@@ -85,7 +87,7 @@ export default function HomeCarousel({ products = [] }) {
 
                     {/* "Fill up your cart" slide */}
                     <div className="embla__slide min-w-full ">
-                        <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-r from-pink-400 via-rose-400 to-purple-600 overflow-hidden">
+                        <div className="relative h-48 md:h-71 flex items-center justify-center bg-gradient-to-r from-pink-400 via-rose-400 to-purple-600 overflow-hidden">
                             <div className="absolute inset-0 opacity-20 pointer-events-none">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.3)_0%,transparent_50%)]"></div>
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.2)_0%,transparent_60%)]"></div>
@@ -95,13 +97,39 @@ export default function HomeCarousel({ products = [] }) {
                                 <div className="mb-4 md:mb-6">
                                     <span className="text-6xl md:text-8xl">🛍️</span>
                                 </div>
+                                <div className="flex items-center gap-4 md:gap-6">
+                                    <h3 className="text-2xl sm:text-3xl font-serif md:text-5xl font-bold text-white drop-shadow-lg tracking-wide">
+                                        Fill up your cart
+                                    </h3>
 
-                                <h3 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-5 drop-shadow-lg tracking-wide">
-                                    Fill up your cart
-                                </h3>
+                                    {/* Cart icon/button right beside the heading */}
+                                    <Link href="/cart" className="group relative">
+                                        <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-yellow-500/20 hover:bg-yellow-500/40 rounded-full transition-all duration-300 transform group-hover:scale-110 border border-yellow-400/40 shadow-lg">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-yellow-400 group-hover:text-white transition-colors"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth={2}
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                                                />
+                                            </svg>
 
-                                <p className="text-xl sm:text-2xl md:text-4xl font-extrabold text-pink-200 mb-4 md:mb-6 drop-shadow">
+                                            {/* Optional cart count badge */}
+                                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-black">
+                                                10
+                                            </span>
+                                        </div>
+                                    </Link>
+                                </div>
+                                <p className="text-xl sm:text-2xl md:text-4xl font-serif font-extrabold  text-pink-200 mb-4 md:mb-6 drop-shadow">
                                     babygirrrrrlllllll 💋
+
                                 </p>
 
 
@@ -118,7 +146,7 @@ export default function HomeCarousel({ products = [] }) {
                             </div>
 
                             <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-3xl">
-                                <div className="mb-4 md:mb-6">
+                                <div className="mt-1 md:mb-6">
                                     <img
                                         src="/images/rider.avif"  // ← your rider image path (replace if needed)
                                         alt="Delivery rider"
@@ -126,13 +154,11 @@ export default function HomeCarousel({ products = [] }) {
                                     />
                                 </div>
 
-                                <h3 className="text-2xl sm:text-3xl md:text-3xl font-medium text-white mb-3 md:mb-5 drop-shadow-lg tracking-wide">
-                                    Select how you would prefer to pickup
+                                <h3 className="text-xl sm:text-xl md:text-xl font-extralight md:font-extralight font-serif text-white mb-10 md:mb-20">
+                                    Select suitable delivery method
                                 </h3>
 
-                                <p className="text-lg md:text-xl text-pink-100 opacity-90">
-                                    Fast • Safe • Just for you 💕
-                                </p>
+
                             </div>
                         </div>
                     </div>
@@ -141,10 +167,10 @@ export default function HomeCarousel({ products = [] }) {
                     <div className="embla__slide min-w-full transition-all duration-1500 ease-in-out data-[active=true]:opacity-100">
                         <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-r from-pink-900/80 via-purple-900/80 to-indigo-900/80">
                             <div className="text-center px-6 max-w-3xl">
-                                <h3 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-6 drop-shadow-lg">
-                                    About DKIKISHOP
+                                <h3 className="text-3xl md:text-5xl font-bold text-white font-serif mb-3 md:mb-6 drop-shadow-lg">
+                                    DKIKISHOP
                                 </h3>
-                                <p className="text-base md:text-xl text-pink-100">
+                                <p className="text-base md:text-xl font-serif text-pink-100">
                                     Where luxury meets affordability.<br />
                                     Elegant pieces for the modern woman.
                                 </p>
@@ -156,10 +182,10 @@ export default function HomeCarousel({ products = [] }) {
                     <div className="embla__slide min-w-full">
                         <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-r from-indigo-900/80 via-purple-900/80 to-pink-900/80">
                             <div className="text-center px-6 max-w-3xl">
-                                <h3 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-6 drop-shadow-lg">
+                                <h3 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-6 font-serif drop-shadow-lg">
                                     Our Vibe
                                 </h3>
-                                <p className="text-base md:text-xl text-purple-100">
+                                <p className="text-base md:text-xl font-serif text-purple-100">
                                     Soft elegance • Bold confidence • Endless charm
                                 </p>
                             </div>
