@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -6,29 +5,35 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-// import ProductImage from '@/components/ProductImage'
+import HomeCarousel from '@/components/HomeCarousel'  // ← your new carousel component
 
 export default function Home() {
   const [productData, setProductData] = useState([])
+  const [featuredProducts, setFeaturedProducts] = useState([])  // for carousel
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     const getProducts = async () => {
       try {
-        // CHANGED: Add stock filter parameter
         const res = await fetch('/api/getproducts/all?available=true')
         const data = await res.json()
 
         if (!Array.isArray(data)) throw new Error('Invalid product format')
 
-        // CHANGED: Filter products by availability (client-side backup)
         const availableProducts = data.filter(product =>
           product.isAvailable !== false &&
           (product.stock > 0 || product.quantity > 0)
         )
 
         setProductData(availableProducts)
+
+        // Take newest 10 for carousel (or randomize later)
+        const featured = availableProducts
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 10)
+
+        setFeaturedProducts(featured)
       } catch (err) {
         console.error('❌ Error:', err)
         setError('Failed to fetch products')
@@ -56,18 +61,17 @@ export default function Home() {
 
       <Navbar />
 
-      {/* Title */}
+      {/* Welcome Section */}
       <div className="relative z-10 text-center mt-24">
         <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
           Welcome to{' '}
-          <span className="text-yellow-400">
-            DKIKISHOP
-          </span>
+          <span className="text-yellow-400">DKIKISHOP</span>
         </h1>
         <p className="mt-2 text-gray-400">Luxury on a Budget</p>
       </div>
 
-
+      {/* Carousel – right underneath welcome */}
+      <HomeCarousel products={featuredProducts} />
 
       {/* Status Messages */}
       <div className="relative z-10 mt-10 px-6 text-center">
@@ -78,14 +82,13 @@ export default function Home() {
         )}
       </div>
 
-      {/* Product Grid */}
-      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap- sm:gap-6">
+      {/* Product Grid – unchanged */}
+      <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
         {productData.map((product, index) => {
-          // Calculate stock status
-          const isAvailable = product.isAvailable !== false;
-          const stock = product.stock || product.quantity || 0;
-          const inStock = isAvailable && stock > 0;
-          const lowStock = inStock && stock <= 5;
+          const isAvailable = product.isAvailable !== false
+          const stock = product.stock || product.quantity || 0
+          const inStock = isAvailable && stock > 0
+          const lowStock = inStock && stock <= 5
 
           return (
             <Link href={`/product/${product._id}`} key={product._id || index} passHref>
@@ -96,7 +99,6 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: index * 0.05 }}
                 className={`flex flex-col cursor-pointer shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 relative rounded-lg overflow-hidden ${!inStock ? 'opacity-70' : ''}`}
               >
-                {/* Product Image */}
                 <div className="relative w-full h-54 sm:h-64 md:h-72 flex items-center justify-center bg-black/10">
                   <Image
                     src={product.images?.[0] || '/images/fallback.jpg'}
@@ -107,7 +109,6 @@ export default function Home() {
                     priority={index < 6}
                   />
 
-                  {/* Stock badges */}
                   {!inStock && (
                     <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded-full z-10">
                       OUT OF STOCK
@@ -119,7 +120,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Out of stock overlay */}
                   {!inStock && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold z-5">
                       Unavailable
@@ -127,7 +127,6 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Product Info */}
                 <div className="p-2 sm:p-3 flex flex-col items-start text-left">
                   <h2 className="text-sm sm:text-base font-semibold text-white line-clamp-1">
                     {product.title}
@@ -141,7 +140,6 @@ export default function Home() {
                     ₦{Number(product.price).toLocaleString()}
                   </p>
 
-                  {/* Stock Indicator */}
                   <div className="mt-1 text-xs">
                     {inStock ? (
                       <span className={lowStock ? 'text-yellow-400' : 'text-green-400'}>
@@ -158,7 +156,6 @@ export default function Home() {
                 </div>
               </motion.div>
             </Link>
-
           )
         })}
       </div>
