@@ -115,7 +115,17 @@ export default function ProductDetailPage() {
               className="object-contain"
               priority
             />
-
+            {/* Official DKIKISHOP logo – top-right corner */}
+            <div className="absolute top-2 right-10 w-12 h-12 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
+              <Image
+                src="/images/kikiLogo.jpg"
+                alt="Dkikishop Logo"
+                fill
+                className="object-cover"
+                sizes="48px"  // exact size hint for performance
+                priority      // optional: loads faster if it's above the fold
+              />
+            </div>
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white text-2xl md:text-4xl font-bold">
                 Out of Stock
@@ -243,8 +253,8 @@ export default function ProductDetailPage() {
               onClick={handleAddToCart}
               disabled={!canAddToCart || (product.sizes?.length > 0 && !selectedSize)}
               className={`w-full font-semibold px-6 py-4 rounded-xl transition text-lg ${canAddToCart && (!product.sizes?.length || selectedSize)
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-black active:scale-95'
-                  : 'bg-gray-600 text-white cursor-not-allowed'
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-black active:scale-95'
+                : 'bg-gray-600 text-white cursor-not-allowed'
                 }`}
             >
               {canAddToCart && (!product.sizes?.length || selectedSize)

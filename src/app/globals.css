@@ -18,7 +18,44 @@
     --foreground: #ededed;
   }
 }
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
+.animate-rotate {
+  animation: rotate 25s linear infinite; /* Adjust 25s for faster/slower spin */
+}
+
+@keyframes marquee-circle {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+@keyframes ribbon-flow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ribbon-flow {
+  animation: ribbon-flow 25s linear infinite; /* Adjust 18s for speed: 12s faster, 25s slower */
+}
+.animate-marquee-circle {
+  animation: marquee-circle 25s linear infinite;
+  display: inline-block;
+  white-space: nowrap;
+}
 body {
   background: var(--background);
   color: var(--foreground);

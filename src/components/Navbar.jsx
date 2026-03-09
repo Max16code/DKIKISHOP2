@@ -20,7 +20,7 @@ export default function Navbar() {
     { name: 'Activewears', href: '/category/activewears' },
     { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
     { name: 'Accessories', href: '/category/accessories' }, // 🆕 Added
-    
+
   ]
 
   return (
@@ -40,16 +40,15 @@ export default function Navbar() {
             href="/"
             className="absolute left-1/2 transform -translate-x-1/2 md:static md:translate-x-0 z-0"
           >
-            <div className="relative w-12 h-12">
-              {/* Main Logo */}
+            <div className="relative w-12 h-12 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
               <Image
                 src="/images/kikiLogo.jpg"
                 alt="Dkikishop Logo"
                 fill
-                className="rounded-full object-cover shadow-md hover:opacity-90 transition"
+                className="object-cover"
+                sizes="48px"  // exact size hint for performance
+                priority      // optional: loads faster if it's above the fold
               />
-
-              
             </div>
 
 

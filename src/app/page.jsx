@@ -96,7 +96,22 @@ export default function Home() {
             <p className="text-xs sm:text-sm md:text-base text-white/90 font-medium mb-3 sm:mb-4">
               20th – 24th March 2026
             </p>
-            
+            {/* Ribbon that wraps around the whole banner – moving left-to-right */}
+            <div className="relative h-8 sm:h-9 md:h-10 overflow-hidden">
+              {/* Ribbon background (full perimeter frame) */}
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/40 via-fuchsia-500/40 to-purple-500/40 rounded-full border border-pink-300/40 shadow-inner backdrop-blur-md" />
+
+              {/* Scrolling text that flows around the frame */}
+              <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ribbon-flow">
+                <span className="text-xs sm:text-sm md:text-base font-medium text-white/95 tracking-wider px-16">
+                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  Hurry up girlies and pick up the good stuff fast 💅✨
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +151,17 @@ export default function Home() {
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     priority={index < 6}
                   />
-
+                  {/* Official DKIKISHOP logo – top-right corner */}
+                  <div className="absolute top-2 right-4 w-12 h-12 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <Image
+                      src="/images/kikiLogo.jpg"
+                      alt="Dkikishop Logo"
+                      fill
+                      className="object-cover"
+                      sizes="48px"  // exact size hint for performance
+                      priority      // optional: loads faster if it's above the fold
+                    />
+                  </div>
                   {!inStock && (
                     <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded-full z-10">
                       OUT OF STOCK

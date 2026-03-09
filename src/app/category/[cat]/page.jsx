@@ -109,7 +109,17 @@ export default function CategoryPage() {
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     priority={index < 6}
                   />
-
+                  {/* Official DKIKISHOP logo – top-right corner */}
+                  <div className="absolute top-2 right-19 w-12 h-12 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <Image
+                      src="/images/kikiLogo.jpg"
+                      alt="Dkikishop Logo"
+                      fill
+                      className="object-cover"
+                      sizes="48px"  // exact size hint for performance
+                      priority      // optional: loads faster if it's above the fold
+                    />
+                  </div>
                   {/* Stock badges */}
                   {!inStock && (
                     <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded-full z-10">
