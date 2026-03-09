@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeCarousel from '@/components/HomeCarousel'
+import ProductImageCarousel from '@/components/ProdctImageCarousel'
 
 export default function Home() {
   const [productData, setProductData] = useState([])
@@ -143,13 +144,9 @@ export default function Home() {
                 className={`flex flex-col cursor-pointer shadow-md hover:shadow-yellow-500/20 transition-shadow duration-300 relative rounded-lg overflow-hidden ${!inStock ? 'opacity-70' : ''}`}
               >
                 <div className="relative w-full h-54 sm:h-64 md:h-72 flex items-center justify-center bg-black/10">
-                  <Image
-                    src={product.images?.[0] || '/images/fallback.jpg'}
+                  <ProductImageCarousel
+                    images={product.images || ['/images/fallback.jpg']}
                     alt={product.title}
-                    fill
-                    className={`object-contain transition-opacity duration-300 ${!inStock ? 'opacity-50 grayscale' : ''}`}
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    priority={index < 6}
                   />
                   {/* Official DKIKISHOP logo – top-right corner */}
                   <div className="absolute top-2 right-4 w-8 h-8 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
