@@ -1,10 +1,9 @@
-// src/components/HomeCarousel.jsx (full updated file)
+// src/components/HomeCarousel.jsx
 'use client'
 
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
-import { ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 
 const transitionStyles = [
@@ -32,39 +31,21 @@ export default function HomeCarousel({ products = [] }) {
         ]
     )
 
-    const [currentStyles, setCurrentStyles] = useState({})
-
-    useEffect(() => {
-        if (!emblaApi) return
-
-        const onSelect = () => {
-            const newStyles = {}
-            emblaApi.slideNodes().forEach((node, index) => {
-                const randomStyle = transitionStyles[Math.floor(Math.random() * transitionStyles.length)]
-                newStyles[index] = randomStyle
-            })
-            setCurrentStyles(newStyles)
-        }
-
-        emblaApi.on('select', onSelect)
-        onSelect()
-
-        return () => emblaApi.off('select', onSelect)
-    }, [emblaApi])
-
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
     return (
         <div className="relative w-full overflow-hidden mt-6 md:mt-8">
+           
+
+            {/* Carousel */}
             <div className="embla" ref={emblaRef}>
                 <div className="embla__container flex">
                     {/* Product slides */}
                     {products.map((product, index) => (
                         <div
                             key={product._id}
-                            className="embla__slide min-w-full opacity-0 transition-all duration-1800 ease-in-out data-[active=true]:opacity-100"
-                            data-active={emblaApi?.selectedScrollSnap() === index}
+                            className="embla__slide min-w-full"
                         >
                             <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-b from-black/70 via-black/50 to-black/70 overflow-hidden">
                                 <img
@@ -76,7 +57,6 @@ export default function HomeCarousel({ products = [] }) {
                                     <h3 className="text-xl sm:text-3xl md:text-4xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg">
                                         {product.title}
                                     </h3>
-
                                     <p className="text-sm sm:text-base md:text-lg text-gray-100 line-clamp-2 md:line-clamp-3 drop-shadow">
                                         {product.description || 'Timeless elegance, crafted for you.'}
                                     </p>
@@ -86,18 +66,15 @@ export default function HomeCarousel({ products = [] }) {
                     ))}
 
                     {/* "Fill up your cart" slide */}
-                    <div className="embla__slide min-w-full ">
-                        <div className="relative h-48 md:h-71 flex items-center justify-center bg-gradient-to-r from-pink-400 via-rose-400 to-purple-600 overflow-hidden">
+                    <div className="embla__slide min-w-full">
+                        <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-r from-pink-400 via-rose-400 to-purple-600 overflow-hidden">
                             <div className="absolute inset-0 opacity-20 pointer-events-none">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.3)_0%,transparent_50%)]"></div>
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.2)_0%,transparent_60%)]"></div>
                             </div>
 
                             <div className="relative z-10 text-center px-6 max-w-3xl">
-                                <div className="mb-4 md:mb-6">
-                                    <span className="text-6xl md:text-8xl">🛍️</span>
-                                </div>
-                                <div className="flex items-center gap-4 md:gap-6">
+                                <div className="flex items-center justify-center gap-4 md:gap-6">
                                     <h3 className="text-2xl sm:text-3xl font-serif md:text-5xl font-bold text-white drop-shadow-lg tracking-wide">
                                         Fill up your cart
                                     </h3>
@@ -120,25 +97,23 @@ export default function HomeCarousel({ products = [] }) {
                                                 />
                                             </svg>
 
-                                            {/* Optional cart count badge */}
+                                            {/* Cart count badge */}
                                             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-black">
                                                 10
                                             </span>
                                         </div>
                                     </Link>
                                 </div>
-                                <p className="text-xl sm:text-2xl md:text-4xl font-serif font-extrabold  text-pink-200 mb-4 md:mb-6 drop-shadow">
+
+                                <p className="text-xl sm:text-2xl md:text-4xl font-serif font-extrabold text-pink-200 mb-4 md:mb-6 drop-shadow">
                                     babygirrrrrlllllll 💋
-
                                 </p>
-
-
                             </div>
                         </div>
                     </div>
 
-                    {/* NEW: "Select how you would prefer to pickup" slide */}
-                    <div className="embla__slide min-w-full transition-all duration-1800 ease-in-out data-[active=true]:opacity-100">
+                    {/* Rider / Delivery slide */}
+                    <div className="embla__slide min-w-full">
                         <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 overflow-hidden">
                             <div className="absolute inset-0 opacity-30 pointer-events-none">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.4)_0%,transparent_60%)]"></div>
@@ -148,7 +123,7 @@ export default function HomeCarousel({ products = [] }) {
                             <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-3xl">
                                 <div className="mt-1 md:mb-6">
                                     <img
-                                        src="/images/rider.avif"  // ← your rider image path (replace if needed)
+                                        src="/images/rider.avif"
                                         alt="Delivery rider"
                                         className="w-32 h-32 md:w-48 md:h-48 mt-14 object-cover rounded-full shadow-2xl border-4 border-white/30 ring-2 ring-pink-300/50"
                                     />
@@ -157,14 +132,12 @@ export default function HomeCarousel({ products = [] }) {
                                 <h3 className="text-xl sm:text-xl md:text-xl font-extralight md:font-extralight font-serif text-white mb-10 md:mb-20">
                                     Select suitable delivery method
                                 </h3>
-
-
                             </div>
                         </div>
                     </div>
 
                     {/* About DKIKISHOP */}
-                    <div className="embla__slide min-w-full transition-all duration-1500 ease-in-out data-[active=true]:opacity-100">
+                    <div className="embla__slide min-w-full">
                         <div className="relative h-48 md:h-64 flex items-center justify-center bg-gradient-to-r from-pink-900/80 via-purple-900/80 to-indigo-900/80">
                             <div className="text-center px-6 max-w-3xl">
                                 <h3 className="text-3xl md:text-5xl font-bold text-white font-serif mb-3 md:mb-6 drop-shadow-lg">
@@ -194,15 +167,10 @@ export default function HomeCarousel({ products = [] }) {
                 </div>
             </div>
 
-            {/* Arrows – slow & feminine */}
+            {/* Arrows */}
             <button
                 className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-sm text-white p-3 sm:p-4 rounded-full hover:bg-white/20 transition-all duration-300 shadow-lg hover:scale-110"
-                onClick={() => {
-                    if (emblaApi) {
-                        emblaApi.scrollPrev()
-                        emblaApi.reInit({ speed: 8 }) // slow down scroll speed on click
-                    }
-                }}
+                onClick={scrollPrev}
                 aria-label="Previous slide"
             >
                 ←
@@ -210,12 +178,7 @@ export default function HomeCarousel({ products = [] }) {
 
             <button
                 className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-sm text-white p-3 sm:p-4 rounded-full hover:bg-white/20 transition-all duration-300 shadow-lg hover:scale-110"
-                onClick={() => {
-                    if (emblaApi) {
-                        emblaApi.scrollNext()
-                        emblaApi.reInit({ speed: 8 }) // slow down scroll speed on click
-                    }
-                }}
+                onClick={scrollNext}
                 aria-label="Next slide"
             >
                 →

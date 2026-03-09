@@ -5,11 +5,11 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import HomeCarousel from '@/components/HomeCarousel'  // ← your new carousel component
+import HomeCarousel from '@/components/HomeCarousel'
 
 export default function Home() {
   const [productData, setProductData] = useState([])
-  const [featuredProducts, setFeaturedProducts] = useState([])  // for carousel
+  const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -28,7 +28,6 @@ export default function Home() {
 
         setProductData(availableProducts)
 
-        // Take newest 10 for carousel (or randomize later)
         const featured = availableProducts
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 10)
@@ -70,8 +69,37 @@ export default function Home() {
         <p className="mt-2 text-gray-400">Luxury on a Budget</p>
       </div>
 
-      {/* Carousel – right underneath welcome */}
+      {/* Carousel */}
       <HomeCarousel products={featuredProducts} />
+
+      {/* Optimized Translucent Apple liquid glass discount banner */}
+      <div className="fixed bottom-6 left-4 right-4 z-50 mx-auto pointer-events-auto max-w-[95vw] sm:max-w-[420px] md:left-8 lg:left-12 md:right-auto">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl bg-white/10 backdrop-blur-xl md:backdrop-blur-2xl border border-white/15">
+          {/* Liquid shine animation */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shine pointer-events-none" />
+
+          {/* Soft inner glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-100/5 via-purple-100/5 to-transparent pointer-events-none" />
+
+          <div className="relative px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 text-center">
+            {/* Subtle top highlight */}
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-1 bg-gradient-to-r from-pink-300/60 to-fuchsia-300/60 rounded-full blur-sm" />
+
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1.5 sm:mb-2 tracking-wide drop-shadow-md">
+              Anniversary Launch Sales
+            </h3>
+
+            <p className="text-base sm:text-lg md:text-xl font-semibold text-pink-300 mb-1 drop-shadow-sm">
+              20–30% OFF
+            </p>
+
+            <p className="text-xs sm:text-sm md:text-base text-white/90 font-medium mb-3 sm:mb-4">
+              20th – 24th March 2026
+            </p>
+            
+          </div>
+        </div>
+      </div>
 
       {/* Status Messages */}
       <div className="relative z-10 mt-10 px-6 text-center">
@@ -82,7 +110,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Product Grid – unchanged */}
+      {/* Product Grid */}
       <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
         {productData.map((product, index) => {
           const isAvailable = product.isAvailable !== false
