@@ -1,11 +1,12 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useCart } from '@/context/Cartcontext'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import useEmblaCarousel from 'embla-carousel-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,16 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [currentIndex, setCurrentIndex] = useState(0)
+
+  // Embla for image carousel (manual swipe + optional auto)
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      loop: true,
+      align: 'center',
+      dragFree: false,
+      speed: 10,
+    }
+  )
 
   // Fetch product + polling
   useEffect(() => {
@@ -40,29 +50,30 @@ export default function ProductDetailPage() {
       }
     }
 
-    // Initial fetch
     fetchProduct(true)
 
-    // Polling every 60 seconds (only when tab visible)
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        fetchProduct() // silent update
+        fetchProduct()
       }
     }, 60000)
 
     return () => clearInterval(interval)
   }, [id])
 
-  // Image auto-flip effect (only if multiple images)
+  // Optional: auto-advance (comment out if you want pure manual only)
   useEffect(() => {
-    if (!product?.images || product.images.length <= 1) return
+    if (!emblaApi || !product?.images || product.images.length <= 1) return
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % product.images.length)
-    }, 4000) // flip every 4 seconds
+      emblaApi.scrollNext()
+    }, 5000) // 5 seconds per image
 
     return () => clearInterval(interval)
-  }, [product?.images])
+  }, [emblaApi, product?.images])
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
   if (loading) {
     return (
@@ -112,33 +123,21 @@ export default function ProductDetailPage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto mt-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-xl p-6 md:p-10 grid md:grid-cols-2 gap-10 items-start">
-        {/* PRODUCT IMAGE with auto-flip */}
+        {/* PRODUCT IMAGE with manual swipe carousel */}
         <div className="relative w-full h-[350px] sm:h-[500px] md:h-[650px] rounded-2xl overflow-hidden bg-black/20">
           {product.images && product.images.length > 0 ? (
-            <div className="relative w-full h-full">
-              {product.images.map((imgSrc, index) => (
-                <img
-                  key={index}
-                  src={imgSrc}
-                  alt={`${product.title} - Image ${index + 1}`}
-                  className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-1000 ease-in-out ${
-                    index === currentIndex ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              ))}
-
-              {product.images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                  {product.images.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                        index === currentIndex ? 'bg-white scale-125 shadow-md' : 'bg-white/40'
-                      }`}
+            <div className="embla h-full" ref={emblaRef}>
+              <div className="embla__container flex h-full">
+                {product.images.map((imgSrc, index) => (
+                  <div key={index} className="embla__slide min-w-full h-full">
+                    <img
+                      src={imgSrc}
+                      alt={`${product.title} - Image ${index + 1}`}
+                      className="w-full h-full object-contain"
                     />
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <Image
@@ -167,6 +166,24 @@ export default function ProductDetailPage() {
             <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white text-2xl md:text-4xl font-bold z-20">
               Out of Stock
             </div>
+          )}
+
+          {/* Navigation arrows (optional – visible on hover) */}
+          {product.images?.length > 1 && (
+            <>
+              <button
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full transition-all z-10 opacity-70 hover:opacity-100"
+                onClick={scrollPrev}
+              >
+                ←
+              </button>
+              <button
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full transition-all z-10 opacity-70 hover:opacity-100"
+                onClick={scrollNext}
+              >
+                →
+              </button>
+            </>
           )}
         </div>
 
