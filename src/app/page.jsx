@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeCarousel from '@/components/HomeCarousel'
-import ProductImageCarousel from '@/components/ProdctImageCarousel'
+import ProductImageCarousel from '@/components/ProductImageCarousel'
 
 export default function Home() {
   const [productData, setProductData] = useState([])

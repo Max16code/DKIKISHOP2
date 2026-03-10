@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import ProductImageCarousel from '@/components/ProductImageCarousel'
 
 export const dynamic = 'force-dynamic'
 
