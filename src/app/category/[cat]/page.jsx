@@ -107,7 +107,7 @@ export default function CategoryPage() {
                     alt={product.title}
                   />
                   {/* Official DKIKISHOP logo – top-right corner */}
-                  <div className="absolute top-2 right-19 w-8 h-8 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div className="absolute top-2 right-4 w-8 h-8 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
                     <Image
                       src="/images/kikiLogo.jpg"
                       alt="Dkikishop Logo"
