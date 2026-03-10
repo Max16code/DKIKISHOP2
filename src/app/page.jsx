@@ -87,7 +87,7 @@ export default function Home() {
             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-1 bg-gradient-to-r from-pink-300/60 to-fuchsia-300/60 rounded-full blur-sm" />
 
             <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1.5 sm:mb-2 tracking-wide drop-shadow-md">
-              Anniversary Launch Sales
+              Anniversary / Website Launch Sales
             </h3>
 
             <p className="text-base sm:text-lg md:text-xl font-semibold text-pink-300 mb-1 drop-shadow-sm">
