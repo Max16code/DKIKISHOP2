@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
 
 const allowedCategories = [
-  "blazers", "shirts", "skirts", "dresses",
+  "blazers", "tops", "skirts", "dresses",
   "activewears", "jeans", "shorts", "accessories"
 ];
 

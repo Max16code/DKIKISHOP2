@@ -14,7 +14,7 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'Blazers', href: '/category/blazers' },
     { name: 'Jeans', href: '/category/jeans' },
-    { name: 'Shirts', href: '/category/shirts' },
+    { name: 'Tops', href: '/category/tops' },
     { name: 'Skirts', href: '/category/skirts' },
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },

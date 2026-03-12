@@ -10,7 +10,7 @@ export async function POST(req) {
   const allowedCategories = [
     "jeans",
     "blazers",
-    "shirts",
+    "tops",
     "shorts",
     "activewears",
     "accessories",

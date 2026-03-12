@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useRouter } from "next/navigation";
 
-const allowedCategories = ["blazers", "shirts", "skirts", "dresses", "activewears", "jeans", "shorts", "accessories"];
+const allowedCategories = ["blazers", "tops", "skirts", "dresses", "activewears", "jeans", "shorts", "accessories"];
 
 export default function UploadForm() {
   const router = useRouter();

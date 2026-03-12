@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
-export default function ShirtsPage() {
+export default function TopsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -16,7 +16,7 @@ export default function ShirtsPage() {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await fetch('/api/getproducts/shirts?available=true')
+        const res = await fetch('/api/getproducts/tops?available=true')
         const data = await res.json()
 
         let productArray = []
@@ -72,10 +72,10 @@ export default function ShirtsPage() {
 
       {/* Status Messages - identical to home */}
       <div className="relative z-10 mt-10 px-6 text-center">
-        {loading && <p className="text-gray-500">Loading shirts...</p>}
+        {loading && <p className="text-gray-500">Loading tops...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && products.length === 0 && !error && (
-          <p className="text-gray-500">No shirts available at the moment.</p>
+          <p className="text-gray-500">No tops available at the moment.</p>
         )}
       </div>
 

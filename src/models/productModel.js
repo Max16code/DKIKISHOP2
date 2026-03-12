@@ -35,7 +35,7 @@ const ProductSchema = new mongoose.Schema({
     trim: true,
     enum: [
       'blazers', 
-      'shirts', 
+      'tops', 
       'skirts', 
       'dresses', 
       'activewears', 
