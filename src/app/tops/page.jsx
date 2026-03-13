@@ -37,7 +37,7 @@ export default function TopsPage() {
         setProducts(availableProducts)
       } catch (err) {
         console.error('❌ Error:', err)
-        setError('Failed to fetch shirts')
+        setError('Failed to fetch tops')
       } finally {
         setLoading(false)
       }
