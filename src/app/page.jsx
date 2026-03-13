@@ -20,6 +20,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
+  const [bannerVisible, setBannerVisible] = useState(true);
+  const [showClose, setShowClose] = useState(false);
+
+  useEffect(() => {
+    // Show close button after 8 seconds
+    const timer = setTimeout(() => {
+      setShowClose(true);
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const hideBanner = () => {
+    setBannerVisible(false);
+  };
 
   useEffect(() => {
     const getProducts = async () => {
@@ -107,14 +122,25 @@ export default function Home() {
 
       {/* Carousel */}
       <HomeCarousel products={featuredProducts} />
-      {/* Responsive announcement banner – top-right on mobile, bottom-left on larger screens */}
-      <div className="fixed top-4 right-4 z-50 sm:bottom-6 sm:left-4 sm:right-auto sm:top-auto pointer-events-auto max-w-[90vw] sm:max-w-[420px] md:left-8 lg:left-12">
+      {/* Responsive announcement banner – auto-hide + close button */}
+      <div className={`fixed top-20 right-4 z-50 pointer-events-auto max-w-[90vw] sm:max-w-[420px] transition-all duration-700 ease-in-out ${bannerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'}`}>
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl bg-white/10 backdrop-blur-xl md:backdrop-blur-2xl border border-white/15">
           {/* Liquid shine */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shine pointer-events-none" />
 
-          {/* Soft glow */}
+          {/* Soft inner glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-pink-100/5 via-purple-100/5 to-transparent pointer-events-none" />
+
+          {/* Close button – appears after 8 seconds */}
+          {showClose && (
+            <button
+              onClick={hideBanner}
+              className="absolute top-2 right-2 z-20 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white text-lg font-bold shadow-md transition-all hover:scale-110 active:scale-95"
+              aria-label="Close announcement"
+            >
+              ×
+            </button>
+          )}
 
           <div className="relative px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 text-center">
             {/* Top highlight */}
@@ -132,7 +158,7 @@ export default function Home() {
               20th – 24th March 2026
             </p>
 
-            {/* Ribbon – unchanged */}
+            {/* Ribbon */}
             <div className="relative h-8 sm:h-9 md:h-10 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500/40 via-fuchsia-500/40 to-purple-500/40 rounded-full border border-pink-300/40 shadow-inner backdrop-blur-md" />
               <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ribbon-flow">
