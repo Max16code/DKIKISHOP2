@@ -6,9 +6,15 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from 'next/image'
 
+const CATEGORIES = [
+  'blazers', 'shirts', 'skirts', 'dresses', 'activewears',
+  'jeans', 'shorts', 'accessories'
+]
+
 export default function ClientDashboard() {
   const router = useRouter()
-  const [products, setProducts] = useState([])
+  const [allProducts, setAllProducts] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -22,7 +28,6 @@ export default function ClientDashboard() {
       setLoading(true)
       setError(null)
 
-      // Use ?limit=0 to get ALL products (bypasses the 50 default in your API)
       const res = await fetch("/api/getproducts/all?limit=0&available=true", {
         credentials: "include"
       })
@@ -33,33 +38,25 @@ export default function ClientDashboard() {
       }
 
       const json = await res.json()
-      // console.log('Full Dashboard API response:', json)
 
-      // Handle different possible response shapes
       let productList = []
       if (json.success && Array.isArray(json.products)) {
         productList = json.products
       } else if (Array.isArray(json)) {
         productList = json
-      } else if (json && Array.isArray(json.data)) {
-        productList = json.data
       } else {
-        throw new Error('Unexpected API response format - check console')
+        throw new Error('Unexpected API response format')
       }
 
-      // Apply the exact same availability filter as the homepage
       const availableProducts = productList.filter(product => 
         product.isAvailable !== false &&
         (Number(product.stock || product.quantity || 0) > 0)
       )
 
-      // console.log('Total available products loaded:', availableProducts.length)
-      // console.log('Categories present:', [...new Set(availableProducts.map(p => p.category))])
-
-      setProducts(availableProducts)
+      setAllProducts(availableProducts)
     } catch (err) {
-      console.error("Failed to fetch all products:", err)
-      setError("Failed to load products: " + err.message)
+      console.error("Failed to fetch products:", err)
+      setError("Failed to load products. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -79,7 +76,7 @@ export default function ClientDashboard() {
 
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 3000)
-      fetchProducts() // refresh list
+      fetchProducts()
     } catch (err) {
       alert("Failed to delete product: " + err.message)
     }
@@ -92,6 +89,21 @@ export default function ClientDashboard() {
     })
     router.replace("/admin/login")
   }
+
+  // Filter products by selected category
+  const filteredProducts = selectedCategory
+    ? allProducts.filter(p => p.category?.toLowerCase() === selectedCategory.toLowerCase())
+    : allProducts
+
+  // Group products by category for preview
+  const productsByCategory = CATEGORIES.map(cat => {
+    const catProducts = allProducts.filter(p => p.category?.toLowerCase() === cat.toLowerCase())
+    return {
+      category: cat.charAt(0).toUpperCase() + cat.slice(1),
+      products: catProducts.slice(0, 3), // only 3 preview
+      total: catProducts.length
+    }
+  })
 
   if (loading) {
     return <p className="text-center py-10 text-gray-400">Loading all products...</p>
@@ -123,7 +135,7 @@ export default function ClientDashboard() {
         </button>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap gap-3">
         <Link href="/admin/upload">
           <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
             + Upload New Product
@@ -131,63 +143,143 @@ export default function ClientDashboard() {
         </Link>
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold mb-4">
-          All Available Products ({products.length})
-        </h2>
+      {/* Category Buttons */}
+      <div className="mb-8 flex flex-wrap gap-3">
+        <button
+          onClick={() => setSelectedCategory(null)}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+            !selectedCategory 
+              ? 'bg-yellow-500 text-black' 
+              : 'bg-gray-700 hover:bg-gray-600 text-white'
+          }`}
+        >
+          All Categories
+        </button>
 
-        {products.length === 0 ? (
-          <p className="text-gray-500">No available products yet.</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products.map((product) => (
-              <div 
-                key={product._id} 
-                className="border rounded p-3 relative bg-white/5 hover:bg-white/10 transition"
-              >
-                <div className="relative w-full h-40 flex items-center justify-center bg-black/10 overflow-hidden rounded mb-2">
-                  <Image
-                    src={product.images?.[0] || product.image || '/images/fallback.jpg'}
-                    alt={product.title}
-                    fill
-                    className="object-contain p-2"
-                  />
-                </div>
-
-                <h3 className="font-bold text-lg line-clamp-1">{product.title}</h3>
-                <p className="text-sm text-gray-600">₦{Number(product.price).toLocaleString()}</p>
-                <p className="text-xs text-gray-500 capitalize">{product.category}</p>
-
-                <div className="flex gap-2 mt-3">
-                  <Link href={`/admin/edit/${product._id}`}>
-                    <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded">
-                      Edit
-                    </button>
-                  </Link>
-
-                  <button
-                    onClick={() => handleDelete(product._id)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-                </div>
-
-                {product.stock <= 0 && (
-                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                    Out of Stock
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition capitalize ${
+              selectedCategory === cat 
+                ? 'bg-yellow-500 text-black' 
+                : 'bg-gray-700 hover:bg-gray-600 text-white'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
 
       {showSuccess && (
-        <p className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow">
+        <p className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow z-50">
           Product deleted successfully!
         </p>
+      )}
+
+      {/* Content Area */}
+      {selectedCategory ? (
+        // Selected category view – show all products in this category
+        <div>
+          <h2 className="text-2xl font-semibold mb-6 capitalize">
+            {selectedCategory} ({filteredProducts.length})
+          </h2>
+
+          {filteredProducts.length === 0 ? (
+            <p className="text-gray-500">No products in this category.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredProducts.map((product) => (
+                <ProductCard 
+                  key={product._id} 
+                  product={product} 
+                  onDelete={() => handleDelete(product._id)} 
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        // All categories preview mode – show 3 per category
+        <div className="space-y-12">
+          {productsByCategory.map(({ category, products, total }) => (
+            <div key={category}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold capitalize">
+                  {category} ({total})
+                </h2>
+                {total > 3 && (
+                  <button
+                    onClick={() => setSelectedCategory(category.toLowerCase())}
+                    className="text-yellow-400 hover:text-yellow-300 text-sm font-medium"
+                  >
+                    View All →
+                  </button>
+                )}
+              </div>
+
+              {products.length === 0 ? (
+                <p className="text-gray-500">No products in this category.</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {products.map((product) => (
+                    <ProductCard 
+                      key={product._id} 
+                      product={product} 
+                      onDelete={() => handleDelete(product._id)} 
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Reusable Product Card Component
+function ProductCard({ product, onDelete }) {
+  const stock = Number(product.stock || product.quantity || 0)
+  const inStock = stock > 0
+
+  return (
+    <div 
+      className="border rounded p-3 relative bg-white/5 hover:bg-white/10 transition"
+    >
+      <div className="relative w-full h-40 flex items-center justify-center bg-black/10 overflow-hidden rounded mb-2">
+        <Image
+          src={product.images?.[0] || product.image || '/images/fallback.jpg'}
+          alt={product.title}
+          fill
+          className="object-contain p-2"
+        />
+      </div>
+
+      <h3 className="font-bold text-lg line-clamp-1">{product.title}</h3>
+      <p className="text-sm text-gray-600">₦{Number(product.price).toLocaleString()}</p>
+      <p className="text-xs text-gray-500 capitalize">{product.category}</p>
+
+      <div className="flex gap-2 mt-3">
+        <Link href={`/admin/edit/${product._id}`}>
+          <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded">
+            Edit
+          </button>
+        </Link>
+
+        <button
+          onClick={onDelete}
+          className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"
+        >
+          Delete
+        </button>
+      </div>
+
+      {!inStock && (
+        <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+          Out of Stock
+        </div>
       )}
     </div>
   )

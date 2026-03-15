@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
-        credentials: "include", // Important: sends/receives cookies
+        credentials: "include",
       });
 
       const data = await res.json();
@@ -44,10 +44,9 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Success → redirect (cookie is set server-side)
       router.replace("/admin/dashboard");
     } catch (err) {
-      console.error("Login error:", err);
+      // console.error("Login error:", err);
       setError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
@@ -55,30 +54,45 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="p-6 max-w-sm mx-auto mt-20 bg-gray-900 text-white rounded-lg shadow-lg">
-      <h1 className="text-xl font-bold mb-4">Admin Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1f1f1f] to-[#121212] p-6">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl relative">
+        {/* Back to Home Button */}
+        <button
+          onClick={() => router.push('/')}
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-300 hover:text-white transition-colors text-sm font-medium"
+          aria-label="Go back to main website"
+        >
+          ← Back to Home
+        </button>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Enter password"
-        className="w-full p-2 rounded mb-4 text-black"
-        onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-        disabled={loading}
-      />
+        <h1 className="text-2xl font-bold text-white mb-8 text-center mt-10">
+          Admin Login
+        </h1>
 
-      <button
-        onClick={handleLogin}
-        disabled={loading}
-        className={`w-full p-2 rounded ${
-          loading ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
-        }`}
-      >
-        {loading ? "Checking..." : "Login"}
-      </button>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter password"
+          className="w-full p-3 rounded-lg mb-4 text-black focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+          disabled={loading}
+        />
 
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          className={`w-full p-3 rounded-lg font-semibold transition ${
+            loading 
+              ? "bg-gray-600 cursor-not-allowed" 
+              : "bg-yellow-500 hover:bg-yellow-600 text-black"
+          }`}
+        >
+          {loading ? "Checking..." : "Login"}
+        </button>
+
+        {error && <p className="text-red-400 mt-4 text-center">{error}</p>}
+      </div>
     </div>
   );
 }

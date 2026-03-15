@@ -16,36 +16,58 @@ export default function Home() {
   const [displayedProducts, setDisplayedProducts] = useState([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
-  const [showLess, setShowLess] = useState(false) // new state
+  const [showLess, setShowLess] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
-  const [bannerVisible, setBannerVisible] = useState(true);
-  const [showClose, setShowClose] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(true)
+  const [showClose, setShowClose] = useState(false)
 
   useEffect(() => {
     // Show close button after 8 seconds
     const timer = setTimeout(() => {
-      setShowClose(true);
-    }, 8000);
+      setShowClose(true)
+    }, 8000)
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timer)
+  }, [])
 
   const hideBanner = () => {
-    setBannerVisible(false);
-  };
+    setBannerVisible(false)
+  }
 
   useEffect(() => {
     const getProducts = async () => {
       try {
         setLoading(true)
         const res = await fetch('/api/getproducts/all?available=true')
-        const data = await res.json()
 
-        if (!Array.isArray(data)) throw new Error('Invalid product format')
+        if (!res.ok) {
+          const errorText = await res.text()
+          // console.error('Products API failed:', res.status, errorText)
+          throw new Error(`API error: ${res.status}`)
+        }
 
-        const availableProducts = data.filter(product =>
+        const json = await res.json()
+
+        // Debug: log raw response shape
+        // console.log('Homepage API raw response:', json)
+
+        let productArray = []
+
+        // Safely extract array from common response shapes
+        if (Array.isArray(json)) {
+          productArray = json
+        } else if (json && Array.isArray(json.products)) {
+          productArray = json.products
+        } else if (json && Array.isArray(json.data)) {
+          productArray = json.data
+        } else {
+          // console.error('Invalid product response format:', json)
+          throw new Error('Invalid product format from API')
+        }
+
+        const availableProducts = productArray.filter(product =>
           product.isAvailable !== false &&
           (product.stock > 0 || product.quantity > 0)
         )
@@ -62,8 +84,8 @@ export default function Home() {
         setDisplayedProducts(availableProducts.slice(0, ITEMS_PER_PAGE))
         setHasMore(availableProducts.length > ITEMS_PER_PAGE)
       } catch (err) {
-        console.error('❌ Error:', err)
-        setError('Failed to fetch products')
+        // console.error('❌ Products fetch error:', err.message)
+        setError('Failed to load products. Please refresh.')
       } finally {
         setLoading(false)
       }
@@ -84,7 +106,7 @@ export default function Home() {
     setDisplayedProducts(prev => [...prev, ...allProducts.slice(start, end)])
     setPage(nextPage)
     setHasMore(end < allProducts.length)
-    setShowLess(true) // show "See Less" after loading more
+    setShowLess(true)
     setLoadingMore(false)
   }
 
@@ -122,16 +144,13 @@ export default function Home() {
 
       {/* Carousel */}
       <HomeCarousel products={featuredProducts} />
+
       {/* Responsive announcement banner – auto-hide + close button */}
       <div className={`fixed top-20 right-4 z-50 pointer-events-auto max-w-[90vw] sm:max-w-[420px] transition-all duration-700 ease-in-out ${bannerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'}`}>
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl bg-white/10 backdrop-blur-xl md:backdrop-blur-2xl border border-white/15">
-          {/* Liquid shine */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shine pointer-events-none" />
-
-          {/* Soft inner glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-pink-100/5 via-purple-100/5 to-transparent pointer-events-none" />
 
-          {/* Close button – appears after 8 seconds */}
           {showClose && (
             <button
               onClick={hideBanner}
@@ -143,7 +162,6 @@ export default function Home() {
           )}
 
           <div className="relative px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 text-center">
-            {/* Top highlight */}
             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-1 bg-gradient-to-r from-pink-300/60 to-fuchsia-300/60 rounded-full blur-sm" />
 
             <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1.5 sm:mb-2 tracking-wide drop-shadow-md">
@@ -158,7 +176,6 @@ export default function Home() {
               20th – 24th March 2026
             </p>
 
-            {/* Ribbon */}
             <div className="relative h-8 sm:h-9 md:h-10 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500/40 via-fuchsia-500/40 to-purple-500/40 rounded-full border border-pink-300/40 shadow-inner backdrop-blur-md" />
               <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ribbon-flow">
@@ -214,8 +231,8 @@ export default function Home() {
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className={`object-contain transition-opacity duration-300 ${!inStock ? 'opacity-50 grayscale' : ''}`}
-                        priority={index < 6}                     // eager load for first 6 (above fold)
-                        loading={index >= 6 ? 'lazy' : undefined} // lazy only for the rest
+                        priority={index < 6}
+                        loading={index >= 6 ? 'lazy' : undefined}
                         quality={75}
                         placeholder="blur"
                         blurDataURL={
@@ -225,7 +242,6 @@ export default function Home() {
                         }
                       />
 
-                      {/* Logo overlay */}
                       <div className="absolute top-2 right-4 w-8 h-8 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
                         <Image
                           src="/images/kikiLogo.jpg"
@@ -237,7 +253,6 @@ export default function Home() {
                         />
                       </div>
 
-                      {/* Stock badges */}
                       {!inStock && (
                         <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded-full z-10">
                           OUT OF STOCK
@@ -289,12 +304,11 @@ export default function Home() {
             })}
           </div>
 
-          {/* Pagination Controls */}
           <div className="relative z-10 mt-12 flex justify-center gap-6 pb-12">
             {showLess && (
               <button
                 onClick={seeLess}
-                className="px-8 py-3 bg-gray-700 hover:bg-yellow-500 text-white font-bold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
+                className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
               >
                 See Less
               </button>
