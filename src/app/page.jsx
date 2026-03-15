@@ -362,155 +362,195 @@ export default function Home() {
                 Based on 100+ verified reviews
               </p>
 
-              {/* Testimonials */}
-              <div className="mt-6 max-w-2xl mx-auto">
-                <p className="text-gray-400 italic text-sm sm:text-base">
-                  "Amazing quality and super fast delivery! The pieces are even more beautiful in person. Definitely my new go-to for luxury fashion!"
+              {/* Scrolling Testimonials Marquee - Horizontal */}
+              <div className="mt-8 max-w-4xl mx-auto overflow-hidden">
+                <div className="relative">
+                  {/* First row of testimonials */}
+                  <motion.div
+                    animate={{
+                      x: [0, -1000],
+                    }}
+                    transition={{
+                      duration: 25,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="flex gap-20 whitespace-nowrap"
+                  >
+                    {/* Chioma */}
+                    <div className="inline-block w-80 flex-shrink-0">
+                      <p className="text-gray-400 italic text-sm">
+                        "Amazing quality and super fast delivery!"
+                      </p>
+                      <p className="text-yellow-400/80 mt-2 text-sm">— Chioma A.</p>
+                    </div>
+
+                    {/* Tara */}
+                    <div className="inline-block w-80 flex-shrink-0">
+                      <p className="text-gray-400 italic text-sm">
+                        "Absolutely easy to use, and fasst...my savings are in trouble!"
+                      </p>
+                      <p className="text-yellow-400/80 mt-2 text-sm">— Tara.</p>
+                    </div>
+
+                    {/* Alison */}
+                    <div className="inline-block w-80 flex-shrink-0">
+                      <p className="text-gray-400 italic text-sm">
+                        "This place looks like therapy, a lot to get from here"
+                      </p>
+                      <p className="text-yellow-400/80 mt-2 text-sm">— Alison.</p>
+                    </div>
+
+                    {/* Amaka */}
+                    <div className="inline-block w-80 flex-shrink-0">
+                      <p className="text-gray-400 italic text-sm">
+                        "We waited so long for this...it's so seamless!"
+                      </p>
+                      <p className="text-yellow-400/80 mt-2 text-sm">— Amaka.</p>
+                    </div>
+
+                    
+
+                    
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Policies Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 border-t border-b border-yellow-400/20">
+                {/* Terms of Service */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-center lg:text-left"
+                >
+                  <div className="flex justify-center lg:justify-start mb-3">
+                    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold mb-2">Terms of Service</h3>
+                  <p className="text-gray-400 text-sm">
+                    By using DKIKISHOP, you agree to our terms and conditions. Read our full terms for details on usage and policies.
+                  </p>
+                  <Link href="/terms" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
+                    Read Terms →
+                  </Link>
+                </motion.div>
+
+                {/* Delivery Policy */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-center lg:text-left"
+                >
+                  <div className="flex justify-center lg:justify-start mb-3">
+                    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold mb-2">Delivery Policy</h3>
+                  <p className="text-gray-400 text-sm">
+                    Fast shipping nationwide. Delivery within 2-3 business days. Free shipping on orders over ₦250,000.
+                  </p>
+                </motion.div>
+
+                {/* Refund Policy */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="text-center lg:text-left"
+                >
+                  <div className="flex justify-center lg:justify-start mb-3">
+                    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold mb-2">Refund Policy</h3>
+                  <p className="text-gray-400 text-sm">
+                    2-day return policy for unworn items in original condition. Full refund or exchange available.
+                  </p>
+
+                </motion.div>
+
+                {/* Contact & Support */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="text-center lg:text-left"
+                >
+                  <div className="flex justify-center lg:justify-start mb-3">
+                    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-white font-semibold mb-2">24/7 Customer Support</h3>
+                  <p className="text-gray-400 text-sm">
+                    Questions? Our support team is here to help anytime. Email, chat, or call us.
+                  </p>
+                  <Link href="/Contact" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
+                    Contact Us →
+                  </Link>
+                </motion.div>
+              </div>
+
+              {/* Bottom Bar with Trademark and Links */}
+              <div className="flex flex-col sm:flex-row justify-between items-center pt-8 text-sm text-gray-400">
+                <p className="mb-4 sm:mb-0">
+                  © 2026 DKIKISHOP. All rights reserved.
                 </p>
-                <p className="text-yellow-400/80 mt-2 text-sm">— Chioma A.</p>
+                <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                  <Link href="/privacy" className="hover:text-yellow-400 transition-colors">
+                    Privacy Policy
+                  </Link>
+                  <Link href="/terms" className="hover:text-yellow-400 transition-colors">
+                    Terms of service
+                  </Link>
+                </div>
               </div>
 
-              <div className="mt-6 max-w-2xl mx-auto">
-                <p className="text-gray-400 italic text-sm sm:text-base">
-                  "Absolutely easy to use, and fasssssst...my savings are in trouble!"
-                </p>
-                <p className="text-yellow-400/80 mt-2 text-sm">— Tara.</p>
+              {/* Trust Badges */}
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 pt-6 border-t border-yellow-400/20">
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                  <span>Secure Payments</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                  <span>Authentic Products</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                  <span>Free Shipping for purchases over N200,000</span>
+                </div>
+              </div>
+
+              {/* Social Media Links */}
+              <div className="flex justify-center gap-4 mt-6">
+                <Link href="https://www.instagram.com/dkikishop_backup" className="text-gray-400 hover:text-yellow-400 transition-colors">
+                  <FaSquareInstagram className="text-2xl" />
+                </Link>
+                <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 hover:text-yellow-400 transition-colors">
+                  <BsFillGeoAltFill className="text-2xl" />
+                </Link>
               </div>
             </motion.div>
           </div>
 
-          {/* Policies Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 border-t border-b border-yellow-400/20">
-            {/* Terms of Service */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-center lg:text-left"
-            >
-              <div className="flex justify-center lg:justify-start mb-3">
-                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-white font-semibold mb-2">Terms of Service</h3>
-              <p className="text-gray-400 text-sm">
-                By using DKIKISHOP, you agree to our terms and conditions. Read our full terms for details on usage and policies.
-              </p>
-              <Link href="/terms" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
-                Read Terms →
-              </Link>
-            </motion.div>
-
-            {/* Delivery Policy */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-center lg:text-left"
-            >
-              <div className="flex justify-center lg:justify-start mb-3">
-                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                </svg>
-              </div>
-              <h3 className="text-white font-semibold mb-2">Delivery Policy</h3>
-              <p className="text-gray-400 text-sm">
-                Fast shipping nationwide. Delivery within 2-3 business days. Free shipping on orders over ₦250,000.
-              </p>
-            </motion.div>
-
-            {/* Refund Policy */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-center lg:text-left"
-            >
-              <div className="flex justify-center lg:justify-start mb-3">
-                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                </svg>
-              </div>
-              <h3 className="text-white font-semibold mb-2">Refund Policy</h3>
-              <p className="text-gray-400 text-sm">
-                2-day return policy for unworn items in original condition. Full refund or exchange available.
-              </p>
-              
-            </motion.div>
-
-            {/* Contact & Support */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-center lg:text-left"
-            >
-              <div className="flex justify-center lg:justify-start mb-3">
-                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-              </div>
-              <h3 className="text-white font-semibold mb-2">24/7 Customer Support</h3>
-              <p className="text-gray-400 text-sm">
-                Questions? Our support team is here to help anytime. Email, chat, or call us.
-              </p>
-              <Link href="/Contact" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
-                Contact Us →
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* Bottom Bar with Trademark and Links */}
-          <div className="flex flex-col sm:flex-row justify-between items-center pt-8 text-sm text-gray-400">
-            <p className="mb-4 sm:mb-0">
-              © 2026 DKIKISHOP. All rights reserved.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-              <Link href="/privacy" className="hover:text-yellow-400 transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="hover:text-yellow-400 transition-colors">
-                Terms of service
-              </Link>
-            </div>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 pt-6 border-t border-yellow-400/20">
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-              <span>Secure Payments</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-              <span>Authentic Products</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-              <span>Free Shipping for purchases over N200,000</span>
-            </div>
-          </div>
-
-          {/* Social Media Links */}
-          <div className="flex justify-center gap-4 mt-6">
-            <Link href="https://www.instagram.com/dkikishop_backup" className="text-gray-400 hover:text-yellow-400 transition-colors">
-              <FaSquareInstagram className="text-2xl" />
-            </Link>
-            <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 hover:text-yellow-400 transition-colors">
-              <BsFillGeoAltFill className="text-2xl" />
-            </Link>
-          </div>
         </div>
       </footer>
     </div>
