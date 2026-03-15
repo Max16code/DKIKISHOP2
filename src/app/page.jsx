@@ -439,9 +439,7 @@ export default function Home() {
               <p className="text-gray-400 text-sm">
                 2-day return policy for unworn items in original condition. Full refund or exchange available.
               </p>
-              <Link href="/refund" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
-                Return Info →
-              </Link>
+              
             </motion.div>
 
             {/* Contact & Support */}
@@ -461,7 +459,7 @@ export default function Home() {
               <p className="text-gray-400 text-sm">
                 Questions? Our support team is here to help anytime. Email, chat, or call us.
               </p>
-              <Link href="/contact" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
+              <Link href="/Contact" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
                 Contact Us →
               </Link>
             </motion.div>
@@ -477,7 +475,7 @@ export default function Home() {
                 Privacy Policy
               </Link>
               <Link href="/terms" className="hover:text-yellow-400 transition-colors">
-                Terms
+                Terms of service
               </Link>
             </div>
           </div>
@@ -506,10 +504,10 @@ export default function Home() {
 
           {/* Social Media Links */}
           <div className="flex justify-center gap-4 mt-6">
-            <Link href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">
+            <Link href="https://www.instagram.com/dkikishop_backup" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <FaSquareInstagram className="text-2xl" />
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-yellow-400 transition-colors">
+            <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <BsFillGeoAltFill className="text-2xl" />
             </Link>
           </div>

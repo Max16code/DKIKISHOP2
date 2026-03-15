@@ -31,7 +31,7 @@ export default function ContactPage() {
               <FaSquareInstagram />
               instagram
             </p>
-            <h3 className="ml-6 text-yellow-400">@d_kikishop</h3>
+            <h3 className="ml-6 text-yellow-400">@dkikishop_backup</h3>
           </div>
 
           <div>
