@@ -9,7 +9,7 @@ import HomeCarousel from '@/components/HomeCarousel'
 import { FaSquareInstagram } from "react-icons/fa6";
 import { BsFillGeoAltFill } from 'react-icons/bs'
 
-const ITEMS_PER_PAGE = 16
+const ITEMS_PER_PAGE = 12 // Changed from 16 to 12 (3 rows of 4 on desktop)
 
 export default function Home() {
   const [allProducts, setAllProducts] = useState([])
@@ -194,7 +194,7 @@ export default function Home() {
       {/* Paginated Product Grid */}
       {!loading && allProducts.length > 0 && (
         <>
-          <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="relative z-10 mt-10 px-2 sm:px-4 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {displayedProducts.map((product, index) => {
               const isAvailable = product.isAvailable !== false
               const stock = product.stock || product.quantity || 0
@@ -420,7 +420,23 @@ export default function Home() {
             </motion.div>
 
             {/* Refund Policy */}
-
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-center lg:text-left"
+            >
+              <div className="flex justify-center lg:justify-start mb-3">
+                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+              </div>
+              <h3 className="text-white font-semibold mb-2">Refund Policy</h3>
+              <p className="text-gray-400 text-sm">
+                2-day return policy for unworn items in original condition. Full refund or exchange available.
+              </p>
+            </motion.div>
 
             {/* Contact & Support */}
             <motion.div
