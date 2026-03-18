@@ -59,7 +59,7 @@ export default function TermsOfService() {
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">1. Who We Are</h2>
                         <p className="text-gray-400">
-                            <span className="text-yellow-400 font-semibold">DKIKISHOP</span> is your go-to for trendy and affordable fashion without the luxury price tag. We're here to help you look amazing without breaking the bank.
+                            <span className="text-yellow-400 font-semibold">DKIKISHOP</span> is your go-to fashion store for unique, trendy and affordable fashion. We help you build your capsule wardrope
                         </p>
                     </div>
 
@@ -67,9 +67,9 @@ export default function TermsOfService() {
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">2. Who Can Use DKIKISHOP</h2>
                         <ul className="list-disc list-inside text-gray-400 space-y-2">
-                            <li>You must be <span className="text-yellow-400">18 years or older</span> to make a purchase</li>
-                            <li>If you're under 18, shop with a parent or guardian's permission</li>
-                            <li>By using our site, you promise the information you give us is correct</li>
+                            <li>women who want to look good and clean and don’t want to break the bank to achieve this ❤️ </li>
+                            <li>Women who are trying to build their capsule wardrobe and essentials</li>
+                            <li>Women who like unique fashion items</li>
                         </ul>
                     </div>
 
@@ -79,91 +79,95 @@ export default function TermsOfService() {
 
                         <h3 className="text-xl font-medium text-white mb-3">3.1 What You See Is What You Get</h3>
                         <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>We do our best to show accurate colors, but screens can vary slightly</li>
-                            <li>Product descriptions are based on either manufacturer information and our own quality checks</li>
-                            <li>Sizes may vary slightly between different brands and styles</li>
+                            <li>we do our best to show real pictures of most of the  products, product might appear brighter or darker than they actually appear due to camera or lighting used</li>
+                            <li>Product descriptions are based on either manufacturer’s information or our own description, this is to help you understand the product better</li>
+                            <li>Sizes are  based on manufacturer’s label or ours, this is to ensure we give accurate sizing.</li>
                         </ul>
 
                         <h3 className="text-xl font-medium text-white mb-3">3.2 Availability</h3>
                         <ul className="list-disc list-inside text-gray-400">
-                            <li>If it's on the site, we're trying to keep it in stock</li>
-                            <li>Sometimes items sell out fast (you girlies are quick! 💅)</li>
-                            
+                            <li>Any item not paid for is still available and can be taken out of cart after a while</li>
+                            <li>Please note that some products are limited and  can be taken out of your cart if you do not pay for it first.(you girlies are quick! 💅)</li>
+
                         </ul>
                     </div>
+
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-semibold text-white mb-4">3.3 Sizing</h2>
+
+                        <ul className="list-disc list-inside text-gray-400 mb-4">
+                            <li>We use standard UK sizing</li>
+                            <li> Kindly know your size before shopping </li>
+                            <li>If you’re unsure of your size, please send us a recent picture on WhatsApp so as to ascertain your size before shopping.</li>
+                        </ul>
+                    </div>
+
 
                     {/* 4. Pricing and Payments */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">4. Pricing and Payments</h2>
 
+
                         <h3 className="text-xl font-medium text-white mb-3">4.1 Our Prices</h3>
                         <ul className="list-disc list-inside text-gray-400 mb-4">
                             <li>All prices are in <span className="text-green-400">Nigerian Naira (₦)</span></li>
                             <li>Prices include all applicable taxes</li>
-                            <li>We reserve the right to change prices, but don't worry – you pay the price at checkout</li>
+                            <li>We reserve the right to adjust prices when necessary</li>
                         </ul>
 
                         <h3 className="text-xl font-medium text-white mb-3">4.2 Payment</h3>
                         <ul className="list-disc list-inside text-gray-400">
-                            <li>We accept major payment methods (cards, bank transfers, etc.)</li>
+                            <li>we accept payments through various methods (Cards, bank transfers, etc.)</li>
                             <li>Your payment is processed securely – we never see your card details</li>
+                            <li>All online payments are processed via PAYSTACK</li>
                             <li>Full payment is required before items are shipped</li>
                         </ul>
                     </div>
 
                     {/* 5. Shipping and Delivery */}
                     <div className="mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">5. Shipping and Delivery</h2>
+                        <h2 className="text-2xl font-semibold text-white mb-4">5.SHIPPING AND DELIVERY
+                        </h2>
 
-                        <h3 className="text-xl font-medium text-white mb-3">5.1 Delivery Time</h3>
+                        <h3 className="text-xl font-medium text-white mb-3">5.1 DELIVERY TIME FRAME</h3>
                         <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>We process orders within 24-48 hours</li>
-                            <li>Delivery takes <span className="text-yellow-400">2-3 business days</span> nationwide</li>
-                            <li><span className="text-green-400">Free shipping</span> on orders over ₦200,000</li>
+                            <li>We process orders within 24-48 hours after payment</li>
+                            <li>Delivery within port harcourt takes 24-48 hours  (within working days)</li>
+                            <li>Delivery outside Port Harcourt takes 2-6 working days, depending on your location</li>
+                            <li>Delivery outside Nigeria takes 7- 14 working days</li>
                         </ul>
 
-                        <h3 className="text-xl font-medium text-white mb-3">5.2 Delivery Area</h3>
+                        <h3 className="text-xl font-medium text-white mb-3">5.2 stockpiling policy</h3>
                         <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>We deliver across Nigeria</li>
-                            <li>If you're outside our delivery area, we'll let you know</li>
+                            <li>We offer stockpile within a period of one month,
+                                this is so you can shop as many products as you want within this timeframe to maximize delivery fee.</li>
+                            <li>Please note that we’re only responsible for items kept within one month,
+                                we’re not liable to loss or damage of over stockpiled items.</li>
+                            <li>Items kept over a longer period of time (5 months max) will not be accounted for</li>
+
                         </ul>
 
-                        <h3 className="text-xl font-medium text-white mb-3">5.3 Failed Deliveries</h3>
+                        <h3 className="text-xl font-medium text-white mb-3">5.3 RETURN AND REFUNDS</h3>
+                        <h2>OUR RETURN POLICY</h2>
                         <ul className="list-disc list-inside text-gray-400">
-                            <li>Please provide correct contact details</li>
-                            <li>If our delivery agent can't reach you, they'll try again</li>
-                            <li>Repeated failed delivery attempts may result in order cancellation</li>
-                        </ul>
-                    </div>
+                            <li>items can be returned for exchange  if there’s damage or a wrong size was sent from our end</li>
+                            <li> Items must be:
+                                -Unworn
+                                -Unwashed
+                                -In original condition it was delivered with all tags attached </li>
+                            <h3>NON-RETURNABLE ITEMS</h3>
+                            <li>tems on price slash sales</li>
+                            <li>Items already worn</li>
+                            <li>Items that have exceeded the return window days</li>
+                            <li>tems that was sent with accurate sizin</li>
 
-                    {/* 6. Returns and Refunds */}
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">6. Returns and Refunds</h2>
-
-                        <h3 className="text-xl font-medium text-white mb-3">6.1 Our 2-Day Return Policy</h3>
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>You have <span className="text-yellow-400">2 days</span> from delivery to request a return</li>
-                            <li className="text-white">Items must be:</li>
-                            <ul className="list-circle list-inside ml-6 text-gray-400 mb-2">
-                                <li>Unworn</li>
-                                <li>Unwashed</li>
-                                <li>In original condition with all tags attached</li>
-                            </ul>
-                        </ul>
-
-                        <h3 className="text-xl font-medium text-white mb-3">6.2 Non-Returnable Items</h3>
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>Sale items (unless faulty)</li>
-                            <li>Intimates (for hygiene reasons)</li>
-
-                        </ul>
-
-                        <h3 className="text-xl font-medium text-white mb-3">6.3 Refund Process</h3>
-                        <ul className="list-disc list-inside text-gray-400">
-                            <li>Once we receive and inspect your return, we'll process your refund within 3-5 business days</li>
-                            <li>Refunds go back to your original payment method</li>
+                            <h3>REFUND PROCESS</h3>
+                            <li>Refunds/exchange  are made after we receive and confirm the item was returned as it was sent</li>
+                            <li>Refund process  takes 2-3 business days</li>
+                            <li>Refunds go back to the original payment method</li>
                             <li>Shipping costs are non-refundable</li>
                         </ul>
+
                     </div>
 
 
@@ -183,9 +187,10 @@ export default function TermsOfService() {
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">8. Limitation of Liability</h2>
                         <ul className="list-disc list-inside text-gray-400">
-                            <li>We're not liable for any indirect damages arising from product use</li>
-                            <li>Our total liability is limited to the purchase price of your order</li>
-                            <li>We're not responsible for delays caused by events beyond our control (weather, strikes, etc.)</li>
+                            <li>we’re not liable to loss or damage of items due to over- stockpiling</li>
+                            <li>We’re not liable for any indirect damages arising from product misuse</li>
+                            <li>* We’re not responsible for delays caused by event beyond our reach and control (such as; unfriendly weathers, strikes, deliveries, etc.) we will always do our best to follow up to ensure you get your items.
+                            </li>
                         </ul>
                     </div>
 
@@ -200,7 +205,10 @@ export default function TermsOfService() {
                             <p className="text-gray-300"><span className="text-yellow-400">Instagram:</span> @dkikishop_backup</p>
                         </div>
 
-                        <p className="text-yellow-400 font-semibold">We're here for you! 💛</p>
+                        <p className="text-yellow-400 font-semibold">OUR PHYSICAL STORE ADDRESS 💛</p>
+                        <li> No 2 Oroma Okocha street, NTA apara link road, Mercyland. Off East west road or NTA road, Port Harcourt, Rivers state.
+
+                            WE ARE  HERE TO ATTEND TO YOU ❤️</li>
                     </div>
 
                     {/* The Simple Truth - Highlighted Section */}

@@ -26,10 +26,10 @@ export async function GET(request) {
 
     const query = {};
 
-    if (available) {
-      query.isAvailable = true;
-      query.stock = { $gt: 0 };
-    }
+    // if (available) {
+    //   query.isAvailable = true;
+    //   query.stock = { $gt: 0 };
+    // }
 
     // Fetch products
     const products = await Product.find(query)

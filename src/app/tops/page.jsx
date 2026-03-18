@@ -65,7 +65,7 @@ export default function TopsPage() {
       {/* Category Title - styled exactly like home welcome */}
       <div className="relative z-10 text-center mt-24">
         <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
-          Shirts
+          Tops
         </h1>
         <p className="mt-2 text-gray-400">Effortless style, endless versatility</p>
       </div>
