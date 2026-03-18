@@ -146,12 +146,7 @@ export default function HomeCarousel() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
             </div>
 
-            {/* Category name badge */}
-            <div className="absolute top-8 left-8 z-20">
-              <span className="px-4 py-2 bg-black/50 backdrop-blur-sm text-white text-sm rounded-full border border-white/20">
-                {slide.name}
-              </span>
-            </div>
+            
 
             {/* Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20">
