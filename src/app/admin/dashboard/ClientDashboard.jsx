@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import Image from 'next/image'
 
 const CATEGORIES = [
-  'blazers', 'shirts', 'skirts', 'dresses', 'activewears',
+  'blazers', 'tops', 'skirts', 'dresses', 'activewears',
   'jeans', 'shorts', 'accessories'
 ]
 
