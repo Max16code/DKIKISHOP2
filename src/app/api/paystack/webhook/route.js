@@ -19,12 +19,12 @@ export async function POST(req) {
       headers['x-paystack-signature'.toLowerCase()];
 
     if (!signature) {
-      return new Response('No signature (ignored)', { status: 200 });
+      return new Response('Unauthorized', { status: 401 });
     }
 
     const secret = process.env.PAYSTACK_SECRET_KEY;
     if (!secret) {
-      return new Response('Server config error', { status: 200 });
+      return new Response('Server config error', { status: 500 });
     }
 
     const computedHash = crypto
