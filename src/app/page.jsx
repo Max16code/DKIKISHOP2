@@ -455,7 +455,7 @@ export default function Home() {
               <p className="text-gray-400 text-sm">
                 Questions? Our support team is here to help anytime. Email, chat, or call us.
               </p>
-              <Link href="/contact" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
+              <Link href="/Contact" className="text-yellow-400 text-sm hover:underline inline-block mt-2">
                 Contact Us →
               </Link>
             </motion.div>

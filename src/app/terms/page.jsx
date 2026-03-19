@@ -66,10 +66,19 @@ export default function TermsOfService() {
                     {/* 2. Who Can Use DKIKISHOP */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">2. Who Can Use DKIKISHOP</h2>
-                        <ul className="list-disc list-inside text-gray-400 space-y-2">
-                            <li>women who want to look good and clean and don’t want to break the bank to achieve this ❤️ </li>
-                            <li>Women who are trying to build their capsule wardrobe and essentials</li>
-                            <li>Women who like unique fashion items</li>
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Women who want to look good and clean and don't want to break the bank to achieve this ❤️</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Women who are trying to build their capsule wardrobe and essentials</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Women who like unique fashion items</span>
+                            </li>
                         </ul>
                     </div>
 
@@ -77,127 +86,231 @@ export default function TermsOfService() {
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">3. Our Products</h2>
 
-                        <h3 className="text-xl font-medium text-white mb-3">3.1 What You See Is What You Get</h3>
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>we do our best to show real pictures of most of the  products, product might appear brighter or darker than they actually appear due to camera or lighting used</li>
-                            <li>Product descriptions are based on either manufacturer’s information or our own description, this is to help you understand the product better</li>
-                            <li>Sizes are  based on manufacturer’s label or ours, this is to ensure we give accurate sizing.</li>
+                        <h3 className="text-xl font-medium text-white mb-3">What You See Is What You Get</h3>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We do our best to show real pictures of most of the products, product might appear brighter or darker than they actually appear due to camera or lighting used</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Product descriptions are based on either manufacturer's information or our own description, this is to help you understand the product better</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Sizes are based on manufacturer's label or ours, this is to ensure we give accurate sizing</span>
+                            </li>
                         </ul>
 
-                        <h3 className="text-xl font-medium text-white mb-3">3.2 Availability</h3>
-                        <ul className="list-disc list-inside text-gray-400">
-                            <li>Any item not paid for is still available and can be taken out of cart after a while</li>
-                            <li>Please note that some products are limited and  can be taken out of your cart if you do not pay for it first.(you girlies are quick! 💅)</li>
-
+                        <h3 className="text-xl font-medium text-white mb-3">Availability</h3>
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Any item not paid for is still available and can be taken out of cart after a while</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Please note that some products are limited and can be taken out of your cart if you do not pay for it first</span>
+                            </li>
                         </ul>
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">3.3 Sizing</h2>
-
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>We use standard UK sizing</li>
-                            <li> Kindly know your size before shopping </li>
-                            <li>If you’re unsure of your size, please send us a recent picture on WhatsApp so as to ascertain your size before shopping.</li>
+                        <h2 className="text-2xl font-semibold text-white mb-4">Sizing</h2>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We use standard UK sizing</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Kindly know your size before shopping</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>If you're unsure of your size, please send us a recent picture on WhatsApp so as to ascertain your size before shopping.</span>
+                            </li>
                         </ul>
                     </div>
-
 
                     {/* 4. Pricing and Payments */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">4. Pricing and Payments</h2>
 
-
-                        <h3 className="text-xl font-medium text-white mb-3">4.1 Our Prices</h3>
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>All prices are in <span className="text-green-400">Nigerian Naira (₦)</span></li>
-                            <li>Prices include all applicable taxes</li>
-                            <li>We reserve the right to adjust prices when necessary</li>
+                        <h3 className="text-xl font-medium text-white mb-3">Our Prices</h3>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>All prices are in <span className="text-green-400">Nigerian Naira (₦)</span></span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Prices include all applicable taxes</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We reserve the right to adjust prices when necessary</span>
+                            </li>
                         </ul>
 
-                        <h3 className="text-xl font-medium text-white mb-3">4.2 Payment</h3>
-                        <ul className="list-disc list-inside text-gray-400">
-                            <li>we accept payments through various methods (Cards, bank transfers, etc.)</li>
-                            <li>Your payment is processed securely – we never see your card details</li>
-                            <li>All online payments are processed via PAYSTACK</li>
-                            <li>Full payment is required before items are shipped</li>
+                        <h3 className="text-xl font-medium text-white mb-3"> Payment</h3>
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We accept payments through various methods (Cards, bank transfers, etc.)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Your payment is processed securely – we never see your card details</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>All online payments are processed via PAYSTACK</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Full payment is required before items are shipped</span>
+                            </li>
                         </ul>
                     </div>
 
                     {/* 5. Shipping and Delivery */}
                     <div className="mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">5.SHIPPING AND DELIVERY
-                        </h2>
+                        <h2 className="text-2xl font-semibold text-white mb-4">5. SHIPPING AND DELIVERY</h2>
 
-                        <h3 className="text-xl font-medium text-white mb-3">5.1 DELIVERY TIME FRAME</h3>
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>We process orders within 24-48 hours after payment</li>
-                            <li>Delivery within port harcourt takes 24-48 hours  (within working days)</li>
-                            <li>Delivery outside Port Harcourt takes 2-6 working days, depending on your location</li>
-                            <li>Delivery outside Nigeria takes 7- 14 working days</li>
+                        <h3 className="text-xl font-medium text-white mb-3">DELIVERY TIME FRAME</h3>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We process orders within 24-48 hours after payment</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Delivery within Port Harcourt takes 24-48 hours (within working days)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Delivery outside Port Harcourt takes 2-6 working days, depending on your location</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Delivery outside Nigeria takes 7-14 working days</span>
+                            </li>
                         </ul>
 
-                        <h3 className="text-xl font-medium text-white mb-3">5.2 stockpiling policy</h3>
-                        <ul className="list-disc list-inside text-gray-400 mb-4">
-                            <li>We offer stockpile within a period of one month,
-                                this is so you can shop as many products as you want within this timeframe to maximize delivery fee.</li>
-                            <li>Please note that we’re only responsible for items kept within one month,
-                                we’re not liable to loss or damage of over stockpiled items.</li>
-                            <li>Items kept over a longer period of time (5 months max) will not be accounted for</li>
-
+                        <h3 className="text-xl font-medium text-white mb-3"> STOCKPILING POLICY</h3>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We offer stockpile within a period of one month, this is so you can shop as many products as you want within this timeframe to maximize delivery fee.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Please note that we're only responsible for items kept within one month, we're not liable to loss or damage of over stockpiled items.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items kept over a longer period of time (5 months max) will not be accounted for</span>
+                            </li>
                         </ul>
 
-                        <h3 className="text-xl font-medium text-white mb-3">5.3 RETURN AND REFUNDS</h3>
-                        <h2>OUR RETURN POLICY</h2>
-                        <ul className="list-disc list-inside text-gray-400">
-                            <li>items can be returned for exchange  if there’s damage or a wrong size was sent from our end</li>
-                            <li> Items must be:
-                                -Unworn
-                                -Unwashed
-                                -In original condition it was delivered with all tags attached </li>
-                            <h3>NON-RETURNABLE ITEMS</h3>
-                            <li>tems on price slash sales</li>
-                            <li>Items already worn</li>
-                            <li>Items that have exceeded the return window days</li>
-                            <li>tems that was sent with accurate sizin</li>
-
-                            <h3>REFUND PROCESS</h3>
-                            <li>Refunds/exchange  are made after we receive and confirm the item was returned as it was sent</li>
-                            <li>Refund process  takes 2-3 business days</li>
-                            <li>Refunds go back to the original payment method</li>
-                            <li>Shipping costs are non-refundable</li>
+                        <h3 className="text-xl font-medium text-white mb-3">6 RETURN AND REFUNDS</h3>
+                        <h4 className="text-lg font-medium text-white mb-2">OUR RETURN POLICY</h4>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items can be returned for exchange if there's damage or a wrong size was sent from our end</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items must be: Unworn, Unwashed, In original condition it was delivered with all tags attached</span>
+                            </li>
                         </ul>
 
+                        <h4 className="text-lg font-medium text-white mb-2">NON-RETURNABLE ITEMS</h4>
+                        <ul className="space-y-2 text-gray-400 mb-4">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items on price slash sales</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items already worn</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items that have exceeded the return window days</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Items that was sent with accurate sizing</span>
+                            </li>
+                        </ul>
+
+                        <h4 className="text-lg font-medium text-white mb-2">REFUND PROCESS</h4>
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Refunds/exchange are made after we receive and confirm the item was returned as it was sent</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Refund process takes 2-3 business days</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Refunds go back to the original payment method</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Shipping costs are non-refundable</span>
+                            </li>
+                        </ul>
                     </div>
-
-
 
                     {/* 7. Our Rights */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">7. Our Rights</h2>
                         <p className="text-gray-400 mb-3">We reserve the right to:</p>
-                        <ul className="list-disc list-inside text-gray-400">
-                            <li>Cancel any order if we suspect fraud or unauthorized activity</li>
-                            <li>Update these terms (we'll always post changes here)</li>
-                            <li>Refuse service to anyone for valid reasons (like repeated returns of worn items)</li>
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Cancel any order if we suspect fraud or unauthorized activity</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Update these terms (we'll always post changes here)</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>Refuse service to anyone for valid reasons (like repeated returns of worn items)</span>
+                            </li>
                         </ul>
                     </div>
 
                     {/* 8. Limitation of Liability */}
                     <div className="mb-8">
                         <h2 className="text-2xl font-semibold text-white mb-4">8. Limitation of Liability</h2>
-                        <ul className="list-disc list-inside text-gray-400">
-                            <li>we’re not liable to loss or damage of items due to over- stockpiling</li>
-                            <li>We’re not liable for any indirect damages arising from product misuse</li>
-                            <li>* We’re not responsible for delays caused by event beyond our reach and control (such as; unfriendly weathers, strikes, deliveries, etc.) we will always do our best to follow up to ensure you get your items.
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We're not liable to loss or damage of items due to over-stockpiling</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We're not liable for any indirect damages arising from product misuse</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>We're not responsible for delays caused by event beyond our reach and control (such as; unfriendly weathers, strikes, deliveries, etc.) we will always do our best to follow up to ensure you get your items.</span>
                             </li>
                         </ul>
                     </div>
 
                     {/* 9. Contact Us */}
                     <div className="mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">9. Contact Us</h2>
-                        <p className="text-gray-400 mb-4">Questions? Problems? Just want to say hi?</p>
+                        <h2 className="text-2xl font-semibold text-white mb-4"> CONTACT US</h2>
+                        <p className="text-gray-400 mb-4">CHAT WITH CUSTOMER CARE VIA</p>
 
                         <div className="bg-white/5 p-6 rounded-lg border border-yellow-400/20 mb-4">
                             <p className="text-gray-300 mb-2"><span className="text-yellow-400">Email:</span> Tailoredbykiki@gmail.com</p>
@@ -205,10 +318,14 @@ export default function TermsOfService() {
                             <p className="text-gray-300"><span className="text-yellow-400">Instagram:</span> @dkikishop_backup</p>
                         </div>
 
-                        <p className="text-yellow-400 font-semibold">OUR PHYSICAL STORE ADDRESS 💛</p>
-                        <li> No 2 Oroma Okocha street, NTA apara link road, Mercyland. Off East west road or NTA road, Port Harcourt, Rivers state.
-
-                            WE ARE  HERE TO ATTEND TO YOU ❤️</li>
+                        <p className="text-yellow-400 font-semibold mb-2">OUR PHYSICAL STORE ADDRESS 💛</p>
+                        <ul className="space-y-2 text-gray-400">
+                            <li className="flex items-start gap-2">
+                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
+                                <span>No 2 Oroma Okocha street, NTA apara link road, Mercyland. Off East west road or NTA road, Port Harcourt, Rivers state. </span>
+                                <span>WE ARE HERE TO ATTEND TO YOU ❤️</span>
+                            </li>
+                        </ul>
                     </div>
 
                     {/* The Simple Truth - Highlighted Section */}
