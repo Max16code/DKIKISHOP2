@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/context/Cartcontext'
 import Image from 'next/image'
+import SearchBar from './SearchBar';
+
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,7 +21,8 @@ export default function Navbar() {
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },
     { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
-    { name: 'Accessories', href: '/category/accessories' }, // 🆕 Added
+    { name: 'Accessories', href: '/category/accessories' },
+    { name: 'TwoPiece', href: '/category/twopiece' }// 🆕 Added
 
   ]
 
@@ -51,7 +54,7 @@ export default function Navbar() {
               />
             </div>
 
-
+            
           </Link>
 
           {/* Desktop Navigation Links */}

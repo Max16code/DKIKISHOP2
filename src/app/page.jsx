@@ -8,6 +8,9 @@ import Image from 'next/image'
 import HomeCarousel from '@/components/HomeCarousel'
 import { FaSquareInstagram } from "react-icons/fa6";
 import { BsFillGeoAltFill } from 'react-icons/bs'
+import SearchSection from '@/components/SearchSection'
+
+
 
 const ITEMS_PER_PAGE = 12 // Changed from 16 to 12 (3 rows of 4 on desktop)
 
@@ -122,6 +125,7 @@ export default function Home() {
       </div>
 
       <Navbar />
+      <SearchSection  />
 
       {/* Welcome Section */}
       <div className="relative z-10 text-center mt-24">
@@ -323,8 +327,8 @@ export default function Home() {
         </>
       )}
 
-      
-      
+
+
       <footer className="relative z-10 mt-20 border-t border-yellow-400/20 bg-black/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
           {/* Rating Section */}

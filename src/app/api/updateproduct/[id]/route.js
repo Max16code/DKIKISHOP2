@@ -6,7 +6,7 @@ import { getSession } from '@/lib/session';
 import { sanitizeInput } from '@/lib/validate'; // if you have this from upload
 
 const allowedCategories = [
-  "jeans", "blazers", "tops", "shorts", "activewears", "accessories", "skirts", "dresses"
+  "jeans", "blazers", "tops", "shorts", "activewears", "accessories", "skirts", "dresses", "twopiece"
 ];
 
 export async function PUT(req, { params }) {

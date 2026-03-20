@@ -6,14 +6,16 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import SearchSection from '@/components/SearchSection'
 import ProductImageCarousel from '@/components/ProductImageCarousel'
 
 const ITEMS_PER_PAGE = 16
 
 export const dynamic = 'force-dynamic'
 
-export default function CategoryPage() {
-  const { cat } = useParams()
+export default function CategoryPage() { // 👈 remove the params prop
+  const params = useParams() // 👈 get params with hook
+  const { cat } = params // 👈 destructure cat
 
   const [allProducts, setAllProducts] = useState([])
   const [displayedProducts, setDisplayedProducts] = useState([])
@@ -99,6 +101,7 @@ export default function CategoryPage() {
       </div>
 
       <Navbar />
+      <SearchSection />
 
       {/* Title */}
       <div className="relative z-10 text-center mt-24">

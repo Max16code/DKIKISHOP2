@@ -41,7 +41,8 @@ const ProductSchema = new mongoose.Schema({
       'activewears', 
       'jeans', 
       'shorts', 
-      'accessories'
+      'accessories',
+      'two-piece'   // ← added here
     ],
   },
 

@@ -6,7 +6,7 @@ import { sanitizeInput } from "@/lib/validate";
 
 const allowedCategories = [
   "blazers", "tops", "skirts", "dresses",
-  "activewears", "jeans", "shorts", "accessories"
+  "activewears", "jeans", "shorts", "accessories", "twopiece"
 ];
 
 export async function GET(req, { params }) {

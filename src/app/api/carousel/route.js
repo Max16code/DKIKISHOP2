@@ -9,7 +9,8 @@ export async function GET() {
     { name: 'Activewears', slug: 'activewears' },
     { name: 'Dresses', slug: 'dresses' },
     { name: 'Accessories', slug: 'accessories' },
-    { name: 'Shorts', slug: 'shorts' }
+    { name: 'Shorts', slug: 'shorts' },
+    { name: 'Twopiece', slug: 'twopiece' }
   ]
   
   try {
