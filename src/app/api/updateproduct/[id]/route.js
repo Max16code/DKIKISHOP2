@@ -1,16 +1,17 @@
 // src/app/api/updateproduct/[id]/route.js
 import dbConnect from '@/lib/mongodb';
-import Product from '@/models/productModel'; // ← capital P (Mongoose model convention)
+import Product from '@/models/productModel';
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { sanitizeInput } from '@/lib/validate'; // if you have this from upload
+import { sanitizeInput } from '@/lib/validate';
+import { redis } from '@/lib/redis'; // ✅ added Redis import
 
 const allowedCategories = [
   "jeans", "blazers", "tops", "shorts", "activewears", "accessories", "skirts", "dresses", "twopiece"
 ];
 
 export async function PUT(req, { params }) {
-  const { id } = params; // ← no await needed
+  const { id } = params;
 
   try {
     // 1. Auth check
@@ -24,7 +25,7 @@ export async function PUT(req, { params }) {
     // 2. Parse body
     const updates = await req.json();
 
-    // 3. Sanitize & validate (same as upload)
+    // 3. Sanitize & validate
     const title = sanitizeInput(updates.title);
     const description = sanitizeInput(updates.description);
     const price = Number(updates.price);
@@ -70,6 +71,10 @@ export async function PUT(req, { params }) {
     if (!updatedProduct) {
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
+
+    // ✅ 5. Invalidate Redis cache for this product
+    await redis.del(`product:${id}`);
+    console.log(`🗑️ Redis cache cleared for product: ${id}`);
 
     console.log('Product updated:', updatedProduct._id);
 

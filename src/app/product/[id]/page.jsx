@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
     const fetchProduct = async (isInitial = false) => {
       try {
         if (isInitial) setLoading(true)
-        const res = await fetch(`/api/product/${id}`)
+       const res = await fetch(`/api/product/${id}?t=${Date.now()}`)
         if (!res.ok) throw new Error('Failed to fetch product')
         const data = await res.json()
 
