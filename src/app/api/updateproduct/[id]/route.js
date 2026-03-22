@@ -1,89 +1,95 @@
-// src/app/api/updateproduct/[id]/route.js
-import dbConnect from '@/lib/mongodb';
-import Product from '@/models/productModel';
-import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { sanitizeInput } from '@/lib/validate';
-import { redis } from '@/lib/redis'; // ✅ added Redis import
+// src/app/api/admin/updateproducts/route.js
+import dbConnect from "@/lib/mongodb";
+import Product from "@/models/productModel";
+import { NextResponse } from "next/server";
+import { sanitizeInput } from "@/lib/validate";
+import { getSession } from "@/lib/session";
 
-const allowedCategories = [
-  "jeans", "blazers", "tops", "shorts", "activewears", "accessories", "skirts", "dresses", "twopiece"
-];
-
-export async function PUT(req, { params }) {
-  const { id } = params;
-
+export async function PUT(req) {
   try {
-    // 1. Auth check
+    // ✅ Admin auth
     const session = await getSession();
     if (!session || !session.isAdmin) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized access." },
+        { status: 401 }
+      );
     }
 
     await dbConnect();
 
-    // 2. Parse body
-    const updates = await req.json();
-
-    // 3. Sanitize & validate
-    const title = sanitizeInput(updates.title);
-    const description = sanitizeInput(updates.description);
-    const price = Number(updates.price);
-    const category = sanitizeInput(updates.category)?.trim().toLowerCase();
-    const sizes = Array.isArray(updates.sizes) ? updates.sizes.map(s => sanitizeInput(s.trim())).filter(Boolean) : [];
-    const quantity = Number(updates.quantity || 1);
-    const images = Array.isArray(updates.images) ? updates.images : [];
-    const shopId = updates.shopId || '697780d848d182949a9fc132';
-
-    if (!title || !description || isNaN(price) || price <= 0 || !category || sizes.length === 0 || images.length === 0 || !shopId) {
+    let body;
+    try {
+      body = await req.json();
+    } catch (err) {
       return NextResponse.json(
-        { success: false, error: 'Missing or invalid required fields' },
+        { success: false, error: "Invalid JSON body." },
         { status: 400 }
       );
     }
 
-    if (!allowedCategories.includes(category)) {
+    const {
+      id,
+      title,
+      description,
+      price,
+      category,
+      sizes,
+      quantity,
+      images,
+    } = body;
+
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: `Invalid category. Allowed: ${allowedCategories.join(', ')}` },
+        { success: false, error: "Product ID is required." },
         { status: 400 }
       );
     }
 
-    // 4. Update product
+    // ✅ Sanitize inputs
+    const updateData = {};
+
+    if (title) updateData.title = sanitizeInput(title);
+    if (description) updateData.description = sanitizeInput(description);
+    if (price) updateData.price = Number(price);
+    if (category) updateData.category = sanitizeInput(category).toLowerCase();
+    if (Array.isArray(sizes)) {
+      updateData.sizes = sizes.map(s => sanitizeInput(s.trim()));
+    }
+    if (Array.isArray(images)) updateData.images = images;
+    if (quantity !== undefined) {
+      const qty = Number(quantity);
+      updateData.quantity = qty;
+      updateData.stock = qty;
+      updateData.isAvailable = qty > 0;
+    }
+
+    updateData.updatedAt = new Date();
+
+    // ✅ Update product
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
-      {
-        title,
-        description,
-        price,
-        category,
-        sizes,
-        quantity,
-        stock: quantity,
-        isAvailable: quantity > 0,
-        images,
-        shopId,
-        updatedAt: new Date(),
-      },
-      { new: true, runValidators: true }
+      { $set: updateData },
+      { new: true }
     );
 
     if (!updatedProduct) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Product not found." },
+        { status: 404 }
+      );
     }
 
-    // ✅ 5. Invalidate Redis cache for this product
-    await redis.del(`product:${id}`);
-    console.log(`🗑️ Redis cache cleared for product: ${id}`);
-
-    console.log('Product updated:', updatedProduct._id);
-
-    return NextResponse.json({ success: true, product: updatedProduct });
-
-  } catch (err) {
-    console.error('Update error:', err.message, err.stack?.substring(0, 500));
     return NextResponse.json(
-      { success: false, error: err.message || 'Server error during update' },
+      { success: true, product: updatedProduct },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error("🔴 Update Product Error:", error);
+
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
