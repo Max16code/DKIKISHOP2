@@ -3,10 +3,10 @@ import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
-import { getSession } from "@/lib/session";
-import { redis } from "@/lib/redis"; // ✅ ADD THIS
+import { getSession } from "@/lib/session"; // ← use iron-session
 
 export async function POST(req) {
+  // Define allowed categories
   const allowedCategories = [
     "jeans",
     "blazers",
@@ -15,11 +15,11 @@ export async function POST(req) {
     "activewears",
     "accessories",
     "skirts",
-    "dresses",
-    "twopiece"
+    "dresses"
   ];
 
   try {
+    // NEW: Use iron-session instead of verifyAdmin
     const session = await getSession();
     if (!session || !session.isAdmin) {
       console.log('Unauthorized upload - no valid admin session');
@@ -42,13 +42,12 @@ export async function POST(req) {
     const description = sanitizeInput(body.description);
     const price = Number(body.price);
     const category = sanitizeInput(body.category)?.trim().toLowerCase();
-    const sizes = Array.isArray(body.sizes)
-      ? body.sizes.map(s => sanitizeInput(s.trim())).filter(Boolean)
-      : [];
+    const sizes = Array.isArray(body.sizes) ? body.sizes.map(s => sanitizeInput(s.trim())).filter(Boolean) : [];
     const quantity = Number(body.quantity || 1);
     const images = Array.isArray(body.images) ? body.images : [];
     const shopId = body.shopId || '697780d848d182949a9fc132';
 
+    // Validation
     if (!title || !description || isNaN(price) || price <= 0 || !category || sizes.length === 0 || images.length === 0 || !shopId) {
       return NextResponse.json(
         { success: false, error: "Missing required fields (title, description, price, category, sizes, images, shopId)" },
@@ -79,15 +78,6 @@ export async function POST(req) {
     await newProduct.save();
 
     console.log('Product created successfully:', newProduct._id);
-
-    // ✅ 🔥 REDIS INVALIDATION (CRITICAL)
-    try {
-      await redis.flushall();
-      console.log("🧹 Redis cache cleared after product upload");
-    } catch (redisErr) {
-      console.error("⚠️ Redis flush failed:", redisErr.message);
-      // Do NOT fail request because of Redis
-    }
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
 

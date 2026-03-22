@@ -1,8 +1,8 @@
+// src/app/api/getproducts/[cat]/route.js
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
-import { redis } from "@/lib/redis"; // ✅ ADD THIS
 
 const allowedCategories = [
   "blazers", "tops", "skirts", "dresses",
@@ -13,6 +13,7 @@ export async function GET(req, { params }) {
   try {
     await dbConnect();
 
+    // ✅ params is directly available in Next.js 13+ dynamic routes
     const cat = params?.cat;
     if (!cat) {
       return NextResponse.json({ success: false, error: "Category required" }, { status: 400 });
@@ -33,31 +34,16 @@ export async function GET(req, { params }) {
 
     const query = { category: cleanedCategory };
 
+    // Only filter by availability if showAll is not true
     if (!showAll && available !== 'false') {
       query.isAvailable = true;
       query.stock = { $gt: 0 };
     }
 
-    // ✅ SMART CACHE KEY (CRITICAL)
-    const cacheKey = `products:${cleanedCategory}:available=${available}:showAll=${showAll}:limit=${limit}`;
-
-    // ✅ 1. CHECK REDIS FIRST
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      console.log("⚡ Redis HIT:", cacheKey);
-      return NextResponse.json({ success: true, products: cached }, { status: 200 });
-    }
-
-    console.log("🐢 MongoDB HIT:", cacheKey);
-
-    // ✅ 2. FETCH FROM DB
     const products = await Product.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
-
-    // ✅ 3. STORE IN REDIS (TTL = 1 hour)
-    await redis.set(cacheKey, products, { ex: 3600 });
 
     return NextResponse.json({ success: true, products }, { status: 200 });
 
