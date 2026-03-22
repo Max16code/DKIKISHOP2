@@ -31,46 +31,72 @@ export async function POST(request) {
       });
     }
 
-    const results = [];
-    let allValid = true;
-    let subtotal = 0;
-    const shopIds = new Set();
+    // ---- Step 1: Prepare data and collect valid product IDs ----
+    const itemsWithInfo = [];
+    const productIds = [];
+    const invalidItems = [];
 
     for (const item of items) {
-      const productId = item.productId || item._id; // fallback for old cart format
+      const productId = item.productId || item._id;
       const quantity = Number(item.quantity);
 
+      // Validate ID format early
       if (!productId || !mongoose.isValidObjectId(productId)) {
         console.warn('Invalid product ID format:', productId);
-        results.push({
+        invalidItems.push({
           productId: productId || 'unknown',
           size: item.size || null,
           quantity,
           valid: false,
           message: 'Invalid product ID (must be valid MongoDB ID)',
         });
-        allValid = false;
         continue;
       }
 
       if (!Number.isInteger(quantity) || quantity < 1) {
-        results.push({
+        invalidItems.push({
           productId,
           size: item.size || null,
           quantity,
           valid: false,
           message: 'Quantity must be a positive integer',
         });
-        allValid = false;
         continue;
       }
 
-      const product = await Product.findById(productId).lean();
+      itemsWithInfo.push({ productId, quantity, size: item.size || null });
+      productIds.push(productId);
+    }
+
+    // If all items were invalid, return early
+    if (itemsWithInfo.length === 0) {
+      return NextResponse.json({
+        success: true,
+        valid: false,
+        results: invalidItems,
+        message: 'No valid items in cart',
+      });
+    }
+
+    // ---- Step 2: Fetch ALL products in ONE query ----
+    const products = await Product.find({ _id: { $in: productIds } }).lean();
+
+    // ---- Step 3: Build a Map for O(1) lookups ----
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
+    // ---- Step 4: Process items using the map ----
+    const results = [];
+    let allValid = true;
+    let subtotal = 0;
+    const shopIds = new Set();
+
+    for (const { productId, quantity, size } of itemsWithInfo) {
+      const product = productMap.get(productId);
 
       if (!product) {
         results.push({
           productId,
-          size: item.size || null,
+          size,
           quantity,
           valid: false,
           message: 'Product not found',
@@ -85,7 +111,7 @@ export async function POST(request) {
         if (shopIds.size > 1) {
           results.push({
             productId,
-            size: item.size || null,
+            size,
             quantity,
             valid: false,
             message: 'Items from multiple shops not allowed in one order',
@@ -96,14 +122,14 @@ export async function POST(request) {
       }
 
       // Size check
-      if (item.size && !product.sizes?.includes(item.size)) {
+      if (size && !product.sizes?.includes(size)) {
         results.push({
           productId,
           productTitle: product.title,
-          size: item.size,
+          size,
           quantity,
           valid: false,
-          message: `Size ${item.size} no longer available`,
+          message: `Size ${size} no longer available`,
         });
         allValid = false;
         continue;
@@ -114,7 +140,7 @@ export async function POST(request) {
         results.push({
           productId,
           productTitle: product.title,
-          size: item.size || null,
+          size,
           quantity,
           valid: false,
           message: product.stock === 0 ? 'Out of stock' : `Only ${product.stock} available`,
@@ -125,17 +151,20 @@ export async function POST(request) {
         results.push({
           productId,
           productTitle: product.title,
-          size: item.size || null,
+          size,
           quantity,
           valid: true,
           price: product.price,
           available: product.stock,
           shopId: product.shopId?.toString(),
         });
-
         subtotal += product.price * quantity;
       }
     }
+
+    // Append previously invalid items (those that failed ID/quantity checks)
+    results.push(...invalidItems);
+    if (invalidItems.length > 0) allValid = false;
 
     return NextResponse.json({
       success: true,
@@ -157,7 +186,7 @@ export async function POST(request) {
         success: false,
         valid: false,
         message: 'Server error during cart validation',
-        errorDetail: error.message, // always return detail for debug
+        errorDetail: error.message,
       },
       { status: 500 }
     );
