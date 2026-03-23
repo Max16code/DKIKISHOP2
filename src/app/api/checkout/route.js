@@ -1,10 +1,58 @@
+// app/api/checkout/route.js
 import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import dbConnect from '@/lib/mongodb'
 import Product from '@/models/productModel'
 import Order from '@/models/orderModel'
 
+// ── Simple in-memory rate limiter (no Redis, no packages) ─────────────────────────────
+const rateLimitMap = new Map(); // key: IP, value: { count, resetTime }
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const windowMs = 5 * 60 * 1000; // 5 minutes
+  const maxRequests = 10;         // 10 checkouts per IP per 5 min
+
+  let entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetTime) {
+    entry = { count: 0, resetTime: now + windowMs };
+    rateLimitMap.set(ip, entry);
+  }
+
+  entry.count += 1;
+
+  if (entry.count > maxRequests) {
+    return { success: false, remaining: 0 };
+  }
+
+  return { success: true, remaining: maxRequests - entry.count };
+}
+
+// Cleanup old entries every 10 minutes (prevents memory growth)
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 10 * 60 * 1000);
+
 export async function POST(req) {
+  // Rate limit by IP
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+  const rate = checkRateLimit(ip);
+
+  if (!rate.success) {
+    console.log(`[RATELIMIT] Checkout blocked for IP ${ip}`);
+    return NextResponse.json(
+      { success: false, error: 'Too many checkout attempts — please wait 5 minutes' },
+      { status: 429 }
+    );
+  }
+
+  // ── Your original checkout logic (unchanged) ──────────────────────────────────────
   try {
     const {
       name,
@@ -74,7 +122,6 @@ export async function POST(req) {
 
       console.log(`After decrement: ${product.title} stock=${product.stock}`)
     }
-
 
     /* ------------------ 4️⃣ EMAIL TRANSPORT (PRODUCTION SAFE) ------------------ */
     const transporter = nodemailer.createTransport({
@@ -157,7 +204,6 @@ export async function POST(req) {
   `,
     })
 
-
     // ---------------- 7️⃣ Admin Email (Polished) ----------------
     const adminItemsTableHTML = cartItems
       .map(
@@ -216,7 +262,6 @@ export async function POST(req) {
   `,
     })
     console.log('Admin email sent successfully')
-
 
     return NextResponse.json({ success: true, orderId: order._id })
   } catch (err) {

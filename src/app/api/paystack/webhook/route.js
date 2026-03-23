@@ -4,8 +4,19 @@ import dbConnect from '@/utils/db';
 import Order from '@/models/orderModel';
 import Product from '@/models/productModel';
 import { sendOrderEmails } from '@/lib/sendOrderEmails';
+import { rateLimit } from '@/lib/rateLimit';
 
 export async function POST(req) {
+  // 1. Rate limiting (must be first)
+  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  const { success } = rateLimit({ identifier: ip, limit: 10, windowMs: 60 * 1000 });
+
+  if (!success) {
+    console.log(`[RATELIMIT] Webhook blocked for IP ${ip}`);
+    return new Response('Too Many Requests', { status: 429 });
+  }
+
+  // 2. Webhook processing (the rest of your code)
   let rawBody = '';
 
   try {

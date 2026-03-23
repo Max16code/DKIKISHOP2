@@ -1,24 +1,24 @@
-// lib/rateLimit.js
-const rateLimitStore = new Map();
+// lib/rate-limiter.js
+// In-memory rate limiter (no Redis needed)
 
-export function apiLimiter(req, { windowMs = 60 * 1000, max = 50 } = {}) {
-  const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
+const rateLimitMap = new Map();
 
-  const now = Date.now();
-  const record = rateLimitStore.get(ip) || { count: 0, lastRequest: now };
+export function rateLimit({
+  identifier,       // e.g. IP or user ID
+  limit = 10,       // requests allowed
+  windowMs = 60 * 1000, // 60 seconds
+}) {
+  const key = `${identifier}:${Math.floor(Date.now() / windowMs)}`;
+  const current = rateLimitMap.get(key) || 0;
 
-  if (now - record.lastRequest > windowMs) {
-    // Reset count after window
-    record.count = 0;
-    record.lastRequest = now;
+  if (current >= limit) {
+    return { success: false, remaining: 0 };
   }
 
-  record.count += 1;
-  record.lastRequest = now;
+  rateLimitMap.set(key, current + 1);
 
-  rateLimitStore.set(ip, record);
+  // Clean up old entries (optional, prevents memory leak)
+  setTimeout(() => rateLimitMap.delete(key), windowMs);
 
-  if (record.count > max) {
-    throw new Error("Too many requests, slow down.");
-  }
+  return { success: true, remaining: limit - (current + 1) };
 }

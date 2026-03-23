@@ -4,7 +4,54 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/models/productModel';
 import mongoose from 'mongoose';
 
+// ── Simple in-memory rate limiter (no Redis, no external packages) ──────────────
+const rateLimitMap = new Map(); // key: IP, value: { count, resetTime }
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute window
+  const maxRequests = 30;     // adjust if needed (30 is very generous)
+
+  let entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetTime) {
+    entry = { count: 0, resetTime: now + windowMs };
+    rateLimitMap.set(ip, entry);
+  }
+
+  entry.count += 1;
+
+  if (entry.count > maxRequests) {
+    return { success: false, remaining: 0 };
+  }
+
+  return { success: true, remaining: maxRequests - entry.count };
+}
+
+// Auto-cleanup old entries every 2 minutes (prevents memory leak)
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, 2 * 60 * 1000);
+
 export async function POST(request) {
+  // Rate limit by IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+  const rate = checkRateLimit(ip);
+
+  if (!rate.success) {
+    console.log(`[RATELIMIT] Cart validate blocked for IP ${ip}`);
+    return NextResponse.json(
+      { success: false, message: 'Too many cart validation requests — please wait a minute' },
+      { status: 429 }
+    );
+  }
+
+  // ── Your original code (unchanged below this point) ────────────────────────────
   try {
     await dbConnect();
 
@@ -40,7 +87,6 @@ export async function POST(request) {
       const productId = item.productId || item._id;
       const quantity = Number(item.quantity);
 
-      // Validate ID format early
       if (!productId || !mongoose.isValidObjectId(productId)) {
         console.warn('Invalid product ID format:', productId);
         invalidItems.push({
@@ -68,7 +114,6 @@ export async function POST(request) {
       productIds.push(productId);
     }
 
-    // If all items were invalid, return early
     if (itemsWithInfo.length === 0) {
       return NextResponse.json({
         success: true,
@@ -105,7 +150,6 @@ export async function POST(request) {
         continue;
       }
 
-      // Single-shop enforcement
       if (product.shopId) {
         shopIds.add(product.shopId.toString());
         if (shopIds.size > 1) {
@@ -121,7 +165,6 @@ export async function POST(request) {
         }
       }
 
-      // Size check
       if (size && !product.sizes?.includes(size)) {
         results.push({
           productId,
@@ -135,7 +178,6 @@ export async function POST(request) {
         continue;
       }
 
-      // Stock check
       if (!product.isAvailable || product.stock < quantity) {
         results.push({
           productId,
@@ -162,7 +204,6 @@ export async function POST(request) {
       }
     }
 
-    // Append previously invalid items (those that failed ID/quantity checks)
     results.push(...invalidItems);
     if (invalidItems.length > 0) allValid = false;
 
