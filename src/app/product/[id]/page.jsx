@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import useEmblaCarousel from 'embla-carousel-react'
+import { useShutdown } from '@/hooks/useShutDown'   // <-- import shutdown hook
 
 export const dynamic = 'force-dynamic'
 
@@ -19,15 +20,16 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Shutdown status
+  const { shutdown, loading: shutdownLoading } = useShutdown()
+
   // Embla for image carousel (manual swipe + optional auto)
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    {
-      loop: true,
-      align: 'center',
-      dragFree: false,
-      speed: 10,
-    }
-  )
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: 'center',
+    dragFree: false,
+    speed: 10,
+  })
 
   // Fetch product + polling
   useEffect(() => {
@@ -36,10 +38,9 @@ export default function ProductDetailPage() {
     const fetchProduct = async (isInitial = false) => {
       try {
         if (isInitial) setLoading(true)
-       const res = await fetch(`/api/product/${id}?t=${Date.now()}`)
+        const res = await fetch(`/api/product/${id}?t=${Date.now()}`)
         if (!res.ok) throw new Error('Failed to fetch product')
         const data = await res.json()
-
         setProduct(data)
         setError(null)
       } catch (err) {
@@ -75,7 +76,7 @@ export default function ProductDetailPage() {
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
-  if (loading) {
+  if (loading || shutdownLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white bg-black/80">
         <p className="text-lg animate-pulse">Loading product...</p>
@@ -92,9 +93,15 @@ export default function ProductDetailPage() {
   }
 
   const isOutOfStock = product.stock <= 0 || !product.isAvailable
-  const canAddToCart = !isOutOfStock && selectedQuantity <= (product.stock || 0) && selectedQuantity >= 1
+  // If store is shut down, treat as out of stock for addition (button disabled)
+  const cannotAddDueToShutdown = shutdown
+  const canAddToCart = !isOutOfStock && !cannotAddDueToShutdown && selectedQuantity <= (product.stock || 0) && selectedQuantity >= 1
 
   const handleAddToCart = () => {
+    if (shutdown) {
+      alert('Store is closed for maintenance. New items cannot be added.')
+      return
+    }
     if (isOutOfStock) return alert('🚫 Item is out of stock.')
     if (product.sizes?.length > 0 && !selectedSize) return alert('Please select a size')
     if (selectedQuantity > product.stock) return alert(`Only ${product.stock} available`)
@@ -121,6 +128,16 @@ export default function ProductDetailPage() {
       className="min-h-screen px-4 py-10 bg-gradient-to-br from-black via-gray-900 to-black text-white relative z-10"
     >
       <Navbar />
+
+      {/* Shutdown Banner */}
+      {shutdown && (
+        <div className="max-w-6xl mx-auto mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-lg shadow-md">
+          <p className="font-medium">
+            ⚠️ The store is currently closed for maintenance. You cannot add new items to your cart.
+            If you have existing items, you can still proceed to checkout.
+          </p>
+        </div>
+      )}
 
       <div className="max-w-6xl mx-auto mt-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-xl p-6 md:p-10 grid md:grid-cols-2 gap-10 items-start">
         {/* PRODUCT IMAGE with manual swipe carousel */}
@@ -219,7 +236,7 @@ export default function ProductDetailPage() {
               <select
                 value={selectedSize}
                 onChange={(e) => setSelectedSize(e.target.value)}
-                disabled={isOutOfStock}
+                disabled={isOutOfStock || shutdown}
                 className="w-full rounded-lg px-4 py-2 bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-60"
               >
                 <option value="">-- Select Size --</option>
@@ -233,7 +250,7 @@ export default function ProductDetailPage() {
           )}
 
           {/* Quantity Selector */}
-          {!isOutOfStock && (
+          {!isOutOfStock && !shutdown && (
             <div>
               <label className="block mb-2 text-white font-medium">Quantity:</label>
               <div className="flex items-center gap-3">
@@ -275,6 +292,13 @@ export default function ProductDetailPage() {
               className="w-full bg-gray-600 text-white font-semibold px-6 py-4 rounded-xl cursor-not-allowed text-lg"
             >
               Out of Stock
+            </button>
+          ) : shutdown ? (
+            <button
+              disabled
+              className="w-full bg-gray-600 text-white font-semibold px-6 py-4 rounded-xl cursor-not-allowed text-lg"
+            >
+              Store Closed – Cannot Add New Items
             </button>
           ) : (
             <button

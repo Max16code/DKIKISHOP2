@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/models/productModel';
+import Settings from '@/models/settings';   // <-- new import
 import mongoose from 'mongoose';
 
 // ── Simple in-memory rate limiter (no Redis, no external packages) ──────────────
@@ -51,9 +52,12 @@ export async function POST(request) {
     );
   }
 
-  // ── Your original code (unchanged below this point) ────────────────────────────
   try {
     await dbConnect();
+
+    // ── CHECK SHUTDOWN FLAG ──────────────────────────────────────────────
+    const settings = await Settings.findOne({ key: 'shutdown' });
+    const isShutdown = settings?.value === true;
 
     const body = await request.json();
     console.log('VALIDATION BODY RECEIVED:', JSON.stringify(body, null, 2));
@@ -75,6 +79,7 @@ export async function POST(request) {
         message: 'Cart is empty',
         subtotal: 0,
         total: 0,
+        storeClosed: isShutdown,   // <-- inform frontend about shutdown state
       });
     }
 
@@ -120,6 +125,7 @@ export async function POST(request) {
         valid: false,
         results: invalidItems,
         message: 'No valid items in cart',
+        storeClosed: isShutdown,   // <--
       });
     }
 
@@ -207,6 +213,7 @@ export async function POST(request) {
     results.push(...invalidItems);
     if (invalidItems.length > 0) allValid = false;
 
+    // ── FINAL RESPONSE with storeClosed flag ─────────────────────────────
     return NextResponse.json({
       success: true,
       valid: allValid,
@@ -215,6 +222,7 @@ export async function POST(request) {
       total: subtotal,
       message: allValid ? 'All items available' : 'Some items unavailable or out of stock',
       shopId: shopIds.size === 1 ? [...shopIds][0] : null,
+      storeClosed: isShutdown,   // <-- frontend can use this to show a banner
     });
   } catch (error) {
     console.error('Cart validation error:', {

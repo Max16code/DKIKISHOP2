@@ -5,6 +5,8 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from 'next/image'
+import { useShutdown } from '@/hooks/useShutDown'
+import ShutdownButton from '@/components/Admin/ShutDownButton'
 
 const CATEGORIES = [
   'blazers', 'tops', 'skirts', 'dresses', 'activewears',
@@ -18,6 +20,9 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showSuccess, setShowSuccess] = useState(false)
+
+  // Shutdown state
+  const { shutdown, loading: shutdownLoading } = useShutdown()
 
   useEffect(() => {
     fetchProducts()
@@ -134,6 +139,25 @@ export default function ClientDashboard() {
           Sign Out
         </button>
       </div>
+
+      {/* Shutdown control card */}
+      {!shutdownLoading && (
+        <div className="mb-6 bg-white/5 rounded-lg p-4 border border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold mb-1">Store Shutdown Control</h2>
+              <p className="text-sm text-gray-400">
+                {shutdown
+                  ? 'Purchases are currently disabled. Customers cannot buy anything.'
+                  : 'Purchases are enabled. Toggle to disable all purchases (e.g., for maintenance).'}
+              </p>
+            </div>
+            <div>
+              <ShutdownButton initialShutdown={shutdown} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mb-6 flex flex-wrap gap-3">
         <Link href="/admin/upload">
