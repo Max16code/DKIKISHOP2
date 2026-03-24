@@ -167,7 +167,7 @@ export default function Home() {
             </p>
 
             <p className="text-xs sm:text-sm md:text-base text-white/90 font-medium mb-3 sm:mb-4">
-              25th – 30th March 2026
+              1st – 6th April, 2026
             </p>
 
             <div className="relative h-8 sm:h-9 md:h-10 overflow-hidden">
