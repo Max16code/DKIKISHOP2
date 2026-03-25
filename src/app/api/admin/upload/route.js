@@ -15,7 +15,8 @@ export async function POST(req) {
     "activewears",
     "accessories",
     "skirts",
-    "dresses"
+    "dresses",
+    "twopiece"
   ];
 
   try {
