@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 import Image from 'next/image'
 import { useShutdown } from '@/hooks/useShutDown'
 import ShutdownButton from '@/components/Admin/ShutDownButton'
-import TwopiecePage from "@/app/twopiece/page"
 
 const CATEGORIES = [
   'blazers', 'tops', 'skirts', 'dresses', 'activewears',
@@ -131,22 +130,22 @@ export default function ClientDashboard() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+      {/* Header with back button, title, and logout */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+          >
+            ← Back to Home
+          </Link>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        </div>
         <button
           onClick={handleLogout}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
         >
           Sign Out
-        </button>
-      </div>
-      <div className="">
-        <button
-          onClick={() => router.push('/')}
-          className="absolute top-6 left-6 flex items-center gap-2 font-bold text-black  bg-amber-400 py-1.5 px-1.5 rounded-3xl hover:text-white transition-colors text-sm "
-          aria-label="Go back to main website"
-        >
-          ← Back to Home
         </button>
       </div>
 

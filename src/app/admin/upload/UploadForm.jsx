@@ -130,7 +130,7 @@ export default function UploadForm() {
       <div className="">
         <button
           onClick={() => router.push('/admin/dashboard')}
-          className="absolute top-6 left-6 mt-20 flex items-center gap-2 font-bold text-black  bg-amber-400 py-1.5 px-1.5 rounded-3xl hover:text-white transition-colors text-sm "
+          className="absolute top-6 left-6 mt-20 flex items-center gap-2 font-bold text-black   bg-amber-400 py-1.5 px-1.5 rounded-3xl hover:text-white transition-colors text-sm "
           aria-label="Go back to main website"
         >
           ← dashboard

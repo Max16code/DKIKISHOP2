@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Dkikishop",
-  description: "Luxury on a budget",
+  description: "Trendy on a budget",
   icons: {
     icon: '/kikishop.png',  // Path to your file in /public
 
