@@ -1,18 +1,19 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'  // <-- added useRouter
 import { useEffect, useState, useCallback } from 'react'
 import { useCart } from '@/context/Cartcontext'
 import Navbar from '@/components/Navbar'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useShutdown } from '@/hooks/useShutDown'   // <-- import shutdown hook
+import { useShutdown } from '@/hooks/useShutDown'
 
 export const dynamic = 'force-dynamic'
 
 export default function ProductDetailPage() {
   const { id } = useParams()
+  const router = useRouter()  // <-- for navigation back
   const [product, setProduct] = useState(null)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedQuantity, setSelectedQuantity] = useState(1)
@@ -20,10 +21,8 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Shutdown status
   const { shutdown, loading: shutdownLoading } = useShutdown()
 
-  // Embla for image carousel (manual swipe + optional auto)
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: 'center',
@@ -31,7 +30,6 @@ export default function ProductDetailPage() {
     speed: 10,
   })
 
-  // Fetch product + polling
   useEffect(() => {
     if (!id) return
 
@@ -62,13 +60,12 @@ export default function ProductDetailPage() {
     return () => clearInterval(interval)
   }, [id])
 
-  // Optional: auto-advance (comment out if you want pure manual only)
   useEffect(() => {
     if (!emblaApi || !product?.images || product.images.length <= 1) return
 
     const interval = setInterval(() => {
       emblaApi.scrollNext()
-    }, 5000) // 5 seconds per image
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [emblaApi, product?.images])
@@ -93,7 +90,6 @@ export default function ProductDetailPage() {
   }
 
   const isOutOfStock = product.stock <= 0 || !product.isAvailable
-  // If store is shut down, treat as out of stock for addition (button disabled)
   const cannotAddDueToShutdown = shutdown
   const canAddToCart = !isOutOfStock && !cannotAddDueToShutdown && selectedQuantity <= (product.stock || 0) && selectedQuantity >= 1
 
@@ -127,6 +123,18 @@ export default function ProductDetailPage() {
       transition={{ duration: 0.5 }}
       className="min-h-screen px-4 py-10 bg-gradient-to-br from-black via-gray-900 to-black text-white relative z-10"
     >
+      {/* Beautiful Back Button */}
+      <div className="max-w-6xl mx-auto mt-20">
+        <button
+          onClick={() => router.back()}
+          className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium hover:bg-white/20 hover:border-white/30 transition-all duration-300 hover:shadow-md"
+          aria-label="Go back"
+        >
+          <span className="text-lg group-hover:-translate-x-1 transition-transform duration-200">←</span>
+          <span className="hidden sm:inline">Back</span>
+        </button>
+      </div>
+
       <Navbar />
 
       {/* Shutdown Banner */}
@@ -185,7 +193,7 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Navigation arrows (optional – visible on hover) */}
+          {/* Navigation arrows */}
           {product.images?.length > 1 && (
             <>
               <button
