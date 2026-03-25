@@ -124,14 +124,14 @@ export default function ProductDetailPage() {
       className="min-h-screen px-4 py-10 bg-gradient-to-br from-black via-gray-900 to-black text-white relative z-10"
     >
       {/* Beautiful Back Button */}
-      <div className="max-w-6xl mx-auto mt-20">
+      <div className="max-w-6xl mx-auto mt-24">
         <button
           onClick={() => router.back()}
           className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium hover:bg-white/20 hover:border-white/30 transition-all duration-300 hover:shadow-md"
           aria-label="Go back"
         >
           <span className="text-lg group-hover:-translate-x-1 transition-transform duration-200">←</span>
-          <span className="hidden sm:inline">Back</span>
+          <span className=" sm:inline">Back</span>
         </button>
       </div>
 
