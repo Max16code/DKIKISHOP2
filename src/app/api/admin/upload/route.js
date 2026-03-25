@@ -1,85 +1,100 @@
+// src/app/api/admin/upload/route.js
 import dbConnect from "@/lib/mongodb";
-import product from "@/models/productModel";
+import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
-
-const allowedCategories = [
-  "blazers",
-  "shirts",
-  "skirts",
-  "dresses",
-  "activewears",
-  "jeans"
-];
+import { sanitizeInput } from "@/lib/validate";
+import { getSession } from "@/lib/session"; // ← use iron-session
 
 export async function POST(req) {
+  // Define allowed categories
+  const allowedCategories = [
+    "jeans",
+    "blazers",
+    "tops",
+    "shorts",
+    "activewears",
+    "accessories",
+    "skirts",
+    "dresses",
+    "twopiece"
+  ];
+
   try {
+    // NEW: Use iron-session instead of verifyAdmin
+    const session = await getSession();
+    if (!session || !session.isAdmin) {
+      console.log('Unauthorized upload - no valid admin session');
+      return NextResponse.json({ success: false, error: "Unauthorized access." }, { status: 401 });
+    }
+
+    console.log('Admin upload authorized - session OK');
+
     await dbConnect();
-    const rawData = await req.json();
 
-    console.log("🟡 RAW REQUEST BODY:", rawData);
+    let body;
+    try {
+      body = await req.json();
+    } catch (err) {
+      console.error("Failed to parse JSON body:", err);
+      return NextResponse.json({ success: false, error: "Invalid JSON body." }, { status: 400 });
+    }
 
-    // ✅ Normalize values
-    const title = String(rawData.title || "").trim();
-    const description = String(rawData.description || "").trim();
-    const image = String(rawData.image || "").trim();
-    const price = Number(rawData.price);
+    const title = sanitizeInput(body.title);
+    const description = sanitizeInput(body.description);
+    const price = Number(body.price);
+    const category = sanitizeInput(body.category)?.trim().toLowerCase();
+    const sizes = Array.isArray(body.sizes) ? body.sizes.map(s => sanitizeInput(s.trim())).filter(Boolean) : [];
+    const quantity = Number(body.quantity || 1);
+    const images = Array.isArray(body.images) ? body.images : [];
+    const shopId = body.shopId || '697780d848d182949a9fc132';
 
-    // ✅ SAFELY normalize and lowercase category
-    const category = String(rawData.category || "").trim().toLowerCase();
-
-    // 🔄 Handle both `size` and `sizes` fields gracefully
-    const sizes = Array.isArray(rawData.sizes)
-      ? rawData.sizes
-      : Array.isArray(rawData.size)
-        ? rawData.size
-        : typeof rawData.size === "string"
-          ? rawData.size.split(",").map(s => s.trim()).filter(Boolean)
-          : [];
-
-    // ✅ Validation
-    if (
-      !title ||
-      !description ||
-      !image ||
-      !category ||
-      isNaN(price) || price <= 0 ||
-      sizes.length === 0
-    ) {
+    // Validation
+    if (!title || !description || isNaN(price) || price <= 0 || !category || sizes.length === 0 || images.length === 0 || !shopId) {
       return NextResponse.json(
-        { success: false, error: "All fields are required and must be valid." },
+        { success: false, error: "Missing required fields (title, description, price, category, sizes, images, shopId)" },
         { status: 400 }
       );
     }
 
     if (!allowedCategories.includes(category)) {
       return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid category. Must be one of: ${allowedCategories.join(", ")}.`,
-        },
+        { success: false, error: `Invalid category. Allowed: ${allowedCategories.join(', ')}` },
         { status: 400 }
       );
     }
 
-    // ✅ Save to DB with clean, validated data
-    const newProduct = new product({
+    const newProduct = new Product({
       title,
-      price,
       description,
-      image,
+      price,
       sizes,
-      category, // ← already normalized
+      category,
+      images,
+      quantity,
+      stock: quantity,
+      isAvailable: quantity > 0,
+      shopId,
     });
 
     await newProduct.save();
 
+    console.log('Product created successfully:', newProduct._id);
+
+    return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
+
+  } catch (err) {
+    console.error("Upload route error:", {
+      message: err.message,
+      stack: err.stack?.substring(0, 800) || 'No stack',
+    });
+
     return NextResponse.json(
-      { success: true, product: newProduct },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
+      { 
+        success: false, 
+        error: err.message.includes('validation') 
+          ? `Validation failed: ${err.message}` 
+          : 'Server error during product save'
+      },
       { status: 500 }
     );
   }
