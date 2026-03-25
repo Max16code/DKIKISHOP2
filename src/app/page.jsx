@@ -133,7 +133,7 @@ export default function Home() {
           Welcome to{' '}
           <span className="text-yellow-400">DKIKISHOP</span>
         </h1>
-        <p className="mt-2 text-gray-400">Luxury on a Budget</p>
+        <p className="mt-2 text-gray-400">Trendy on a Budget</p>
       </div>
 
       {/* Carousel */}

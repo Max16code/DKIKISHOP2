@@ -7,10 +7,11 @@ import { useRouter } from "next/navigation"
 import Image from 'next/image'
 import { useShutdown } from '@/hooks/useShutDown'
 import ShutdownButton from '@/components/Admin/ShutDownButton'
+import TwopiecePage from "@/app/twopiece/page"
 
 const CATEGORIES = [
   'blazers', 'tops', 'skirts', 'dresses', 'activewears',
-  'jeans', 'shorts', 'accessories'
+  'jeans', 'shorts', 'accessories', 'twopiece'
 ]
 
 export default function ClientDashboard() {
