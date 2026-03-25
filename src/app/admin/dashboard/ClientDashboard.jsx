@@ -54,7 +54,7 @@ export default function ClientDashboard() {
         throw new Error('Unexpected API response format')
       }
 
-      const availableProducts = productList.filter(product => 
+      const availableProducts = productList.filter(product =>
         product.isAvailable !== false &&
         (Number(product.stock || product.quantity || 0) > 0)
       )
@@ -119,7 +119,7 @@ export default function ClientDashboard() {
     return (
       <div className="text-center py-10">
         <p className="text-red-500">{error}</p>
-        <button 
+        <button
           onClick={fetchProducts}
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
         >
@@ -138,6 +138,15 @@ export default function ClientDashboard() {
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
         >
           Sign Out
+        </button>
+      </div>
+      <div className="">
+        <button
+          onClick={() => router.push('/')}
+          className="absolute top-6 left-6 flex items-center gap-2 font-bold text-black  bg-amber-400 py-1.5 px-1.5 rounded-3xl hover:text-white transition-colors text-sm "
+          aria-label="Go back to main website"
+        >
+          ← Back to Home
         </button>
       </div>
 
@@ -172,11 +181,10 @@ export default function ClientDashboard() {
       <div className="mb-8 flex flex-wrap gap-3">
         <button
           onClick={() => setSelectedCategory(null)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-            !selectedCategory 
-              ? 'bg-yellow-500 text-black' 
-              : 'bg-gray-700 hover:bg-gray-600 text-white'
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition ${!selectedCategory
+            ? 'bg-yellow-500 text-black'
+            : 'bg-gray-700 hover:bg-gray-600 text-white'
+            }`}
         >
           All Categories
         </button>
@@ -185,11 +193,10 @@ export default function ClientDashboard() {
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition capitalize ${
-              selectedCategory === cat 
-                ? 'bg-yellow-500 text-black' 
-                : 'bg-gray-700 hover:bg-gray-600 text-white'
-            }`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition capitalize ${selectedCategory === cat
+              ? 'bg-yellow-500 text-black'
+              : 'bg-gray-700 hover:bg-gray-600 text-white'
+              }`}
           >
             {cat}
           </button>
@@ -215,10 +222,10 @@ export default function ClientDashboard() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((product) => (
-                <ProductCard 
-                  key={product._id} 
-                  product={product} 
-                  onDelete={() => handleDelete(product._id)} 
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  onDelete={() => handleDelete(product._id)}
                 />
               ))}
             </div>
@@ -248,10 +255,10 @@ export default function ClientDashboard() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {products.map((product) => (
-                    <ProductCard 
-                      key={product._id} 
-                      product={product} 
-                      onDelete={() => handleDelete(product._id)} 
+                    <ProductCard
+                      key={product._id}
+                      product={product}
+                      onDelete={() => handleDelete(product._id)}
                     />
                   ))}
                 </div>
@@ -270,7 +277,7 @@ function ProductCard({ product, onDelete }) {
   const inStock = stock > 0
 
   return (
-    <div 
+    <div
       className="border rounded p-3 relative bg-white/5 hover:bg-white/10 transition"
     >
       <div className="relative w-full h-40 flex items-center justify-center bg-black/10 overflow-hidden rounded mb-2">
