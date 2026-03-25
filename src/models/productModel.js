@@ -43,7 +43,7 @@ const ProductSchema = new mongoose.Schema({
       'jeans', 
       'shorts', 
       'accessories',
-      'two-piece'   // ← added here
+      'twopiece'   // ← added here
     ],
   },
 
