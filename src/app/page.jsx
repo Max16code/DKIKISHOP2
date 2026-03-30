@@ -125,7 +125,7 @@ export default function Home() {
       </div>
 
       <Navbar />
-      <SearchSection  />
+      <SearchSection />
 
       {/* Welcome Section */}
       <div className="relative z-10 text-center mt-24">
@@ -174,11 +174,11 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500/40 via-fuchsia-500/40 to-purple-500/40 rounded-full border border-pink-300/40 shadow-inner backdrop-blur-md" />
               <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ribbon-flow">
                 <span className="text-xs sm:text-sm md:text-base font-medium text-white/95 tracking-wider px-16">
-                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  Hurry up girlies and pick up the good stuff fast 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  Hurry up girlies and pick up the good stuff fast 💅✨
+                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  free delivery when you shop from N100,000 and above 💅✨
                 </span>
               </div>
             </div>
