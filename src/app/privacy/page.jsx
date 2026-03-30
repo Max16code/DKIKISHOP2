@@ -49,9 +49,9 @@ export default function PrivacyPolicy() {
         >
           {/* Our Promise */}
           <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">Our Promise to You</h2>
+          
             <p className="text-gray-300 text-lg">
-              At DKIKISHOP, your privacy is our priority. We believe in complete transparency about how we handle your information. This Privacy Policy explains that <span className="text-yellow-400 font-semibold">we only use your personal details for one purpose: to deliver your orders.</span> That's it.
+              At DKIKISHOP, your privacy is our priority. We believe in complete transparency about how we handle your information. This Privacy Policy explains that <span className="text-yellow-400 font-semibold">we only use your personal details for one purpose: to deliver your orders, and to contact you, if needed.</span> That's it.
             </p>
           </div>
 
@@ -87,7 +87,7 @@ export default function PrivacyPolicy() {
           {/* 2. How We Use Your Information */}
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">2. How We Use Your Information</h2>
-            <p className="text-gray-400 mb-4"><span className="text-yellow-400 font-semibold">We use your information for exactly one purpose: to deliver your purchases.</span></p>
+            <p className="text-gray-400 mb-4"><span className="text-yellow-400 font-semibold">We use your information for exactly these purposes: to deliver your purchases, and to contact you if there is a need for that.</span></p>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left text-gray-400 border border-yellow-400/20">
@@ -112,12 +112,12 @@ export default function PrivacyPolicy() {
                   </tr>
                   <tr>
                     <td className="px-4 py-3 border-b border-yellow-400/20 text-yellow-400">Email Address</td>
-                    <td className="px-4 py-3">Sending order confirmation and delivery status updates</td>
+                    <td className="px-4 py-3">Sending order confirmation</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p className="text-yellow-400 font-semibold mt-4">That's it. Nothing more. Nothing less.</p>
+            <p className="text-yellow-400 font-semibold mt-4">That's it. Nothing more.</p>
           </div>
 
           {/* 3. Information Sharing */}
@@ -153,9 +153,9 @@ export default function PrivacyPolicy() {
 
             <h3 className="text-xl font-medium text-white mb-3">4.2 Security Measures</h3>
             <ul className="list-disc list-inside text-gray-400 mb-4">
-              <li>Your data is stored on secure servers with restricted access</li>
+              
               <li>Only authorized personnel handling order fulfillment can access customer details</li>
-              <li>We use industry-standard encryption to protect your information during transmission</li>
+              
             </ul>
           </div>
 
@@ -173,7 +173,7 @@ export default function PrivacyPolicy() {
           {/* 6. Cookies and Tracking */}
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">6. Cookies and Tracking</h2>
-            <p className="text-gray-400 mb-4"><span className="text-yellow-400 font-semibold">We do not use tracking cookies or analytics tools.</span></p>
+            <p className="text-gray-400 mb-4"><span className="text-yellow-400 font-semibold">We do not use tracking cookies.</span></p>
             <p className="text-gray-400">The only cookies on our site are strictly necessary for the website to function (like keeping items in your cart while you shop). These cookies do not track you or collect personal information.</p>
           </div>
 
@@ -192,7 +192,7 @@ export default function PrivacyPolicy() {
               <li>Update the "Last Updated" date at the top</li>
               <li>Notify customers via email if the changes are significant</li>
             </ol>
-            <p className="text-gray-400">Rest assured, our core promise remains: <span className="text-yellow-400 font-semibold">we will never use your information for anything other than delivery.</span></p>
+            <p className="text-gray-400">Rest assured, our core promise remains: <span className="text-yellow-400 font-semibold">we will never use your information for anything other than delivery and to contact you when the need arises.</span></p>
           </div>
 
           {/* 9. Contact Us */}
@@ -217,10 +217,10 @@ export default function PrivacyPolicy() {
           {/* Footer Note */}
           <div className="text-center text-gray-400 italic border-t border-yellow-400/20 pt-8 mt-8">
             <p className="mb-4">
-              At DKIKISHOP, we believe privacy isn't complicated. You trust us with your details, and we honor that trust by using them only for what you gave them to us for – delivering your luxury fashion.
+              At DKIKISHOP, we believe privacy isn't complicated. You trust us with your details, and we honor that trust by using them only for what you gave them to us for – delivering your trendy fashion, and contacting you if the need arises
             </p>
             <p className="text-yellow-400 font-semibold">
-              Thank you for choosing DKIKISHOP. Luxury on a Budget, with privacy you can trust.
+              Thank you for choosing DKIKISHOP. Trendy on a Budget, with privacy you can trust.
             </p>
           </div>
         </motion.div>

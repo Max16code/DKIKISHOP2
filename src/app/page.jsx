@@ -331,55 +331,7 @@ export default function Home() {
 
       <footer className="relative z-10 mt-20 border-t border-yellow-400/20 bg-black/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          {/* Rating Section */}
-          <div className="text-center mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-4">
-                Customer Reviews
-              </h2>
-
-              {/* Five Stars Rating */}
-              <div className="flex justify-center gap-1 sm:gap-2 mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <svg
-                    key={star}
-                    className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 fill-current"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                ))}
-              </div>
-
-              <p className="text-yellow-400 font-semibold text-lg sm:text-xl">
-                4.9 out of 5
-              </p>
-              <p className="text-gray-300 text-sm sm:text-base">
-                Based on 100+ verified reviews
-              </p>
-
-              {/* Testimonials */}
-              <div className="mt-6 max-w-2xl mx-auto">
-                <p className="text-gray-400 italic text-sm sm:text-base">
-                  "Amazing quality and super fast delivery! The pieces are even more beautiful in person. Definitely my new go-to for luxury fashion!"
-                </p>
-                <p className="text-yellow-400/80 mt-2 text-sm">— Chioma A.</p>
-              </div>
-
-              <div className="mt-6 max-w-2xl mx-auto">
-                <p className="text-gray-400 italic text-sm sm:text-base">
-                  "Absolutely easy to use, and fasssssst...my savings are in trouble!"
-                </p>
-                <p className="text-yellow-400/80 mt-2 text-sm">— Tara.</p>
-              </div>
-            </motion.div>
-          </div>
-
+          
           {/* Policies Grid */}
           <div className="grid grid-cols-1 align-middle sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 border-t border-b border-yellow-400/20">
             {/* Terms of Service */}

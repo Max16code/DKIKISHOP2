@@ -109,7 +109,7 @@ export default function CategoryPage() { // 👈 remove the params prop
           Browse{' '}
           <span className="text-yellow-400">{categoryName}</span>
         </h1>
-        <p className="mt-2 text-gray-400">Luxury on a Budget</p>
+        <p className="mt-2 text-gray-400">Trendy on a Budget</p>
       </div>
 
       {/* Status Messages */}

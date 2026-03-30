@@ -47,13 +47,8 @@ export default function TermsOfService() {
                     transition={{ duration: 0.8, delay: 0.2 }}
                     className="prose prose-invert prose-yellow max-w-none"
                 >
-                    {/* The Short Version - Highlighted Section */}
-                    <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-6 mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">✨ The Short Version</h2>
-                        <p className="text-gray-300 text-lg">
-                            We sell Trendy and affordable luxury fashion on a budget. You buy it. We deliver it. Everyone's happy. Here are the simple rules.
-                        </p>
-                    </div>
+
+
 
                     {/* 1. Who We Are */}
                     <div className="mb-8">
@@ -318,23 +313,12 @@ export default function TermsOfService() {
                             <p className="text-gray-300"><span className="text-yellow-400">Instagram:</span> @dkikishop_backup</p>
                         </div>
 
-                        <p className="text-yellow-400 font-semibold mb-2">OUR PHYSICAL STORE ADDRESS 💛</p>
+                        
                         <ul className="space-y-2 text-gray-400">
-                            <li className="flex items-start gap-2">
-                                <span className="inline-block w-2.5 h-2.5 mt-1.5 rounded-full bg-yellow-400 border-2 border-yellow-200/50 flex-shrink-0"></span>
-                                <span>No 2 Oroma Okocha street, NTA apara link road, Mercyland. Off East west road or NTA road, Port Harcourt, Rivers state. </span>
-                                <span>WE ARE HERE TO ATTEND TO YOU ❤️</span>
-                            </li>
-                        </ul>
+                                                    </ul>
                     </div>
 
-                    {/* The Simple Truth - Highlighted Section */}
-                    <div className="bg-gradient-to-r from-yellow-400/20 to-transparent p-6 rounded-lg border-l-4 border-yellow-400 mb-8">
-                        <h2 className="text-2xl font-semibold text-white mb-4">The Simple Truth</h2>
-                        <p className="text-gray-300 text-lg">
-                            <span className="text-yellow-400 font-bold">You shop. We deliver. You slay. That's the DKIKISHOP promise.</span>
-                        </p>
-                    </div>
+                    
 
                     {/* Closing Note */}
                     <div className="text-center text-gray-400 border-t border-yellow-400/20 pt-8 mt-8">
@@ -342,7 +326,7 @@ export default function TermsOfService() {
                             Thanks for being part of our community!
                         </p>
                         <p className="text-yellow-400 font-semibold italic">
-                            By using DKIKISHOP.com, you agree to these simple terms. Now go find your next favorite outfit! ✨
+                            By using DKIKISHOP.com, you agree to these simple terms. We are happy to meet your wardrobe needs. Huryy now, add to cart and checkout!!! ✨
                         </p>
                     </div>
                 </motion.div>
