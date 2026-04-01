@@ -1,6 +1,21 @@
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 
+// CORS headers to include in all responses
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',  // Replace with your domain in production
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Handle preflight OPTIONS request
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
 export async function GET(request, context) {
   await dbConnect();
 
@@ -14,7 +29,7 @@ export async function GET(request, context) {
         JSON.stringify({ error: "Product not found" }),
         {
           status: 404,
-          headers: { "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -31,7 +46,7 @@ export async function GET(request, context) {
 
     return new Response(JSON.stringify(normalizedProduct), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("❌ Product fetch error:", err);
@@ -39,7 +54,7 @@ export async function GET(request, context) {
       JSON.stringify({ error: "Invalid product ID or DB error" }),
       {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }

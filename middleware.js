@@ -1,31 +1,51 @@
 // middleware.js
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
-// List of admin routes to protect
-const protectedPaths = ['/admin', '/admin/dashboard']
+// CORS headers (for API routes)
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*', // In production, replace with your domain(s)
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
 
 export function middleware(req) {
-  const url = req.nextUrl.clone()
-  const { pathname } = req.nextUrl
+  const url = req.nextUrl.clone();
+  const { pathname } = req.nextUrl;
 
-  // Only protect admin routes
+  // ---------- API Routes (CORS) ----------
+  if (pathname.startsWith('/api')) {
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: corsHeaders,
+      });
+    }
+
+    // For normal requests, add CORS headers and continue
+    const response = NextResponse.next();
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
+  }
+
+  // ---------- Admin Routes (Protected) ----------
+  const protectedPaths = ['/admin', '/admin/dashboard'];
   if (protectedPaths.some((path) => pathname.startsWith(path))) {
-    // Check cookie for admin login
-    const isLoggedIn = req.cookies.get('admin_logged_in')?.value === 'true'
-
+    const isLoggedIn = req.cookies.get('admin_logged_in')?.value === 'true';
     if (!isLoggedIn) {
-      // Redirect to admin login if not logged in
-      url.pathname = '/admin/login'
-      return NextResponse.redirect(url)
+      url.pathname = '/admin/login';
+      return NextResponse.redirect(url);
     }
   }
 
-  // Allow access if logged in or route not protected
-  return NextResponse.next()
+  // All other routes – pass through
+  return NextResponse.next();
 }
 
-// Apply middleware to all admin routes
+// Apply middleware to both API and admin routes
 export const config = {
-  matcher: ['/admin/:path*'],
-}
-
+  matcher: ['/api/:path*', '/admin/:path*'],
+};
