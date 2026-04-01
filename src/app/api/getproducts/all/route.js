@@ -37,7 +37,27 @@ setInterval(() => {
   }
 }, 2 * 60 * 1000);
 
+// ── CORS handlers ────────────────────────────────────────────────────────────────
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',  // Replace with your domain in production
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 export async function GET(request) {
+  // CORS headers to include in all responses
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',  // Replace with your domain in production
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
   // Rate limit by IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
   const rate = checkRateLimit(ip);
@@ -45,7 +65,7 @@ export async function GET(request) {
   if (!rate.success) {
     return NextResponse.json(
       { success: false, error: 'Too many requests — please try again in a minute' },
-      { status: 429 }
+      { status: 429, headers: corsHeaders }
     );
   }
 
@@ -84,19 +104,21 @@ export async function GET(request) {
 
     const total = await Product.countDocuments(query);
 
-    return NextResponse.json({
-      success: true,
-      products,
-      total,
-      returned: products.length,
-      limitUsed: limit === 0 ? 'unlimited' : limit
-    });
-
+    return NextResponse.json(
+      {
+        success: true,
+        products,
+        total,
+        returned: products.length,
+        limitUsed: limit === 0 ? 'unlimited' : limit,
+      },
+      { status: 200, headers: corsHeaders }
+    );
   } catch (error) {
     console.error("Fetch products error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch products: " + error.message },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
