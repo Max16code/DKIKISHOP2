@@ -1,4 +1,3 @@
-// src/app/api/getproducts/[cat]/route.js
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
@@ -9,22 +8,39 @@ const allowedCategories = [
   "activewears", "jeans", "shorts", "accessories", "twopiece"
 ];
 
+// CORS headers to include in all responses
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',  // Replace with your domain in production
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Handle preflight OPTIONS request
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
 export async function GET(req, { params }) {
   try {
     await dbConnect();
 
-    // ✅ params is directly available in Next.js 13+ dynamic routes
     const cat = params?.cat;
     if (!cat) {
-      return NextResponse.json({ success: false, error: "Category required" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Category required" },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     const cleanedCategory = sanitizeInput(cat).toLowerCase();
     if (!allowedCategories.includes(cleanedCategory)) {
-      return NextResponse.json({
-        success: false,
-        error: `Invalid category '${cleanedCategory}'`
-      }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: `Invalid category '${cleanedCategory}'` },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     const { searchParams } = new URL(req.url);
@@ -45,10 +61,15 @@ export async function GET(req, { params }) {
       .limit(limit)
       .lean();
 
-    return NextResponse.json({ success: true, products }, { status: 200 });
-
+    return NextResponse.json(
+      { success: true, products },
+      { status: 200, headers: corsHeaders }
+    );
   } catch (error) {
     console.error("🔴 GET Category Error:", error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
