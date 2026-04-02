@@ -122,7 +122,7 @@ export default function EditProductPage() {
       const res = await fetch(`/api/updateproduct/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload),  // payload should NOT contain id
         credentials: 'include',
       });
 
@@ -276,9 +276,8 @@ export default function EditProductPage() {
         <button
           type="submit"
           disabled={uploading}
-          className={`w-full py-3 rounded font-semibold text-white ${
-            uploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+          className={`w-full py-3 rounded font-semibold text-white ${uploading ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
         >
           {uploading ? 'Updating...' : 'Update Product'}
         </button>
