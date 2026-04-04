@@ -8,9 +8,8 @@ const allowedCategories = [
   "activewears", "jeans", "shorts", "accessories", "twopiece"
 ];
 
-// CORS headers to include in all responses
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',  // Replace with your domain in production
+  'Access-Control-Allow-Origin': '*',   // Replace with your domain in production
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
@@ -46,7 +45,10 @@ export async function GET(req, { params }) {
     const { searchParams } = new URL(req.url);
     const available = searchParams.get('available');
     const showAll = searchParams.get('showAll') === 'true';
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    
+    // Enforce a maximum of 150 products per category
+    let limit = parseInt(searchParams.get('limit') || '150', 10);
+    if (limit > 150) limit = 150;   // never exceed 150
 
     const query = { category: cleanedCategory };
 
@@ -57,7 +59,7 @@ export async function GET(req, { params }) {
     }
 
     const products = await Product.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 })   // newest first
       .limit(limit)
       .lean();
 
