@@ -23,11 +23,11 @@ const deliveryConfig = {
   GUO: {
     eta: 'GUO delivers in 2–5 days',
     rates: {
-      Lagos: 3500, Abuja: 3500, Uyo: 3500, Benin: 3500, Asaba: 3500, jalingo: 4500,
-      jos: 4500, kano: 4500, zaria: 4500, kaduna: 4500, bauchi: 4500, yola: 4500,
-      umuaka: 3500, owerri: 3500, orlu: 3500, akokwa: 3500, enugu: 3500, afikpo: 3500,
-      abakaliki: 3500, umunze: 3500, onitsha: 3500, nnewi: 3500, ihiala: 3500,
-      ekwulobia: 3500, awka: 3500, umuahia: 3500, aba: 3500,
+      Lagos: 5000, Abuja: 5000, Uyo: 4500, Benin: 4500, Asaba: 4500, jalingo: 6500,
+      jos: 6500, kano: 6500, zaria: 6500, kaduna: 6500, bauchi: 6500, yola: 6500,
+      umuaka: 4500, owerri: 4500, orlu: 4500, akokwa: 4500, enugu: 4500, afikpo: 4500,
+      abakaliki: 4500, umunze: 4500, onitsha: 4500, nnewi: 4500, ihiala: 4500,
+      ekwulobia: 4500, awka: 4500, umuahia: 4500, aba: 4500,
     },
   },
   Portharcourt: {
@@ -75,7 +75,7 @@ export default function CartPage() {
   useEffect(() => {
     if (!buyerInfo.town || !buyerInfo.service) return setDeliveryFee(0)
     if (buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt') {
-      const fee = buyerInfo.portDeliveryOption === 'delivery' ? 2500 : 0
+      const fee = buyerInfo.portDeliveryOption === 'delivery' ? 3000 : 0
       setDeliveryFee(fee)
       setEta('Delivery in 1–3 days')
       return
