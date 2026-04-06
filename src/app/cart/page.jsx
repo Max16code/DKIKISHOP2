@@ -73,26 +73,35 @@ export default function CartPage() {
 
   // Update delivery fee whenever town/service changes
   useEffect(() => {
-    if (!buyerInfo.town || !buyerInfo.service) return setDeliveryFee(0)
+    if (!buyerInfo.town || !buyerInfo.service) {
+      setDeliveryFee(0)
+      setEta('')
+      return
+    }
+
     if (buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt') {
       const fee = buyerInfo.portDeliveryOption === 'delivery' ? 3000 : 0
       setDeliveryFee(fee)
       setEta('Delivery in 1–3 days')
       return
     }
+
     const service = deliveryConfig[buyerInfo.service]
-    const fee = service.rates[buyerInfo.town] || 0
+    const fee = service?.rates[buyerInfo.town] || 0
     setDeliveryFee(fee)
-    setEta(service.eta)
+    setEta(service?.eta || '')
   }, [buyerInfo.town, buyerInfo.service, buyerInfo.portDeliveryOption])
 
   const handleReview = () => {
     const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
-    if (!cartItems.length) return alert('Cart is empty.')
-    if (!name || !email || !phone || !address || !town)
+
+    if (!cartItems.length) return alert('Your cart is empty.')
+    if (!name || !email || !phone || !address || !town) {
       return alert('Please fill in all delivery details.')
-    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
-      return alert('Please select pickup or delivery for PortHarcourt.')
+    }
+    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption) {
+      return alert('Please select pickup or delivery for Port Harcourt.')
+    }
 
     setShowReview(true)
   }
@@ -120,12 +129,8 @@ export default function CartPage() {
 
       return true
     } catch (err) {
-      console.error('Cart validation fetch error:', err)
-      let msg = 'Network/server error. Please try again later.'
-      if (err.message?.includes('500')) {
-        msg = 'Server error validating cart — please contact support or try again.'
-      }
-      alert(`Could not validate cart: ${msg}`)
+      console.error('Cart validation error:', err)
+      alert('Could not validate cart. Please try again.')
       return false
     } finally {
       setIsValidating(false)
@@ -134,26 +139,12 @@ export default function CartPage() {
 
   const handlePaystack = () => {
     const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
-    if (!cartItems.length) return alert('Cart is empty.')
-    if (!name || !email || !phone || !address || !town)
-      return alert('Please fill in all delivery details.')
-    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption)
-      return alert('Please select pickup or delivery for Port Harcourt.')
 
-    if (!window.PaystackPop) return alert('Paystack not loaded yet')
+    if (!window.PaystackPop) {
+      return alert('Paystack not loaded yet. Please refresh the page.')
+    }
 
     const reference = crypto.randomUUID()
-
-    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
-    const grandTotal = subtotal + deliveryFee
-
-    const missingShopId = cartItems.some(item => !item.shopId)
-    if (missingShopId) {
-      console.warn(
-        'Warning: One or more cart items missing shopId. ' +
-        'Orders may use fallback in webhook.'
-      )
-    }
 
     const handler = window.PaystackPop.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -187,22 +178,50 @@ export default function CartPage() {
       },
 
       onClose: function () {
-        alert('Payment was cancelled')
+        alert('Payment was cancelled.')
       },
-      callback: function (response) {
-        console.log('Payment success:', response.reference)
-        alert('Payment successful! Your order is being processed.')
 
+      callback: function (response) {
+        console.log('Payment successful. Reference:', response.reference)
+
+        // Send FULL real data to webhook
         fetch('/api/paystack/webhook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             reference: response.reference,
-            metadata: this.metadata,
-            paid_at: new Date()
+            metadata: {
+              customer: {
+                name,
+                email,
+                phone,
+                address,
+                town,
+                service,
+                portDeliveryOption
+              },
+              cartItems: cartItems.map(item => ({
+                productId: item._id,
+                title: item.title,
+                size: item.size || null,
+                quantity: item.quantity,
+                price: item.price,
+                image: item.image,
+                shopId: item.shopId || null
+              })),
+              subtotal,
+              deliveryFee,
+              totalAmount: grandTotal,
+              eta
+            },
+            paid_at: new Date().toISOString()
           })
-        }).catch(err => console.error('Frontend webhook notify failed:', err))
+        })
+        .then(res => res.json())
+        .then(data => console.log('Webhook notified successfully:', data))
+        .catch(err => console.error('Webhook notify failed:', err))
 
+        alert('Payment successful! Your order is being processed.')
         clearCart()
       },
     })
@@ -212,11 +231,13 @@ export default function CartPage() {
 
   const handleProceedToPay = async () => {
     setIsProcessing(true)
+
     const isValid = await validateCartBeforePay()
 
     if (isValid) {
       handlePaystack()
     }
+
     setIsProcessing(false)
   }
 
@@ -240,7 +261,6 @@ export default function CartPage() {
                     {item.size && <p className="text-gray-300">Size: {item.size}</p>}
                     <p className="text-green-400 font-bold">₦{(item.price * item.quantity).toLocaleString()}</p>
 
-                    {/* ── Updated quantity controls with stock limit ── */}
                     <div className="flex items-center mt-2 space-x-2">
                       <button
                         onClick={() => {
@@ -291,7 +311,6 @@ export default function CartPage() {
                       </button>
                     </div>
 
-                    {/* Stock limit message when at maximum */}
                     {item.stock != null && item.quantity >= item.stock && item.stock > 0 && (
                       <p className="text-xs text-amber-400 mt-1">
                         Only {item.stock} available in stock
@@ -300,6 +319,7 @@ export default function CartPage() {
                   </div>
                 </div>
               ))}
+
               <div className="flex justify-between items-center border-t border-white/20 pt-6">
                 <p className="text-xl font-semibold">Subtotal: ₦{subtotal.toLocaleString()}</p>
                 <p className="text-xl font-semibold">Delivery Fee: ₦{deliveryFee.toLocaleString()}</p>
@@ -338,18 +358,33 @@ export default function CartPage() {
                 {buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt' && (
                   <div className="mt-2 space-y-2">
                     <label className="flex items-center space-x-2">
-                      <input type="radio" name="portDeliveryOption" value="delivery" checked={buyerInfo.portDeliveryOption === 'delivery'} onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'delivery' }))} />
+                      <input 
+                        type="radio" 
+                        name="portDeliveryOption" 
+                        value="delivery" 
+                        checked={buyerInfo.portDeliveryOption === 'delivery'} 
+                        onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'delivery' }))} 
+                      />
                       <span>Delivery to your location (₦2,500)</span>
                     </label>
                     <label className="flex items-center space-x-2">
-                      <input type="radio" name="portDeliveryOption" value="pickup" checked={buyerInfo.portDeliveryOption === 'pickup'} onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'pickup' }))} />
+                      <input 
+                        type="radio" 
+                        name="portDeliveryOption" 
+                        value="pickup" 
+                        checked={buyerInfo.portDeliveryOption === 'pickup'} 
+                        onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'pickup' }))} 
+                      />
                       <span>Pick up from store (₦0)</span>
                     </label>
                   </div>
                 )}
               </div>
 
-              <button onClick={handleReview} className="w-full mt-4 px-6 py-3 bg-yellow-400 text-black font-semibold rounded-xl hover:bg-yellow-300 transition">
+              <button 
+                onClick={handleReview} 
+                className="w-full mt-4 px-6 py-3 bg-yellow-400 text-black font-semibold rounded-xl hover:bg-yellow-300 transition"
+              >
                 Review Order
               </button>
             </div>
