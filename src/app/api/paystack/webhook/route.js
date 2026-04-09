@@ -204,6 +204,7 @@ export async function POST(req) {
             <h2>New Order Received 🛒</h2>
             <p><b>Buyer Name:</b> ${order.customerName}</p>
             <p><b>Email:</b> ${order.email}</p>
+            <p><b>Phone:</b> ${order.phone}</p>
             <p><b>Delivery Address:</b> ${order.shippingAddress.street}, ${order.shippingAddress.city}</p>
             <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
               <thead>
