@@ -92,6 +92,7 @@ orderSchema.pre('save', function(next) {
 // Only index shopId for queries (no unique)
 
 orderSchema.index({ email: 1 })
+orderSchema.index({ phone: 1 })
 orderSchema.index({ status: 1 })
 orderSchema.index({ paymentStatus: 1 })
 orderSchema.index({ createdAt: -1 })
