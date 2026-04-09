@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeCarousel from '@/components/HomeCarousel'
-import { FaSquareInstagram } from "react-icons/fa6";
+import { FaSquareInstagram, FaSquareTiktok } from "react-icons/fa6";
 import { BsFillGeoAltFill } from 'react-icons/bs'
 import SearchSection from '@/components/SearchSection'
 
@@ -473,8 +473,11 @@ export default function Home() {
             <Link href="https://instagram.com/dkikishop_backup" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <FaSquareInstagram className="text-2xl" />
             </Link>
-            <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 hover:text-yellow-400 transition-colors">
+            <Link href="https://maps.app.goo.gl/imu64pusYuhsyhzE6?g_st=ic" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <BsFillGeoAltFill className="text-2xl" />
+            </Link>
+            <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 hover:text-yellow-400 transition-colors">
+              <FaSquareTiktok className="text-2xl" />
             </Link>
           </div>
         </div>
