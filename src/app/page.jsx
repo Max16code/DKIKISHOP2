@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeCarousel from '@/components/HomeCarousel'
-import { FaSquareInstagram, FaSquareTiktok } from "react-icons/fa6";
+import { FaSquareInstagram, FaTiktok } from "react-icons/fa6";
 import { BsFillGeoAltFill } from 'react-icons/bs'
 import SearchSection from '@/components/SearchSection'
 
@@ -477,7 +477,7 @@ export default function Home() {
               <BsFillGeoAltFill className="text-2xl" />
             </Link>
             <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 hover:text-yellow-400 transition-colors">
-              <FaSquareTiktok className="text-2xl" />
+              <FaTiktok className="text-2xl" />
             </Link>
           </div>
         </div>
