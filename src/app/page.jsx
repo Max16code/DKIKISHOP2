@@ -139,53 +139,7 @@ export default function Home() {
       {/* Carousel */}
       <HomeCarousel />
 
-      {/* Responsive announcement banner – auto-hide + close button */}
-      <div className={`fixed top-20 right-4 z-50 pointer-events-auto max-w-[90vw] sm:max-w-[420px] transition-all duration-700 ease-in-out ${bannerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'}`}>
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl bg-white/10 backdrop-blur-xl md:backdrop-blur-2xl border border-white/15">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shine pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-100/5 via-purple-100/5 to-transparent pointer-events-none" />
-
-          {showClose && (
-            <button
-              onClick={hideBanner}
-              className="absolute top-2 right-2 z-20 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white text-lg font-bold shadow-md transition-all hover:scale-110 active:scale-95"
-              aria-label="Close announcement"
-            >
-              ×
-            </button>
-          )}
-
-          <div className="relative px-5 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 text-center">
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-16 sm:w-20 h-1 bg-gradient-to-r from-pink-300/60 to-fuchsia-300/60 rounded-full blur-sm" />
-
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1.5 sm:mb-2 tracking-wide drop-shadow-md">
-              Anniversary / Website Launch Sales
-            </h3>
-
-            <p className="text-base sm:text-lg md:text-xl font-semibold text-pink-300 mb-1 drop-shadow-sm">
-              20–30% OFF
-            </p>
-
-            <p className="text-xs sm:text-sm md:text-base text-white/90 font-medium mb-3 sm:mb-4">
-              6th – 9th April, 2026
-            </p>
-
-            <div className="relative h-8 sm:h-9 md:h-10 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/40 via-fuchsia-500/40 to-purple-500/40 rounded-full border border-pink-300/40 shadow-inner backdrop-blur-md" />
-              <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ribbon-flow">
-                <span className="text-xs sm:text-sm md:text-base font-medium text-white/95 tracking-wider px-16">
-                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  free delivery when you shop from N100,000 and above 💅✨&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                  free delivery when you shop from N100,000 and above 💅✨
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+  
       {/* Status Messages */}
       <div className="relative z-10 mt-10 px-6 text-center">
         {loading && <p className="text-gray-500">Loading products...</p>}
@@ -460,12 +414,7 @@ export default function Home() {
               </svg>
               <span>Authentic Products</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-              <span>Free Shipping for purchases over N200,000</span>
-            </div>
+            
           </div>
 
           {/* Social Media Links */}
