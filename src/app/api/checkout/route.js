@@ -57,6 +57,7 @@ export async function POST(req) {
     const {
       name,
       email,
+      phone,
       address,
       cartItems,
       totalAmount,
@@ -99,6 +100,7 @@ export async function POST(req) {
     const order = await Order.create({
       name,
       email,
+      phone,
       address,
       reference,
       items: cartItems,
@@ -238,6 +240,7 @@ export async function POST(req) {
       <h2>New Order Received 🛒</h2>
       <p><b>Buyer Name:</b> ${name}</p>
       <p><b>Email:</b> ${email}</p>
+      <p><b>Phone:</b> ${phone}</p>
       <p><b>Delivery Address:</b> ${address}</p>
       <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
         <thead>
