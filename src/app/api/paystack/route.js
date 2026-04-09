@@ -28,6 +28,7 @@ export async function POST(req) {
     const order = await Order.create({
       reference,
       email: customer.email,
+      phone: customer.phone,
       items: metadata.cartItems,
       total: amount / 100,
       status: "paid",
