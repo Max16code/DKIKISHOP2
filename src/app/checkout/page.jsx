@@ -30,6 +30,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           reference,
           name,
+          phone,
           address,
           email,
           cartItems,
@@ -46,6 +47,7 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name,
+            phone,
             address,
             email,
             cartItems,
@@ -65,12 +67,11 @@ export default function CheckoutPage() {
   }
 
   // ✅ Trigger Paystack payment
-  const handlePayment = () => {
-    if (!name || !address || !email || !email.includes('@')) {
-      alert('Please enter your name, address, and a valid email')
-      return
-    }
-
+ const handlePayment = () => {
+  if (!name || !address || !email || !email.includes('@') || !phone) {
+    alert('Please enter your name, phone number, address, and a valid email')
+    return
+  }
     if (typeof window === 'undefined' || !window.PaystackPop) {
       alert('Paystack SDK not loaded')
       return
@@ -79,6 +80,7 @@ export default function CheckoutPage() {
     const handler = window.PaystackPop.setup({
       key: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e', // 🔑 Replace with your Paystack public key
       email,
+      phone,
       amount: getTotal() * 100, // in Kobo
       currency: 'NGN',
       ref: `${Date.now()}`,
@@ -152,7 +154,16 @@ export default function CheckoutPage() {
               placeholder="you@example.com"
               className="border rounded px-4 py-2 w-full mb-4"
             />
-
+             
+            <label className="block mb-2 text-sm font-medium">Phone Number</label>
+            <input
+             type="tel"
+             value={phone}
+             onChange={(e) => setPhone(e.target.value)}
+             placeholder="0803 123 4567"
+             className="border rounded px-4 py-2 w-full mb-4"
+            />
+            
             <button
               onClick={handlePayment}
               className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg"
