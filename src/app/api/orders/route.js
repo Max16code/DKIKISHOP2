@@ -13,6 +13,7 @@ function generateShopId() {
 // Order schema (unchanged)
 const orderSchema = new mongoose.Schema({
   email: String,
+  phone: String,
   items: Array,        // [{ _id, title, quantity, size, price }]
   totalAmount: Number,
   reference: String,
@@ -79,6 +80,7 @@ export async function POST(req) {
       // 2️⃣ Save the order
       const newOrder = await Order.create([{
         email: email || '',
+        phone: phone || '',
         items,
         totalAmount,
         reference,
