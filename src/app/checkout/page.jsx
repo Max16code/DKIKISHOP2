@@ -10,6 +10,7 @@ export default function CheckoutPage() {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const router = useRouter()
 
   // ✅ Load Paystack script once
