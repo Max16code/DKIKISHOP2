@@ -9,7 +9,7 @@ import { useShutdown } from '@/hooks/useShutDown'
 import ShutdownButton from '@/components/Admin/ShutDownButton'
 
 const CATEGORIES = [
-  'blazers', 'tops', 'skirts', 'dresses', 'activewears',
+  'blazers', 'tops', 'skirts', 'dresses', 'shirts', 'activewears',
   'jeans', 'shorts', 'accessories', 'twopiece'
 ]
 
