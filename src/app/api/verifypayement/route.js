@@ -14,6 +14,8 @@ export async function POST(req) {
       email,
       name,
       phone,
+      service,
+      portDeliveryOption,   
       address,
       totalAmount,      // NAIRA
       subtotal,         // NAIRA
@@ -152,6 +154,8 @@ export async function POST(req) {
           name,
           phone,
           address,
+          service,
+          portDeliveryOption,
           reference,
           totalAmount,
           subtotal: subtotal ?? totalAmount - (deliveryFee || 0),
@@ -186,6 +190,8 @@ export async function POST(req) {
         name,
         phone,
         address,
+        service,
+        portDeliveryOption,
         cartItems,
         totalAmount,
         subtotal: subtotal ?? totalAmount - (deliveryFee || 0),

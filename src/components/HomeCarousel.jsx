@@ -12,6 +12,7 @@ export default function HomeCarousel() {
   const categories = [
     { name: 'Blazers', slug: 'blazers' },
     { name: 'Jeans', slug: 'jeans' },
+    { name: 'Shirts', slug: 'shirts' },
     { name: 'Tops', slug: 'tops' },
     { name: 'Skirts', slug: 'skirts' },
     { name: 'Activewears', slug: 'activewears' },

@@ -14,6 +14,8 @@ function generateShopId() {
 const orderSchema = new mongoose.Schema({
   email: String,
   phone: String,
+  service: String,          // e.g., "Delivery", "Pickup"
+  portDeliveryOption: String, // e.g., "Port A", "Port B" (if service is Delivery)
   items: Array,        // [{ _id, title, quantity, size, price }]
   totalAmount: Number,
   reference: String,
@@ -81,6 +83,8 @@ export async function POST(req) {
       const newOrder = await Order.create([{
         email: email || '',
         phone: phone || '',
+        service: service || '',
+        portDeliveryOption: portDeliveryOption || '',
         items,
         totalAmount,
         reference,

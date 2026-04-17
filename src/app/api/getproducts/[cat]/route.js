@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
 
 const allowedCategories = [
-  "blazers", "tops", "skirts", "dresses",
+  "blazers", "tops", "skirts", "shirts", "dresses",
   "activewears", "jeans", "shorts", "accessories", "twopiece"
 ];
 
@@ -26,7 +26,8 @@ export async function GET(req, { params }) {
   try {
     await dbConnect();
 
-    const cat = params?.cat;
+    const { cat } = await params;
+
     if (!cat) {
       return NextResponse.json(
         { success: false, error: "Category required" },
@@ -35,6 +36,7 @@ export async function GET(req, { params }) {
     }
 
     const cleanedCategory = sanitizeInput(cat).toLowerCase();
+
     if (!allowedCategories.includes(cleanedCategory)) {
       return NextResponse.json(
         { success: false, error: `Invalid category '${cleanedCategory}'` },
@@ -45,7 +47,7 @@ export async function GET(req, { params }) {
     const { searchParams } = new URL(req.url);
     const available = searchParams.get('available');
     const showAll = searchParams.get('showAll') === 'true';
-    
+
     // Enforce a maximum of 150 products per category
     let limit = parseInt(searchParams.get('limit') || '150', 10);
     if (limit > 150) limit = 150;   // never exceed 150

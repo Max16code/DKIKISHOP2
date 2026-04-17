@@ -55,8 +55,8 @@ export async function POST(req) {
         state: "",
         country: 'Nigeria',
       },
-      deliveryService: metadata.customer?.service || 'Unknown',
-      deliveryOption: metadata.customer?.service === 'Portharcourt' 
+      Service: metadata.customer?.service || 'Unknown',
+      PortdeliveryOption: metadata.customer?.portDeliveryOption === 'Portharcourt' 
         ? metadata.customer.portDeliveryOption || '' 
         : undefined,
       items: (metadata.cartItems || []).map((item) => ({
@@ -205,6 +205,8 @@ export async function POST(req) {
             <p><b>Buyer Name:</b> ${order.customerName}</p>
             <p><b>Email:</b> ${order.email}</p>
             <p><b>Phone:</b> ${order.phone}</p>
+            <p><b>Service:</b> ${order.service}</p>
+            <p><b>Port Delivery Option:</b> ${order.portDeliveryOption}</p>
             <p><b>Delivery Address:</b> ${order.shippingAddress.street}, ${order.shippingAddress.city}</p>
             <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
               <thead>

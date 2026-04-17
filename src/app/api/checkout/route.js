@@ -59,6 +59,8 @@ export async function POST(req) {
       email,
       phone,
       address,
+      service,
+      portDeliveryOption,
       cartItems,
       totalAmount,
       reference, // ✅ must be passed from Paystack success
@@ -102,6 +104,8 @@ export async function POST(req) {
       email,
       phone,
       address,
+      service,
+      portDeliveryOption,
       reference,
       items: cartItems,
       amount: paidAmount,
@@ -242,6 +246,8 @@ export async function POST(req) {
       <p><b>Email:</b> ${email}</p>
       <p><b>Phone:</b> ${phone}</p>
       <p><b>Delivery Address:</b> ${address}</p>
+      <p><b>Service:</b> ${service}</p>
+      <p><b>Port Delivery Option:</b> ${portDeliveryOption}</p>
       <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
         <thead>
           <tr style="background-color:#f2f2f2;">

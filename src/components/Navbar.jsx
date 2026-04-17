@@ -18,6 +18,7 @@ export default function Navbar() {
     { name: 'Jeans', href: '/category/jeans' },
     { name: 'Tops', href: '/category/tops' },
     { name: 'Skirts', href: '/category/skirts' },
+    { name: 'Shirts', href: '/category/shirts' },
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },
     { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
@@ -54,7 +55,7 @@ export default function Navbar() {
               />
             </div>
 
-            
+
           </Link>
 
           {/* Desktop Navigation Links */}

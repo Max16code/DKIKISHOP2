@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 
-const allowedCategories = ["blazers", "tops", "skirts", "dresses", "activewears", "jeans", "shorts", "accessories"];
+const allowedCategories = ["blazers", "tops", "shirts", "skirts", "dresses", "activewears", "jeans", "shorts", "twopiece", "accessories"];
 
 export default function EditProductPage() {
   const { id } = useParams();
