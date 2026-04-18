@@ -7,7 +7,10 @@ import Navbar from '@/components/Navbar'
 
 export default function CheckoutPage() {
   const { cartItems, getTotal, clearCart } = useCart()
+  const [name, setName] = useState('')
+  const [address, setAddress] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const router = useRouter()
 
   // ✅ Load Paystack script once
@@ -16,12 +19,10 @@ export default function CheckoutPage() {
     script.src = 'https://js.paystack.co/v1/inline.js'
     script.async = true
     document.body.appendChild(script)
-    return () => {
-      document.body.removeChild(script)
-    }
+    return () => document.body.removeChild(script)
   }, [])
 
-  // ✅ This handles verifying payment + saving the order
+  // ✅ Verify payment, save order, and trigger email
   const verifyAndSaveOrder = async (reference) => {
     try {
       const res = await fetch('/api/verifyPayment', {
@@ -29,6 +30,9 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reference,
+          name,
+          phone,
+          address,
           email,
           cartItems,
           totalAmount: getTotal(),
@@ -38,6 +42,20 @@ export default function CheckoutPage() {
       const data = await res.json()
 
       if (data.success) {
+        // 🔑 Trigger email notifications (admin + customer)
+        await fetch('/api/sendMail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            phone,
+            address,
+            email,
+            cartItems,
+            totalAmount: getTotal(),
+          }),
+        })
+
         clearCart()
         router.push('/success/page')
       } else {
@@ -49,33 +67,31 @@ export default function CheckoutPage() {
     }
   }
 
-  // ✅ Trigger Paystack
-  const handlePayment = () => {
-    if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address')
-      return
-    }
-
+  // ✅ Trigger Paystack payment
+ const handlePayment = () => {
+  if (!name || !address || !email || !email.includes('@') || !phone) {
+    alert('Please enter your name, phone number, address, and a valid email')
+    return
+  }
     if (typeof window === 'undefined' || !window.PaystackPop) {
       alert('Paystack SDK not loaded')
       return
     }
 
     const handler = window.PaystackPop.setup({
-      key: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e', // Use your real public key
+      key: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e', // 🔑 Replace with your Paystack public key
       email,
+      phone,
       amount: getTotal() * 100, // in Kobo
       currency: 'NGN',
       ref: `${Date.now()}`,
       metadata: {
         cart: cartItems,
+        name,
+        address,
       },
-      callback: function (response) {
-        verifyAndSaveOrder(response.reference)
-      },
-      onClose: function () {
-        alert('❌ Transaction was cancelled.')
-      },
+      callback: (response) => verifyAndSaveOrder(response.reference),
+      onClose: () => alert('❌ Transaction was cancelled.'),
     })
 
     handler.openIframe()
@@ -114,15 +130,41 @@ export default function CheckoutPage() {
               Total: ₦{Number(getTotal()).toLocaleString()}
             </p>
 
-            <label className="block mb-2 text-sm font-medium">Enter your email</label>
+            <label className="block mb-2 text-sm font-medium">Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Jane Doe"
+              className="border rounded px-4 py-2 w-full mb-4"
+            />
+
+            <label className="block mb-2 text-sm font-medium">Delivery Address</label>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Street, City, State"
+              className="border rounded px-4 py-2 w-full mb-4"
+            />
+
+            <label className="block mb-2 text-sm font-medium">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. you@example.com"
+              placeholder="you@example.com"
               className="border rounded px-4 py-2 w-full mb-4"
             />
-
+             
+            <label className="block mb-2 text-sm font-medium">Phone Number</label>
+            <input
+             type="tel"
+             value={phone}
+             onChange={(e) => setPhone(e.target.value)}
+             placeholder="0803 123 4567"
+             className="border rounded px-4 py-2 w-full mb-4"
+            />
+            
             <button
               onClick={handlePayment}
               className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg"
