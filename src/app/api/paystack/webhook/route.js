@@ -55,10 +55,12 @@ export async function POST(req) {
         state: "",
         country: 'Nigeria',
       },
-      Service: metadata.customer?.service || 'Unknown',
-      PortdeliveryOption: metadata.customer?.portDeliveryOption === 'Portharcourt' 
-        ? metadata.customer.portDeliveryOption || '' 
-        : undefined,
+      // ✅ Fixed - Use exact schema field names (lowercase)
+      service: metadata.customer?.service?.trim() || "",
+
+      portDeliveryOption: metadata.customer?.portDeliveryOption?.trim()
+        ? metadata.customer.portDeliveryOption.trim()
+        : "",
       items: (metadata.cartItems || []).map((item) => ({
         productId: item.productId,
         title: item.title || "Unknown Product",

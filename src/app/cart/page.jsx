@@ -10,24 +10,24 @@ const deliveryConfig = {
   GIG: {
     eta: 'GIG delivers in 2–5 days',
     rates: {
-      Lagos: 5500, Abuja: 5500, adamawa: 6500, bauchi: 6500, damaturu: 6500, gombe: 6500,
-      jigawa: 6500, jos: 6500, kaduna: 6500, kano: 6500, kastina: 6500, kebbi: 6500,
-      lafia: 6500, lokoja: 6500, maduguri: 6500, makurdi: 6500, minna: 6500, sokoto: 6500,
-      taraba: 6500, zamfara: 6500, zaria: 6500, aba: 4600, awka: 4600, enugu: 4600,
-      nnewi: 4600, onitsha: 4600, owerri: 4600, umuahia: 4600, abakaliki: 4600, asaba: 4600,
-      auchi: 4600, bayelsa: 4600, benin: 4600, calabar: 4600, ughelli: 4600, eket: 4600,
-      uyo: 4600, warri: 4600, yenagoa: 4600, abeokuta: 5500, adoekiti: 5500, akure: 5500,
-      ibadan: 5500, ileife: 5500, ilorin: 5500, ogbomosho: 5500, ondotown: 5500, osogbo: 5500,
+      Lagos: 7000, Abuja: 7000, adamawa: 8200, bauchi: 8200, damaturu: 8200, gombe: 8200,
+      jigawa: 8200, jos: 8200, kaduna: 8200, kano: 8200, kastina: 8200, kebbi: 8200,
+      lafia: 8200, lokoja: 8200, maduguri: 8200, makurdi: 8200, minna: 8200, sokoto: 8200,
+      taraba: 8200, zamfara: 8200, zaria: 8200, aba: 6300, awka: 6300, enugu: 6300,
+      nnewi: 6300, onitsha: 6300, owerri: 6300, umuahia: 6300, abakaliki: 6300, asaba: 6300,
+      auchi: 6300, bayelsa: 6300, benin: 6300, calabar: 6300, ughelli: 6300, eket: 6300,
+      uyo: 6300, warri: 6300, yenagoa: 6300, abeokuta: 7000, adoekiti: 7000, akure: 7000,
+      ibadan: 7000, ileife: 7000, ilorin: 7000, ogbomosho: 7000, ondotown: 7000, 7000: 7000,
     },
   },
   GUO: {
     eta: 'GUO delivers in 2–5 days',
     rates: {
-      Lagos: 5000, Abuja: 5000, Uyo: 4500, Benin: 4500, Asaba: 4500, jalingo: 6500,
+      Lagos: 4500, Abuja: 4500, Uyo: 4500, Benin: 3600, Asaba: 3600, jalingo: 6500,
       jos: 6500, kano: 6500, zaria: 6500, kaduna: 6500, bauchi: 6500, yola: 6500,
-      umuaka: 4500, owerri: 4500, orlu: 4500, akokwa: 4500, enugu: 4500, afikpo: 4500,
-      abakaliki: 4500, umunze: 4500, onitsha: 4500, nnewi: 4500, ihiala: 4500,
-      ekwulobia: 4500, awka: 4500, umuahia: 4500, aba: 4500,
+      umuaka: 3600, owerri: 3600, orlu: 3600, akokwa: 3600, enugu: 3600, afikpo: 3600,
+      abakaliki: 3600, umunze: 3600, onitsha: 3600, nnewi: 3600, ihiala: 3600,
+      ekwulobia: 3600, awka: 3600, umuahia: 3600, aba: 3600,
     },
   },
   Portharcourt: {
@@ -365,7 +365,7 @@ export default function CartPage() {
                         checked={buyerInfo.portDeliveryOption === 'delivery'} 
                         onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'delivery' }))} 
                       />
-                      <span>Delivery to your location (₦2,500)</span>
+                      <span>Delivery to your location (₦3,000)</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input 
