@@ -5,6 +5,7 @@ export async function GET() {
     { name: 'Blazers', slug: 'blazers' },
     { name: 'Jeans', slug: 'jeans' },
     { name: 'Tops', slug: 'tops' },
+    { name: 'Shirts', slug: 'shirts' },
     { name: 'Skirts', slug: 'skirts' },
     { name: 'Activewears', slug: 'activewears' },
     { name: 'Dresses', slug: 'dresses' },

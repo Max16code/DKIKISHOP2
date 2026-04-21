@@ -11,6 +11,7 @@ export async function POST(req) {
     "jeans",
     "blazers",
     "tops",
+    "shirts",
     "shorts",
     "activewears",
     "accessories",
