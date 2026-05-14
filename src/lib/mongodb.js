@@ -16,14 +16,26 @@ async function dbConnect() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
+    const opts = {
       bufferCommands: false,
-    }).then((mongoose) => mongoose);
+      autoIndex: false,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4,
+      ssl: true,
+      tlsAllowInvalidCertificates: false,
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      if (process.env.NODE_ENV === "production") {
+        mongoose.set("debug", false);
+      }
+      return mongoose;
+    });
   }
 
   cached.conn = await cached.promise;
   return cached.conn;
 }
 
-// ✅ This fixes your import error
 export default dbConnect;
