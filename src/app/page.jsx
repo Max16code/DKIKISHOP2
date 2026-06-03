@@ -6,13 +6,11 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeCarousel from '@/components/HomeCarousel'
-import { FaSquareInstagram, FaTiktok } from "react-icons/fa6";
+import { FaSquareInstagram, FaTiktok, FaGem, FaFire, FaStar, FaGift, FaCloudRain, FaUmbrella } from "react-icons/fa6";
 import { BsFillGeoAltFill } from 'react-icons/bs'
 import SearchSection from '@/components/SearchSection'
 
-
-
-const ITEMS_PER_PAGE = 12 // Changed from 16 to 12 (3 rows of 4 on desktop)
+const ITEMS_PER_PAGE = 12
 
 export default function Home() {
   const [allProducts, setAllProducts] = useState([])
@@ -25,16 +23,8 @@ export default function Home() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
   const [bannerVisible, setBannerVisible] = useState(true)
-  const [showClose, setShowClose] = useState(false)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowClose(true)
-    }, 8000)
-
-    return () => clearTimeout(timer)
-  }, [])
-
+  // Function to hide the banner
   const hideBanner = () => {
     setBannerVisible(false)
   }
@@ -127,9 +117,114 @@ export default function Home() {
       <Navbar />
       <SearchSection />
 
+      {/* June Blazers Promotion Banner - BLUE THEME FOR RAINING SEASON */}
+      {bannerVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: -100 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -100 }}
+          className="relative z-20 mx-4 mt-24 md:mx-8 overflow-hidden"
+        >
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
+            
+
+            {/* X button */}
+            <button
+              onClick={hideBanner}
+              className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-black hover:text-black"
+              aria-label="Close banner"
+            >
+              ✕
+            </button>
+
+            <div className="relative px-6 py-8 md:px-10 md:py-10 text-center">
+              {/* June Badge */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full mb-4"
+              >
+                
+              </motion.div>
+
+              {/* Main Title */}
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-3xl md:text-5xl lg:text-6xl font-black text-black mb-3 tracking-tight"
+              >
+                 EXCITING NEW BLAZERS 🧥
+              </motion.h2>
+
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-lg md:text-2xl text-black/90 font-semibold mb-4"
+              >
+              
+              </motion.p>
+
+              {/* Description */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-base md:text-lg text-black/80 mb-6 max-w-2xl mx-auto"
+              >
+                Checkout Premium collection of Blazers 
+                Perfect for Photoshoots, Inductions, Convocations, Brunch, Girls day out, Church, Work, Vacations.              </motion.p>
+
+              {/* Price and CTA */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              >
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full">
+                  <FaGem className="text-cyan-300" />
+                  <span className="text-black font-bold">Starting from</span>
+                  <span className="text-2xl font-black text-black">₦15,000</span>
+                </div>
+                
+                <Link href="/category/blazers">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white text-blue-600 px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                  >
+                    <FaGift className="text-blue-600" />
+                    Shop Now
+                    <span className="text-sm">→</span>
+                  </motion.button>
+                </Link>
+              </motion.div>
+
+              {/* Limited offer text */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-xs text-black/70 mt-4"
+              >
+          
+              </motion.p>
+            </div>
+
+            {/* Decorative elements */}
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -translate-x-16 translate-y-16"></div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-24 -translate-y-24"></div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Welcome Section */}
-      <div className="relative z-10 text-center mt-24">
-        <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-wide">
+      <div className="relative z-10 text-center mt-12">
+        <h1 className="text-4xl md:text-5xl font-semibold text-black tracking-wide">
           Welcome to{' '}
           <span className="text-yellow-400">DKIKISHOP</span>
         </h1>
@@ -139,7 +234,6 @@ export default function Home() {
       {/* Carousel */}
       <HomeCarousel />
 
-  
       {/* Status Messages */}
       <div className="relative z-10 mt-10 px-6 text-center">
         {loading && <p className="text-gray-500">Loading products...</p>}
@@ -281,11 +375,8 @@ export default function Home() {
         </>
       )}
 
-
-
       <footer className="relative z-10 mt-20 border-t border-yellow-400/20 bg-black/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          
           {/* Policies Grid */}
           <div className="grid grid-cols-1 align-middle sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 border-t border-b border-yellow-400/20">
             {/* Terms of Service */}
@@ -388,7 +479,6 @@ export default function Home() {
 
           {/* Bottom Bar with Trademark and Links */}
           <div className="flex flex-col sm:flex-row justify-between items-center pt-8 text-sm text-gray-400">
-
             <div className="flex items-center justify-center gap-4">
               <p className="mb-0 text-sm sm:text-base">
                 Developed by: @smoovdev
@@ -397,7 +487,6 @@ export default function Home() {
                 <FaSquareInstagram className="text-2xl hover:text-yellow-400 transition-colors duration-200" />
               </a>
             </div>
-
           </div>
 
           {/* Trust Badges */}
@@ -414,7 +503,6 @@ export default function Home() {
               </svg>
               <span>Authentic Products</span>
             </div>
-            
           </div>
 
           {/* Social Media Links */}
