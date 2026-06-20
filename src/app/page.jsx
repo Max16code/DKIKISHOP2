@@ -125,27 +125,42 @@ export default function Home() {
           exit={{ opacity: 0, y: -100 }}
           className="relative z-20 mx-4 mt-24 md:mx-8 overflow-hidden"
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
-            
+          <div className="relative rounded-2xl shadow-2xl overflow-hidden">
+            {/* JEAN FABRIC BACKGROUND IMAGE */}
+            <div
+              className="absolute inset-0 w-full h-full"
+              style={{
+                backgroundImage: `url('/jeanfabric.webp')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
+
+            {/* Optional: Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/30" />
+
+            {/* Optional: Blue tint overlay to match your theme */}
+            <div className="absolute inset-0 bg-blue-400/20" />
 
             {/* X button */}
             <button
               onClick={hideBanner}
-              className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/40 rounded-full text-black hover:text-black"
+              className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center bg-white/40 hover:bg-white/60 rounded-full text-black hover:text-black backdrop-blur-sm"
               aria-label="Close banner"
             >
               ✕
             </button>
 
-            <div className="relative px-6 py-8 md:px-10 md:py-10 text-center">
+            <div className="relative px-6 py-8 md:px-10 md:py-10 text-center z-10">
               {/* June Badge */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full mb-4"
+                className="inline-flex items-center gap-2 bg-white/30 backdrop-blur-md px-4 py-1.5 rounded-full mb-4"
               >
-                
+                <span className="text-black font-bold">🔥 JUNE JEANS SALE</span>
               </motion.div>
 
               {/* Main Title */}
@@ -153,9 +168,9 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-3xl md:text-5xl lg:text-6xl font-black text-black mb-3 tracking-tight"
+                className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-3 tracking-tight drop-shadow-lg"
               >
-                 EXCITING NEW BLAZERS 🧥
+                JEANS COLLECTION
               </motion.h2>
 
               {/* Subtitle */}
@@ -163,9 +178,9 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-lg md:text-2xl text-black/90 font-semibold mb-4"
+                className="text-lg md:text-2xl text-white font-semibold mb-4 drop-shadow-md"
               >
-              
+                Premium Denim for Every Style
               </motion.p>
 
               {/* Description */}
@@ -173,10 +188,12 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-base md:text-lg text-black/80 mb-6 max-w-2xl mx-auto"
+                className="text-base md:text-lg text-white/95 mb-6 max-w-2xl mx-auto drop-shadow-md"
               >
-                Checkout Premium collection of Blazers 
-                Perfect for Photoshoots, Inductions, Convocations, Brunch, Girls day out, Church, Work, Vacations.              </motion.p>
+                New collections of Stock Jeans and Jean tops,   Jean shorts, Stretchy Jeans,
+                jorts, Skorts and Mom Shorts. Look stylish for Photoshoots, Brunch,
+                Girls day out, Vacations.
+              </motion.p>
 
               {/* Price and CTA */}
               <motion.div
@@ -185,13 +202,13 @@ export default function Home() {
                 transition={{ delay: 0.4 }}
                 className="flex flex-col sm:flex-row items-center justify-center gap-4"
               >
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full">
-                  <FaGem className="text-cyan-300" />
-                  <span className="text-black font-bold">Starting from</span>
-                  <span className="text-2xl font-black text-black">₦15,000</span>
+                <div className="flex items-center gap-2 bg-white/30 backdrop-blur-md px-5 py-2 rounded-full">
+                  <FaGem className="text-yellow-300" />
+                  <span className="text-white font-bold">Starting from</span>
+                  <span className="text-2xl font-black text-white">₦12000-₦25000</span>
                 </div>
-                
-                <Link href="/category/blazers">
+
+                <Link href="/category/jeans">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -209,15 +226,15 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="text-xs text-black/70 mt-4"
+                className="text-xs text-white/80 mt-4 drop-shadow-md"
               >
-          
+                Limited time offer • While stocks last
               </motion.p>
             </div>
 
             {/* Decorative elements */}
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -translate-x-16 translate-y-16"></div>
-            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-24 -translate-y-24"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-16 translate-y-16"></div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full translate-x-24 -translate-y-24"></div>
           </div>
         </motion.div>
       )}
