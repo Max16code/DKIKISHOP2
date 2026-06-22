@@ -12,7 +12,7 @@ export default function ContactPage() {
       <div className="flex-1 space-y-6">
         <h1 className="text-3xl font-extrabold mb-2">Get In Touch</h1>
         <p className="text-yellow-400">
-          Welcome to the world of affordable luxury
+          Welcome to the world of All Things Trendy
         </p>
 
         <div className="space-y-6">
