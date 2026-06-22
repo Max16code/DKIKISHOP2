@@ -31,7 +31,7 @@ export default function ContactPage() {
               <FaSquareInstagram />
               instagram
             </p>
-            <h3 className="ml-6 text-yellow-400">@dkikishop.ng</h3>
+            <Link href="https://instagram.com/dkikishop.ng" className="text-gray-400 ml-6 hover:text-yellow-400 transition-colors">dkikishop.ng</Link>
           </div>
 
           <div>
@@ -39,7 +39,9 @@ export default function ContactPage() {
               <BsFillGeoAltFill className="text-lg" />
               tiktok
             </p>
-            <h3 className="ml-6 text-yellow-400">@dkikishop</h3>
+          <Link href="https://www.tiktok.com/@dkikishop" className="text-gray-400 ml-6 hover:text-yellow-400 transition-colors">dkikishop
+              
+            </Link>
 
           </div>
         </div>

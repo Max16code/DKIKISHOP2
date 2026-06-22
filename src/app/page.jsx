@@ -524,7 +524,7 @@ export default function Home() {
 
           {/* Social Media Links */}
           <div className="flex justify-center gap-4 mt-6">
-            <Link href="https://instagram.com/dkikishop_backup" className="text-gray-400 hover:text-yellow-400 transition-colors">
+            <Link href="https://instagram.com/dkikishop.ng" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <FaSquareInstagram className="text-2xl" />
             </Link>
             <Link href="https://maps.app.goo.gl/imu64pusYuhsyhzE6?g_st=ic" className="text-gray-400 hover:text-yellow-400 transition-colors">
