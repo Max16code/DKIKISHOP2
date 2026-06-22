@@ -3,103 +3,439 @@
 import { useCart } from '@/context/Cartcontext'
 import Navbar from '@/components/Navbar'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-// Dynamically load PaystackButton without SSR
-const PaystackButton = dynamic(
-  () => import('react-paystack').then(mod => mod.PaystackButton),
-  { ssr: false }
-)
+// ---------------- DELIVERY CONFIG ----------------
+const deliveryConfig = {
+  GIG: {
+    eta: 'GIG delivers in 2–5 days',
+    rates: {
+      Lagos: 7000, Abuja: 7000, adamawa: 8200, bauchi: 8200, damaturu: 8200, gombe: 8200,
+      jigawa: 8200, jos: 8200, kaduna: 8200, kano: 8200, kastina: 8200, kebbi: 8200,
+      lafia: 8200, lokoja: 8200, maduguri: 8200, makurdi: 8200, minna: 8200, sokoto: 8200,
+      taraba: 8200, zamfara: 8200, zaria: 8200, aba: 6300, awka: 6300, enugu: 6300,
+      nnewi: 6300, onitsha: 6300, owerri: 6300, umuahia: 6300, abakaliki: 6300, asaba: 6300,
+      auchi: 6300, bayelsa: 6300, benin: 6300, calabar: 6300, ughelli: 6300, eket: 6300,
+      uyo: 6300, warri: 6300, yenagoa: 6300, abeokuta: 7000, adoekiti: 7000, akure: 7000,
+      ibadan: 7000, ileife: 7000, ilorin: 7000, ogbomosho: 7000, ondotown: 7000, 7000: 7000,
+    },
+  },
+  GUO: {
+    eta: 'GUO delivers in 2–5 days',
+    rates: {
+      Lagos: 4500, Abuja: 4500, Uyo: 4500, Benin: 3600, Asaba: 3600, jalingo: 6500,
+      jos: 6500, kano: 6500, zaria: 6500, kaduna: 6500, bauchi: 6500, yola: 6500,
+      umuaka: 3600, owerri: 3600, orlu: 3600, akokwa: 3600, enugu: 3600, afikpo: 3600,
+      abakaliki: 3600, umunze: 3600, onitsha: 3600, nnewi: 3600, ihiala: 3600,
+      ekwulobia: 3600, awka: 3600, umuahia: 3600, aba: 3600,
+    },
+  },
+  Portharcourt: {
+    eta: 'Delivery in 1–3 days',
+    rates: { PortHarcourt: 100 },
+  },
+}
 
 export default function CartPage() {
-  const { cartItems, clearCart, removeFromCart } = useCart()
-  const [email] = useState('customer@example.com') // Replace with user's email if available
+  const { cartItems, updateQuantity, removeFromCart, clearCart } = useCart()
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isValidating, setIsValidating] = useState(false)
+  const [buyerInfo, setBuyerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    town: '',
+    service: 'GIG',
+    portDeliveryOption: '',
+  })
+  const [deliveryFee, setDeliveryFee] = useState(0)
+  const [eta, setEta] = useState('')
+  const [paystackLoaded, setPaystackLoaded] = useState(false)
+  const [showReview, setShowReview] = useState(false)
 
-  const totalPrice = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  )
+  // Load Paystack script
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://js.paystack.co/v1/inline.js'
+    script.onload = () => setPaystackLoaded(true)
+    script.onerror = () => console.error('Paystack failed to load')
+    document.body.appendChild(script)
+  }, [])
 
-  const paystackConfig = {
-    email,
-    amount: totalPrice * 100, // Paystack expects kobo
-    publicKey: 'pk_live_236709ee538755e5ff702b540108b0d2ecbd290e',
-    metadata: {
-      custom_fields: cartItems.map(item => ({
-        display_name: item.title,
-        variable_name: item.title,
-        value: `₦${item.price} x${item.quantity}`
-      }))
-    },
-    onSuccess: (ref) => {
-      alert(`Payment successful! Reference: ${ref.reference}`)
-      clearCart()
-    },
-    onClose: () => alert('Payment window closed')
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  const grandTotal = subtotal + deliveryFee
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setBuyerInfo((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // Update delivery fee whenever town/service changes
+  useEffect(() => {
+    if (!buyerInfo.town || !buyerInfo.service) {
+      setDeliveryFee(0)
+      setEta('')
+      return
+    }
+
+    if (buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt') {
+      const fee = buyerInfo.portDeliveryOption === 'delivery' ? 3000 : 0
+      setDeliveryFee(fee)
+      setEta('Delivery in 1–3 days')
+      return
+    }
+
+    const service = deliveryConfig[buyerInfo.service]
+    const fee = service?.rates[buyerInfo.town] || 0
+    setDeliveryFee(fee)
+    setEta(service?.eta || '')
+  }, [buyerInfo.town, buyerInfo.service, buyerInfo.portDeliveryOption])
+
+  const handleReview = () => {
+    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
+
+    if (!cartItems.length) return alert('Your cart is empty.')
+    if (!name || !email || !phone || !address || !town) {
+      return alert('Please fill in all delivery details.')
+    }
+    if (service === 'Portharcourt' && town === 'PortHarcourt' && !portDeliveryOption) {
+      return alert('Please select pickup or delivery for Port Harcourt.')
+    }
+
+    setShowReview(true)
+  }
+
+  const validateCartBeforePay = async () => {
+    setIsValidating(true)
+    try {
+      const res = await fetch('/api/cart/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: cartItems })
+      })
+
+      const data = await res.json()
+
+      if (!data.success || !data.valid) {
+        const issues = data.results
+          ?.filter(r => !r.valid)
+          ?.map(r => `- ${r.productTitle || r.productId || 'Item'}: ${r.message}`)
+          ?.join('\n') || 'Some items are unavailable.'
+
+        alert(`Cart validation failed:\n${issues}\n\nPlease update your cart and try again.`)
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error('Cart validation error:', err)
+      alert('Could not validate cart. Please try again.')
+      return false
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
+  const handlePaystack = () => {
+    const { name, email, phone, address, town, service, portDeliveryOption } = buyerInfo
+
+    if (!window.PaystackPop) {
+      return alert('Paystack not loaded yet. Please refresh the page.')
+    }
+
+    const reference = crypto.randomUUID()
+
+    const handler = window.PaystackPop.setup({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+      email,
+      amount: grandTotal * 100,
+      currency: 'NGN',
+      ref: reference,
+      metadata: {
+        customer: {
+          name,
+          email,
+          phone,
+          address,
+          town,
+          service,
+          portDeliveryOption
+        },
+        cartItems: cartItems.map(item => ({
+          productId: item._id,
+          title: item.title,
+          size: item.size || null,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+          shopId: item.shopId || null
+        })),
+        subtotal,
+        deliveryFee,
+        totalAmount: grandTotal,
+        eta
+      },
+
+      onClose: function () {
+        alert('Payment was cancelled.')
+      },
+
+      callback: function (response) {
+        console.log('Payment successful. Reference:', response.reference)
+
+        // Send FULL real data to webhook
+        fetch('/api/paystack/webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reference: response.reference,
+            metadata: {
+              customer: {
+                name,
+                email,
+                phone,
+                address,
+                town,
+                service,
+                portDeliveryOption
+              },
+              cartItems: cartItems.map(item => ({
+                productId: item._id,
+                title: item.title,
+                size: item.size || null,
+                quantity: item.quantity,
+                price: item.price,
+                image: item.image,
+                shopId: item.shopId || null
+              })),
+              subtotal,
+              deliveryFee,
+              totalAmount: grandTotal,
+              eta
+            },
+            paid_at: new Date().toISOString()
+          })
+        })
+        .then(res => res.json())
+        .then(data => console.log('Webhook notified successfully:', data))
+        .catch(err => console.error('Webhook notify failed:', err))
+
+        alert('Payment successful! Your order is being processed.')
+        clearCart()
+      },
+    })
+
+    handler.openIframe()
+  }
+
+  const handleProceedToPay = async () => {
+    setIsProcessing(true)
+
+    const isValid = await validateCartBeforePay()
+
+    if (isValid) {
+      handlePaystack()
+    }
+
+    setIsProcessing(false)
   }
 
   return (
-    <div className="relative min-h-screen bg-[#f9f9f9] overflow-hidden">
+    <div className="min-h-screen bg-black text-white">
       <Navbar />
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <h2 className="text-3xl font-semibold mb-6 text-center text-zinc-800">Your Cart</h2>
+      <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+        <h1 className="text-3xl font-bold">Checkout</h1>
 
         {cartItems.length === 0 ? (
-          <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-6 text-center text-gray-500 border border-zinc-200">
-            Your cart is empty.
-          </div>
-        ) : (
-          <>
+          <p className="text-gray-400 text-lg">Your cart is empty.</p>
+        ) : !showReview ? (
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* Cart Items */}
             <div className="space-y-6">
-              {cartItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex gap-4 items-center bg-white/70 backdrop-blur-md border border-zinc-200 shadow-lg rounded-2xl p-4 hover:scale-[1.01] transition-transform duration-200 ease-in-out"
-                >
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    width={80}
-                    height={80}
-                    className="rounded-xl object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-zinc-800">{item.title}</h3>
-                    <p className="text-sm text-green-700">₦{item.price}</p>
-                    <p className="text-sm text-zinc-500">
-                      Size: {item.size} | Qty: {item.quantity}
-                    </p>
-                    <button
-                      onClick={() => removeFromCart(item._id, item.size)} // ✅ updated
-                      className="mt-2 text-sm text-red-500 hover:text-red-600"
-                    >
-                      Remove Item
-                    </button>
+              {cartItems.map((item) => (
+                <div key={item._id + item.size} className="flex items-center justify-between bg-white/10 p-4 rounded-xl">
+                  <Image src={item.image} alt={item.title} width={100} height={100} className="object-contain rounded" />
+                  <div className="flex-1 ml-4">
+                    <h2 className="text-lg font-semibold">{item.title}</h2>
+                    {item.size && <p className="text-gray-300">Size: {item.size}</p>}
+                    <p className="text-green-400 font-bold">₦{(item.price * item.quantity).toLocaleString()}</p>
+
+                    <div className="flex items-center mt-2 space-x-2">
+                      <button
+                        onClick={() => {
+                          if (item.quantity > 1) {
+                            updateQuantity(item._id, item.size, item.quantity - 1)
+                          } else {
+                            removeFromCart(item._id, item.size)
+                          }
+                        }}
+                        disabled={item.quantity <= 1}
+                        className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+                      >
+                        −
+                      </button>
+
+                      <input
+                        type="number"
+                        min={1}
+                        max={item.stock ?? 9999}
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const val = Number(e.target.value)
+                          const max = item.stock ?? 9999
+                          if (val >= 1 && val <= max) {
+                            updateQuantity(item._id, item.size, val)
+                          }
+                        }}
+                        className="w-16 text-center p-1.5 rounded bg-black/60 border border-gray-600 text-white focus:outline-none focus:border-yellow-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+
+                      <button
+                        onClick={() => {
+                          if (item.quantity < (item.stock ?? 9999)) {
+                            updateQuantity(item._id, item.size, item.quantity + 1)
+                          }
+                        }}
+                        disabled={item.quantity >= (item.stock ?? 9999)}
+                        className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+                      >
+                        +
+                      </button>
+
+                      <button
+                        onClick={() => removeFromCart(item._id, item.size)}
+                        className="ml-3 px-3 py-1.5 bg-red-700/80 hover:bg-red-600 rounded text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    {item.stock != null && item.quantity >= item.stock && item.stock > 0 && (
+                      <p className="text-xs text-amber-400 mt-1">
+                        Only {item.stock} available in stock
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
-              <div className="bg-zinc-100/70 border border-green-200 rounded-2xl p-4 shadow-md text-right text-xl font-bold text-zinc-800">
-                Total: ₦{totalPrice}
+
+              <div className="flex justify-between items-center border-t border-white/20 pt-6">
+                <p className="text-xl font-semibold">Subtotal: ₦{subtotal.toLocaleString()}</p>
+                <p className="text-xl font-semibold">Delivery Fee: ₦{deliveryFee.toLocaleString()}</p>
               </div>
+              <div className="flex justify-between items-center border-t border-white/20 pt-2">
+                <p className="text-2xl font-bold">Grand Total: ₦{grandTotal.toLocaleString()}</p>
+              </div>
+              {eta && <p className="text-gray-400 italic mt-2">Estimated Delivery: {eta}</p>}
             </div>
 
-            <div className="flex justify-between items-center mt-8 gap-4">
-              <button
-                onClick={clearCart}
-                className="px-4 py-2 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition"
+            {/* Buyer Info Form */}
+            <div className="bg-white/10 p-6 rounded-xl space-y-4">
+              <h2 className="text-2xl font-semibold mb-4">Delivery Details</h2>
+              <div className="space-y-3">
+                <input type="text" name="name" placeholder="Full Name" value={buyerInfo.name} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+                <input type="email" name="email" placeholder="Email" value={buyerInfo.email} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+                <input type="text" name="address" placeholder="Street/House Address" value={buyerInfo.address} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+                <input type="tel" name="phone" placeholder="Phone Number" value={buyerInfo.phone} onChange={handleInputChange} className="w-full p-2 rounded text-white" />
+
+                <select name="service" value={buyerInfo.service} onChange={handleInputChange} className="w-full p-2 rounded text-white">
+                  {Object.keys(deliveryConfig).map((service) => (
+                    <option key={service} value={service}>
+                      {service === 'Portharcourt' ? 'Portharcourt (for Portharcourt residents only)' : service}
+                    </option>
+                  ))}
+                </select>
+
+                <select name="town" value={buyerInfo.town} onChange={handleInputChange} className="w-full p-2 rounded text-white">
+                  <option value="">Select Town</option>
+                  {buyerInfo.service &&
+                    Object.keys(deliveryConfig[buyerInfo.service].rates).map((town) => (
+                      <option key={town} value={town}>{town}</option>
+                    ))}
+                </select>
+
+                {buyerInfo.service === 'Portharcourt' && buyerInfo.town === 'PortHarcourt' && (
+                  <div className="mt-2 space-y-2">
+                    <label className="flex items-center space-x-2">
+                      <input 
+                        type="radio" 
+                        name="portDeliveryOption" 
+                        value="delivery" 
+                        checked={buyerInfo.portDeliveryOption === 'delivery'} 
+                        onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'delivery' }))} 
+                      />
+                      <span>Delivery to your location (₦3,000)</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input 
+                        type="radio" 
+                        name="portDeliveryOption" 
+                        value="pickup" 
+                        checked={buyerInfo.portDeliveryOption === 'pickup'} 
+                        onChange={() => setBuyerInfo((prev) => ({ ...prev, portDeliveryOption: 'pickup' }))} 
+                      />
+                      <span>Pick up from store (₦0)</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={handleReview} 
+                className="w-full mt-4 px-6 py-3 bg-yellow-400 text-black font-semibold rounded-xl hover:bg-yellow-300 transition"
               >
-                Clear Cart
+                Review Order
               </button>
-
-              <PaystackButton
-                className="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition"
-                {...paystackConfig}
-              >
-                Pay with Paystack
-              </PaystackButton>
             </div>
-          </>
+          </div>
+        ) : (
+          // ---------------- ORDER REVIEW ----------------
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Order Review</h2>
+
+            <div className="bg-white/10 p-4 rounded space-y-2">
+              <p><strong>Name:</strong> {buyerInfo.name}</p>
+              <p><strong>Email:</strong> {buyerInfo.email}</p>
+              <p><strong>Phone:</strong> {buyerInfo.phone}</p>
+              <p><strong>Address:</strong> {buyerInfo.address}, {buyerInfo.town}</p>
+              <p><strong>Delivery Service:</strong> {buyerInfo.service}</p>
+              {buyerInfo.service === 'Portharcourt' && buyerInfo.portDeliveryOption && (
+                <p><strong>PortHarcourt Option:</strong> {buyerInfo.portDeliveryOption}</p>
+              )}
+              <p><strong>Delivery Fee:</strong> ₦{deliveryFee.toLocaleString()}</p>
+              <p><strong>Grand Total:</strong> ₦{grandTotal.toLocaleString()}</p>
+            </div>
+
+            <div className="bg-white/20 p-4 rounded space-y-2 max-h-96 overflow-y-auto">
+              {cartItems.map((item) => (
+                <div key={'review-' + item._id + item.size} className="flex items-center space-x-3 bg-white/10 p-2 rounded">
+                  <Image src={item.image} alt={item.title} width={60} height={60} className="object-contain rounded" />
+                  <div className="flex-1 text-sm">
+                    <p className="font-semibold">{item.title}</p>
+                    {item.size && <p>Size: {item.size}</p>}
+                    <p>Qty: {item.quantity}</p>
+                    <p>Subtotal: ₦{(item.price * item.quantity).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleProceedToPay}
+              disabled={isProcessing || isValidating}
+              className="w-full mt-4 px-6 py-3 bg-yellow-400 text-black font-semibold rounded-xl hover:bg-yellow-300 transition disabled:opacity-50"
+            >
+              {isValidating ? 'Validating Cart...' : isProcessing ? 'Processing...' : 'Pay & Complete Order'}
+            </button>
+
+            <button
+              onClick={() => setShowReview(false)}
+              className="w-full mt-2 px-6 py-2 bg-gray-500 text-black font-semibold rounded-xl hover:bg-gray-400 transition"
+            >
+              Edit Details
+            </button>
+          </div>
         )}
       </div>
     </div>
