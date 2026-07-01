@@ -160,7 +160,7 @@ export default function Home() {
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 className="inline-flex items-center gap-2 bg-white/30 backdrop-blur-md px-4 py-1.5 rounded-full mb-4"
               >
-                <span className="text-black font-bold">🔥 JUNE JEANS SALE</span>
+                <span className="text-black font-bold">🔥 JULY JEANS SALE</span>
               </motion.div>
 
               {/* Main Title */}
