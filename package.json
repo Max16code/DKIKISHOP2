@@ -7,7 +7,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "apply-discounts": "node scripts/apply-discounts.js",
+    "apply-discounts:dry": "node scripts/apply-discounts.js -- --dry-run",
+    "revert-discounts": "node scripts/revert-discounts.js",
+    "revert-discounts:dry": "node scripts/revert-discounts.js -- --dry-run"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",

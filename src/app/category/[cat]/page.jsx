@@ -23,8 +23,13 @@ export default function CategoryPage() {
   const [showLess, setShowLess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(true);
   const [error, setError] = useState(null);
 
+   // Function to hide the banner
+  const hideBanner = () => {
+    setBannerVisible(false)
+  }
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -100,6 +105,37 @@ export default function CategoryPage() {
 
       <Navbar />
       <SearchSection />
+{/* JULY SALES BANNER */}
+      {bannerVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-20 mx-4 mt-24 md:mx-8 overflow-hidden rounded-2xl shadow-2xl"
+        >
+          <div className="relative w-full h-[420px] md:h-[500px] lg:h-[560px]">
+            {/* Banner Image */}
+            <Image
+              src="/julysales.jpeg"
+              alt="July Sales Banner"
+              fill
+              className="object-contain"
+              priority
+              sizes="(max-width: 768px) 100vw, 90vw"
+            />
+
+            {/* Close button */}
+            <button
+              onClick={hideBanner}
+              className="absolute top-3 right-3 z-30 w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/70 rounded-full text-white hover:text-white backdrop-blur-sm transition-all"
+              aria-label="Close banner"
+            >
+              ✕
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Title */}
       <div className="relative z-10 text-center mt-24">
