@@ -22,7 +22,7 @@ export async function GET(req) {
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999); // Include full end day
+      end.setHours(23, 59, 59, 999);
       dateFilter = {
         createdAt: {
           $gte: start,
@@ -33,7 +33,7 @@ export async function GET(req) {
 
     await dbConnect();
 
-    // Get orders with date filter
+    // Get ALL orders with date filter (no limit)
     const orders = await Order.find({
       paymentStatus: 'successful',
       ...dateFilter
@@ -57,17 +57,25 @@ export async function GET(req) {
     // Create a map of productId -> category
     const productCategoryMap = {};
     products.forEach(product => {
-      productCategoryMap[product._id.toString()] = product.category || 'Uncategorized';
+      productCategoryMap[product._id.toString()] = product.category || null;
     });
 
     // ---- 1. Category Distribution ----
     const categoryMap = {};
     const productMap = {};
+    let uncategorizedCount = 0;
 
     orders.forEach(order => {
       order.items.forEach(item => {
-        // Get category from product map, fallback to 'Uncategorized'
-        const category = productCategoryMap[item.productId?.toString()] || 'Uncategorized';
+        // Get category from product map
+        const category = productCategoryMap[item.productId?.toString()];
+        
+        // Track uncategorized separately
+        if (!category || category === 'Uncategorized' || category === '') {
+          uncategorizedCount += item.quantity || 1;
+          return;
+        }
+
         if (!categoryMap[category]) {
           categoryMap[category] = 0;
         }
@@ -97,8 +105,9 @@ export async function GET(req) {
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
 
-    // ---- 3. Recent Orders ----
-    const recentOrders = orders.slice(0, 20).map(order => ({
+    // ---- 3. ALL Recent Orders (FIXED - NO LIMIT) ----
+    // ✅ Now returns ALL orders in the date range, not just 10
+    const recentOrders = orders.map(order => ({
       customerName: order.customerName || 'Guest',
       itemCount: order.items?.length || 0,
       totalAmount: order.totalAmount || 0,
@@ -110,12 +119,22 @@ export async function GET(req) {
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
+    // Calculate total items sold
+    let totalItemsSold = 0;
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        totalItemsSold += item.quantity || 1;
+      });
+    });
+
     return NextResponse.json({
       categoryDistribution,
       topProducts,
-      recentOrders,
+      recentOrders,  // ✅ Now returns ALL orders
       totalOrders,
       totalRevenue,
+      totalItemsSold,
+      uncategorizedCount,
       dateRange: { startDate, endDate }
     });
 
