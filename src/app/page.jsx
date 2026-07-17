@@ -117,25 +117,49 @@ export default function Home() {
       <Navbar />
       <SearchSection />
 
-      {/* JULY SALES BANNER */}
+      {/* JULY SALES BANNER - SAME SIZE AS CAROUSEL WITH TEXT OVERLAY */}
       {bannerVisible && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
           transition={{ duration: 0.6 }}
-          className="relative z-20 mx-4 mt-24 md:mx-8 overflow-hidden rounded-2xl shadow-2xl"
+          className="relative z-20 mt-12 px-4 sm:px-6 lg:px-8"
         >
-          <div className="relative w-full h-[420px] md:h-[500px] lg:h-[560px]">
+          <div className="relative h-[400px] sm:h-[500px] md:h-[600px] w-full overflow-hidden rounded-lg shadow-2xl">
             {/* Banner Image */}
             <Image
-              src="/julysales.jpeg"
-              alt="July Sales Banner"
+              src="/downloadjeans.webp"
+              alt="jeans banner"
               fill
-              className="object-contain"
+              className="object-cover"
               priority
               sizes="(max-width: 768px) 100vw, 90vw"
             />
+
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/40" />
+
+            {/* Text Overlay */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-2xl"
+              >
+                For all things trendy, girly and on a budget
+              </motion.h2>
+              
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="text-lg sm:text-xl md:text-2xl text-yellow-300 font-semibold drop-shadow-lg"
+              >
+                DKIKISHOP
+              </motion.p>
+            </div>
 
             {/* Close button */}
             <button
