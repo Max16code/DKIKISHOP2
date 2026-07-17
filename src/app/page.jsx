@@ -157,7 +157,7 @@ export default function Home() {
                 transition={{ delay: 0.4, duration: 0.8 }}
                 className="text-lg sm:text-xl md:text-2xl text-yellow-300 font-semibold drop-shadow-lg"
               >
-                DKIKISHOP
+                DKIKISHOP.com
               </motion.p>
             </div>
 
