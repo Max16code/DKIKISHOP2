@@ -5,7 +5,7 @@ import { sanitizeInput } from "@/lib/validate";
 
 const allowedCategories = [
   "blazers", "tops", "skirts", "shirts", "dresses",
-  "activewears", "jeans", "shorts", "accessories", "twopiece"
+  "activewears", "jeans", "shorts", "linen", "accessories", "twopiece"
 ];
 
 const corsHeaders = {

@@ -118,7 +118,7 @@ export default function CategoryPage() {
         {loading && <p className="text-gray-500">Loading {categoryName}...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && allProducts.length === 0 && !error && (
-          <p className="text-gray-500">No products found in this category.</p>
+          <p className="text-gray-500">please check back soon.</p>
         )}
       </div>
 

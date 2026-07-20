@@ -19,7 +19,8 @@ export default function HomeCarousel() {
     { name: 'Dresses', slug: 'dresses' },
     { name: 'Accessories', slug: 'accessories' },
     { name: 'Shorts', slug: 'shorts' },
-    { name: 'Twopiece', slug: 'twopiece' }
+    { name: 'Twopiece', slug: 'twopiece' },
+    { name: 'Linen', slug: 'linen' }
 
   ]
 

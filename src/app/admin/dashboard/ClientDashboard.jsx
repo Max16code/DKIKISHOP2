@@ -10,7 +10,7 @@ import ShutdownButton from '@/components/Admin/ShutDownButton'
 
 const CATEGORIES = [
   'blazers', 'tops', 'skirts', 'dresses', 'shirts', 'activewears',
-  'jeans', 'shorts', 'accessories', 'twopiece'
+  'jeans', 'shorts', 'accessories', 'twopiece', 'linen'
 ]
 
 export default function ClientDashboard() {

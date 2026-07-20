@@ -23,14 +23,15 @@ export default function Navbar() {
     { name: 'Activewears', href: '/category/activewears' },
     { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
     { name: 'Accessories', href: '/category/accessories' },
-    { name: 'TwoPiece', href: '/category/twopiece' }// 🆕 Added
+    { name: 'TwoPiece', href: '/category/twopiece' },// 🆕 Added
+    { name: 'Linen', href: '/category/linen' }
 
   ]
 
   return (
     <>
       <nav className="fixed top-5 z-50 w-full bg-white/40 backdrop-blur-md border-b border-white/30 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-4 py-3  flex items-center justify-between relative">
           {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -59,12 +60,14 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex gap-6 ml-10">
-            {navLinks.map((link) => (
+            {navLinks.map((link, index) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-black hover:text-pink-600 font-extrabold transition-colors duration-200"
+                className={`text-black hover:text-pink-600 font-extrabold transition-colors duration-200 ${index === navLinks.length - 1 ? 'mr-6' : ''
+                  }`}
               >
                 {link.name}
               </Link>
