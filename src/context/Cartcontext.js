@@ -40,7 +40,7 @@ export const CartProvider = ({ children }) => {
           )
         )
       } else {
-        setCartItems((prev) => [...prev, item])
+        setCartItems((prev) => [...prev, { ...item, quantity: 1 }])
       }
     } catch (err) {
       console.error('❌ Error checking stock:', err)
@@ -57,9 +57,25 @@ export const CartProvider = ({ children }) => {
     )
   }
 
+  const updateQuantity = (id, size, newQuantity) => {
+    setCartItems((prev) => {
+      if (newQuantity <= 0) {
+        return prev.filter(
+          (item) => !(item._id === id && item.size === size)
+        )
+      }
+
+      return prev.map((item) =>
+        item._id === id && item.size === size
+          ? { ...item, quantity: Math.max(1, newQuantity) }
+          : item
+      )
+    })
+  }
+
   const clearCart = () => {
     setCartItems([])
-    localStorage.removeItem('dkikishop-cart') // ✅ Clear saved cart too
+    localStorage.removeItem('dkikishop-cart')
   }
 
   const getTotal = () =>
@@ -67,11 +83,17 @@ export const CartProvider = ({ children }) => {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, clearCart, getTotal }}
+      value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, getTotal }}
     >
       {children}
     </CartContext.Provider>
   )
 }
 
-export const useCart = () => useContext(CartContext)
+export const useCart = () => {
+  const context = useContext(CartContext)
+  if (!context) {
+    throw new Error('useCart must be used within CartProvider')
+  }
+  return context
+}
