@@ -1,7 +1,8 @@
+// src/app/admin/edit/[id]/page.jsx (or wherever your edit page is located)
 'use client'
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 const allowedCategories = ["blazers", "tops", "shirts", "skirts", "dresses", "activewears", "jeans", "shorts", "twopiece", "accessories", "linen"];
@@ -9,6 +10,8 @@ const allowedCategories = ["blazers", "tops", "shirts", "skirts", "dresses", "ac
 export default function EditProductPage() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnCategory = searchParams.get('category') || 'all';
 
   const [formData, setFormData] = useState({
     title: '',
@@ -122,7 +125,7 @@ export default function EditProductPage() {
       const res = await fetch(`/api/updateproduct/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),  // payload should NOT contain id
+        body: JSON.stringify(payload),
         credentials: 'include',
       });
 
@@ -130,7 +133,15 @@ export default function EditProductPage() {
 
       if (res.ok && data.success) {
         setMessage("✅ Product updated successfully!");
-        setTimeout(() => router.push('/admin/dashboard'), 1500);
+        
+        // Redirect back to the category page
+        setTimeout(() => {
+          if (returnCategory && returnCategory !== 'all') {
+            router.push(`/admin/dashboard?category=${encodeURIComponent(returnCategory)}`);
+          } else {
+            router.push('/admin/dashboard');
+          }
+        }, 1500);
       } else {
         setMessage(`❌ ${data.error || 'Update failed'}`);
       }

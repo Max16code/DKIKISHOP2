@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from 'next/image'
 import { useShutdown } from '@/hooks/useShutDown'
 import ShutdownButton from '@/components/Admin/ShutDownButton'
@@ -15,6 +15,9 @@ const CATEGORIES = [
 
 export default function ClientDashboard() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get('category')
+  
   const [allProducts, setAllProducts] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -23,6 +26,13 @@ export default function ClientDashboard() {
 
   // Shutdown state
   const { shutdown, loading: shutdownLoading } = useShutdown()
+
+  // Set selected category from URL param on mount
+  useEffect(() => {
+    if (categoryParam && CATEGORIES.includes(categoryParam.toLowerCase())) {
+      setSelectedCategory(categoryParam.toLowerCase())
+    }
+  }, [categoryParam])
 
   useEffect(() => {
     fetchProducts()
@@ -225,6 +235,7 @@ export default function ClientDashboard() {
                   key={product._id}
                   product={product}
                   onDelete={() => handleDelete(product._id)}
+                  currentCategory={selectedCategory}
                 />
               ))}
             </div>
@@ -258,6 +269,7 @@ export default function ClientDashboard() {
                       key={product._id}
                       product={product}
                       onDelete={() => handleDelete(product._id)}
+                      currentCategory={category.toLowerCase()}
                     />
                   ))}
                 </div>
@@ -271,7 +283,7 @@ export default function ClientDashboard() {
 }
 
 // Reusable Product Card Component
-function ProductCard({ product, onDelete }) {
+function ProductCard({ product, onDelete, currentCategory }) {
   const stock = Number(product.stock || product.quantity || 0)
   const inStock = stock > 0
 
@@ -293,7 +305,7 @@ function ProductCard({ product, onDelete }) {
       <p className="text-xs text-gray-500 capitalize">{product.category}</p>
 
       <div className="flex gap-2 mt-3">
-        <Link href={`/admin/edit/${product._id}`}>
+        <Link href={`/admin/edit/${product._id}?category=${encodeURIComponent(currentCategory || 'all')}`}>
           <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded">
             Edit
           </button>
