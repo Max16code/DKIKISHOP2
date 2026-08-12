@@ -129,7 +129,7 @@ export default function Home() {
           <div className="relative h-[300px] sm:h-[400px] md:h-[500px] w-full overflow-hidden rounded-lg shadow-2xl">
             {/* Banner Image */}
             <Image
-              src="/blazersannouncement.jpeg"
+              src="/augustbanner.png"
               alt="Promo banner"
               fill
               className="object-contain"  // ✅ Changed from object-cover to object-contain
