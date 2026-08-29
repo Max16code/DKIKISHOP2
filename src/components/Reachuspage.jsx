@@ -1,43 +1,77 @@
-// components/ContactForm.jsx
+// components/ContactForm.jsx  (or Reachuspage.jsx)
 export default function Reachuspage() {
   return (
     <form
-      action="https://formspree.io/f/mblyozpw" // Replace with your real ID
+      action="https://formspree.io/f/mgolppya"
       method="POST"
-      className="max-w-xl mx-auto p-4 space-y-4 bg-white shadow rounded"
+      className="max-w-xl mx-auto p-6 space-y-6 bg-white shadow-lg rounded-lg"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Honeypot for spam protection */}
+      <input type="text" name="_gotcha" style={{ display: 'none' }} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm text-black font-medium">First Name</label>
-          <input type="text" name="firstName" required className="w-full border p-2 rounded" />
+          <label className="block text-sm font-medium text-gray-700">First Name</label>
+          <input
+            type="text"
+            name="firstName"
+            required
+            className="mt-1 w-full border border-gray-300 p-3 rounded focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
         <div>
-          <label className="block text-sm text-black font-medium">Last Name</label>
-          <input type="text" name="lastName" required className="w-full border p-2 rounded" />
+          <label className="block text-sm font-medium text-gray-700">Last Name</label>
+          <input
+            type="text"
+            name="lastName"
+            required
+            className="mt-1 w-full border border-gray-700 p-3 rounded focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm text-black font-medium">Phone Number</label>
-        <input type="tel" name="phone" required className="w-full border p-2 rounded" />
+        <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+        <input
+          type="tel"
+          name="phone"
+          required
+          className="mt-1 w-full border border-gray-300 p-3 rounded focus:ring-blue-500 focus:border-blue-500"
+        />
       </div>
 
       <div>
-        <label className="block text-sm  text-black font-medium">Email</label>
-        <input type="email" name="email" required className="w-full border p-2 rounded" />
+        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <input
+          type="email"
+          name="email"
+          required
+          className="mt-1 w-full border border-gray-300 p-3 rounded focus:ring-blue-500 focus:border-blue-500"
+        />
       </div>
 
       <div>
-        <label className="block text-sm  text-black font-medium">Message</label>
-        <textarea name="message" required rows="5" className="w-full border p-2 rounded" />
+        <label className="block text-sm font-medium text-gray-700">Message</label>
+        <textarea
+          name="message"
+          required
+          rows={5}
+          className="mt-1 w-full border border-gray-300 p-3 rounded focus:ring-blue-500 focus:border-blue-500"
+          placeholder="How can we improve or any feedback for DkikiShop?"
+        />
       </div>
 
-      {/* Optional redirect on success */}
-      <input type="hidden" name="_redirect" value="/thank-you" />
+      {/* Custom thank-you redirect (works on paid plans) */}
+      <input type="hidden" name="_next" value="/thank-you" />
+      {/* Honeypot - stops most spam bots */}
+      <input type="text" name="_gotcha" style={{ display: 'none' }} />
+
+      {/* Redirect after success - works on paid plans; on free → Formspree default thank-you */}
+      <input type="hidden" name="_next" value="/thank-you" />
 
       <button
         type="submit"
-        className="bg-blue-600 text-black px-4 py-2 rounded hover:bg-blue-700 transition"
+        className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium shadow"
       >
         Send Message
       </button>
