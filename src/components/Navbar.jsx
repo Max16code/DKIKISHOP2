@@ -4,13 +4,18 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/context/Cartcontext'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import SearchBar from './SearchBar';
-
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const { cartItems } = useCart()
+  const pathname = usePathname()
+
+  // ✅ Route Detection
+  const isLandingPage = pathname === '/'
+  const isBrandNewSection = pathname.startsWith('/new')
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -21,12 +26,25 @@ export default function Navbar() {
     { name: 'Shirts', href: '/category/shirts' },
     { name: 'Dresses', href: '/category/dresses' },
     { name: 'Activewears', href: '/category/activewears' },
-    { name: 'Shorts', href: '/category/shorts' },         // 🆕 Added
+    { name: 'Shorts', href: '/category/shorts' },
     { name: 'Accessories', href: '/category/accessories' },
-    { name: 'TwoPiece', href: '/category/twopiece' },// 🆕 Added
+    { name: 'TwoPiece', href: '/category/twopiece' },
     { name: 'Linen', href: '/category/linen' }
-
   ]
+
+  // ✅ Specific categories for the Brand New portal
+  const brandNewCategories = ['Home', 'Tops', 'Dresses', 'Jeans', 'TwoPiece', 'Linen', 'Shorts']
+
+  // ✅ Dynamic filter logic
+  let displayedLinks = navLinks // Default: Show all (Thrift)
+
+  if (isLandingPage) {
+    // 1. Landing Page: ONLY Home
+    displayedLinks = navLinks.filter(link => link.name === 'Home')
+  } else if (isBrandNewSection) {
+    // 2. Brand New Section: ONLY the requested categories + Home
+    displayedLinks = navLinks.filter(link => brandNewCategories.includes(link.name))
+  }
 
   return (
     <>
@@ -51,23 +69,21 @@ export default function Navbar() {
                 alt="Dkikishop Logo"
                 fill
                 className="object-cover"
-                sizes="48px"  // exact size hint for performance
-                priority      // optional: loads faster if it's above the fold
+                sizes="48px"
+                priority
               />
             </div>
-
-
           </Link>
 
           {/* Desktop Navigation Links */}
-          {/* Desktop Navigation Links */}
           <div className="hidden md:flex gap-6 ml-10">
-            {navLinks.map((link, index) => (
+            {displayedLinks.map((link, index) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-black hover:text-pink-600 font-extrabold transition-colors duration-200 ${index === navLinks.length - 1 ? 'mr-6' : ''
-                  }`}
+                className={`text-black hover:text-pink-600 font-extrabold transition-colors duration-200 ${
+                  index === displayedLinks.length - 1 ? 'mr-6' : ''
+                }`}
               >
                 {link.name}
               </Link>
@@ -97,7 +113,7 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden animate-fade-in bg-white/90 backdrop-blur-md shadow-md px-6 py-4 space-y-3">
-            {navLinks.map((link) => (
+            {displayedLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
