@@ -1,79 +1,41 @@
-import dbConnect from "@/lib/mongodb";
-import Product from "@/models/productModel";
-import { NextResponse } from "next/server";
-import { sanitizeInput } from "@/lib/validate";
+import dbConnect from '@/utils/db';
+import Product from '@/models/productModel';
+import { NextResponse } from 'next/server';
 
-const allowedCategories = [
-  "blazers", "tops", "skirts", "shirts", "dresses",
-  "activewears", "jeans", "shorts", "linen", "accessories", "twopiece"
-];
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',   // Replace with your domain in production
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-// Handle preflight OPTIONS request
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: corsHeaders,
-  });
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET(req, { params }) {
   try {
     await dbConnect();
-
-    const { cat } = await params;
-
-    if (!cat) {
-      return NextResponse.json(
-        { success: false, error: "Category required" },
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    const cleanedCategory = sanitizeInput(cat).toLowerCase();
-
-    if (!allowedCategories.includes(cleanedCategory)) {
-      return NextResponse.json(
-        { success: false, error: `Invalid category '${cleanedCategory}'` },
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
+    const { cat } = params;
     const { searchParams } = new URL(req.url);
     const available = searchParams.get('available');
-    const showAll = searchParams.get('showAll') === 'true';
+    const section = searchParams.get('section');
+    const limit = parseInt(searchParams.get('limit')) || 0;
 
-    // Enforce a maximum of 150 products per category
-    let limit = parseInt(searchParams.get('limit') || '150', 10);
-    if (limit > 150) limit = 150;   // never exceed 150
+    let query = { category: { $regex: new RegExp(`^${cat}$`, 'i') } };
 
-    const query = { category: cleanedCategory };
-
-    // Only filter by availability if showAll is not true
-    if (!showAll && available !== 'false') {
+    if (available === 'true') {
       query.isAvailable = true;
-      query.stock = { $gt: 0 };
+      query.$or = [{ stock: { $gt: 0 } }, { quantity: { $gt: 0 } }];
     }
 
-    const products = await Product.find(query)
-      .sort({ createdAt: -1 })   // newest first
-      .limit(limit)
-      .lean();
+    // ✅ Filter by section if provided (thrift or brandNew)
+    if (section) {
+      query.section = section;
+    }
 
-    return NextResponse.json(
-      { success: true, products },
-      { status: 200, headers: corsHeaders }
-    );
+    let productsQuery = Product.find(query).sort({ createdAt: -1 });
+
+    if (limit > 0) {
+      productsQuery = productsQuery.limit(limit);
+    }
+
+    const products = await productsQuery.lean();
+
+    return NextResponse.json({ success: true, products });
   } catch (error) {
-    console.error("🔴 GET Category Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500, headers: corsHeaders }
-    );
+    console.error('Category API Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

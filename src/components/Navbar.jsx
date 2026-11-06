@@ -1,21 +1,29 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/context/Cartcontext'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import SearchBar from './SearchBar';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState('thrift')
   const { cartItems } = useCart()
   const pathname = usePathname()
 
-  // ✅ Route Detection
+  useEffect(() => {
+    // If the URL starts with /new, we are in the Brand New section
+    if (pathname.startsWith('/new')) {
+      setActiveSection('brandNew')
+    } else {
+      setActiveSection('thrift')
+    }
+  }, [pathname])
+
   const isLandingPage = pathname === '/'
-  const isBrandNewSection = pathname.startsWith('/new')
+  const isBrandNewSection = activeSection === 'brandNew'
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -32,73 +40,64 @@ export default function Navbar() {
     { name: 'Linen', href: '/category/linen' }
   ]
 
-  // ✅ Specific categories for the Brand New portal
-  const brandNewCategories = ['Home', 'Tops', 'Dresses', 'Jeans', 'TwoPiece', 'Linen', 'Shorts']
+  // ✅ Added Accessories here
+  const brandNewCategories = ['Home', 'Tops', 'Dresses', 'Jeans', 'TwoPiece', 'Linen', 'Shorts', 'Accessories']
 
-  // ✅ Dynamic filter logic
-  let displayedLinks = navLinks // Default: Show all (Thrift)
+  let displayedLinks = navLinks
 
   if (isLandingPage) {
-    // 1. Landing Page: ONLY Home
     displayedLinks = navLinks.filter(link => link.name === 'Home')
   } else if (isBrandNewSection) {
-    // 2. Brand New Section: ONLY the requested categories + Home
+    // Show Brand New categories (including Accessories)
     displayedLinks = navLinks.filter(link => brandNewCategories.includes(link.name))
+  } else {
+    // Thrift Section: Explicitly exclude Accessories
+    displayedLinks = navLinks.filter(link => link.name !== 'Accessories')
+  }
+
+  // ✅ Dynamic URL builder for clean routes
+  const buildHref = (baseHref) => {
+    if (baseHref === '/') return '/'
+    if (baseHref === '/Contact') return '/Contact'
+    
+    if (isBrandNewSection) {
+      // Turns '/category/accessories' into '/new/accessories'
+      return `/new${baseHref.replace('/category', '')}`
+    }
+    // Thrift keeps the ?section=thrift just in case
+    return `${baseHref}?section=thrift`
   }
 
   return (
     <>
       <nav className="fixed top-5 z-50 w-full bg-white/40 backdrop-blur-md border-b border-white/30 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 py-3  flex items-center justify-between relative">
-          {/* Mobile Hamburger Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-black z-10"
-          >
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between relative">
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-black z-10">
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Logo */}
-          <Link
-            href="/"
-            className="absolute left-1/2 transform -translate-x-1/2 md:static md:translate-x-0 z-0"
-          >
+          <Link href="/" className="absolute left-1/2 transform -translate-x-1/2 md:static md:translate-x-0 z-0">
             <div className="relative w-12 h-12 overflow-hidden rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
-              <Image
-                src="/images/kikiLogo.jpg"
-                alt="Dkikishop Logo"
-                fill
-                className="object-cover"
-                sizes="48px"
-                priority
-              />
+              <Image src="/images/kikiLogo.jpg" alt="Dkikishop Logo" fill className="object-cover" sizes="48px" priority />
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
           <div className="hidden md:flex gap-6 ml-10">
             {displayedLinks.map((link, index) => (
               <Link
                 key={link.name}
-                href={link.href}
-                className={`text-black hover:text-pink-600 font-extrabold transition-colors duration-200 ${
-                  index === displayedLinks.length - 1 ? 'mr-6' : ''
-                }`}
+                href={buildHref(link.href)}
+                className={`text-black hover:text-pink-600 font-extrabold transition-colors duration-200 ${index === displayedLinks.length - 1 ? 'mr-6' : ''}`}
               >
                 {link.name}
               </Link>
             ))}
           </div>
 
-          {/* Right Side: Contact + Cart */}
           <div className="flex items-center gap-4 z-10">
-            <Link
-              href="/Contact"
-              className="text-black font-medium hover:text-pink-600 transition hidden md:inline"
-            >
+            <Link href="/Contact" className="text-black font-medium hover:text-pink-600 transition hidden md:inline">
               Contact
             </Link>
-
             <Link href="/cart" className="relative pr-2">
               <ShoppingCart className="w-6 h-6 text-black hover:text-pink-600 transition" />
               {cartItems.length > 0 && (
@@ -110,33 +109,24 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden animate-fade-in bg-white/90 backdrop-blur-md shadow-md px-6 py-4 space-y-3">
             {displayedLinks.map((link) => (
               <Link
                 key={link.name}
-                href={link.href}
+                href={buildHref(link.href)}
                 className="block text-lg font-medium text-black hover:text-pink-600 transition"
                 onClick={() => setIsOpen(false)}
               >
                 {link.name}
               </Link>
             ))}
-
-            {/* Contact in Mobile Dropdown */}
-            <Link
-              href="/Contact"
-              className="block text-lg font-medium text-black hover:text-pink-600 transition"
-              onClick={() => setIsOpen(false)}
-            >
+            <Link href="/Contact" className="block text-lg font-medium text-black hover:text-pink-600 transition" onClick={() => setIsOpen(false)}>
               Contact
             </Link>
           </div>
         )}
       </nav>
-
-      {/* Spacer */}
       <div className="h-20"></div>
     </>
   )

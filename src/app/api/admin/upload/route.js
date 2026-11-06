@@ -1,35 +1,20 @@
-// src/app/api/admin/upload/route.js
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/productModel";
 import { NextResponse } from "next/server";
 import { sanitizeInput } from "@/lib/validate";
-import { getSession } from "@/lib/session"; // ← use iron-session
+import { getSession } from "@/lib/session";
 
 export async function POST(req) {
-  // Define allowed categories
   const allowedCategories = [
-    "jeans",
-    "blazers",
-    "tops",
-    "shirts",
-    "shorts",
-    "activewears",
-    "accessories",
-    "skirts",
-    "dresses",
-    "twopiece",
-    "linen"
+    "jeans", "blazers", "tops", "shirts", "shorts", "activewears",
+    "accessories", "skirts", "dresses", "twopiece", "linen"
   ];
 
   try {
-    // NEW: Use iron-session instead of verifyAdmin
     const session = await getSession();
     if (!session || !session.isAdmin) {
-      console.log('Unauthorized upload - no valid admin session');
       return NextResponse.json({ success: false, error: "Unauthorized access." }, { status: 401 });
     }
-
-    console.log('Admin upload authorized - session OK');
 
     await dbConnect();
 
@@ -37,7 +22,6 @@ export async function POST(req) {
     try {
       body = await req.json();
     } catch (err) {
-      console.error("Failed to parse JSON body:", err);
       return NextResponse.json({ success: false, error: "Invalid JSON body." }, { status: 400 });
     }
 
@@ -49,8 +33,10 @@ export async function POST(req) {
     const quantity = Number(body.quantity || 1);
     const images = Array.isArray(body.images) ? body.images : [];
     const shopId = body.shopId || '697780d848d182949a9fc132';
+    
+    // ✅ NEW: Validate Section
+    const section = body.section === 'brandNew' ? 'brandNew' : 'thrift';
 
-    // Validation
     if (!title || !description || isNaN(price) || price <= 0 || !category || sizes.length === 0 || images.length === 0 || !shopId) {
       return NextResponse.json(
         { success: false, error: "Missing required fields (title, description, price, category, sizes, images, shopId)" },
@@ -71,6 +57,7 @@ export async function POST(req) {
       price,
       sizes,
       category,
+      section, // ✅ NEW: Save to DB
       images,
       quantity,
       stock: quantity,
@@ -80,24 +67,12 @@ export async function POST(req) {
 
     await newProduct.save();
 
-    console.log('Product created successfully:', newProduct._id);
+    console.log(`Product created successfully in ${section} section:`, newProduct._id);
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
 
   } catch (err) {
-    console.error("Upload route error:", {
-      message: err.message,
-      stack: err.stack?.substring(0, 800) || 'No stack',
-    });
-
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: err.message.includes('validation') 
-          ? `Validation failed: ${err.message}` 
-          : 'Server error during product save'
-      },
-      { status: 500 }
-    );
+    console.error("Upload route error:", err.message);
+    return NextResponse.json({ success: false, error: 'Server error during product save' }, { status: 500 });
   }
 }

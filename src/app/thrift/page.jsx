@@ -33,7 +33,7 @@ export default function Home() {
     const getProducts = async () => {
       try {
         setLoading(true)
-        const res = await fetch('/api/getproducts/all?available=true')
+        const res = await fetch('/api/getproducts/all?available=true&section=thrift')
 
         if (!res.ok) {
           throw new Error(`API error: ${res.status}`)
