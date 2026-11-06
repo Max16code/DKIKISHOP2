@@ -91,7 +91,7 @@ export default function BrandNewPage() {
         {loading && <p className="text-gray-500">Loading fresh drops...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && allProducts.length === 0 && !error && (
-          <p className="text-gray-500">No brand new products available yet.</p>
+          <p className="text-white text-lg text-center mt-12">Oops, <span className="text-yellow-400 font-bold uppercase tracking-wider">SOLD OUT</span>, check back soon for fresh stock</p>
         )}
       </div>
 

@@ -9,15 +9,12 @@ import Image from 'next/image';
 import SearchSection from '@/components/SearchSection';
 
 const ITEMS_PER_PAGE = 16;
-
 export const dynamic = 'force-dynamic';
 
 export default function CategoryPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { cat } = params;
-  
-  // ✅ Read section from URL, default to 'thrift'
   const section = searchParams.get('section') || 'thrift';
 
   const [allProducts, setAllProducts] = useState([]);
@@ -33,8 +30,7 @@ export default function CategoryPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // ✅ Pass section to API
-        const res = await fetch(`/api/getproducts/${cat}?available=true&limit=150&section=${section}`);
+        const res = await fetch(`/api/getproducts/${cat}?available=true&limit=150&section=${section}`, { cache: 'no-store' });
         const json = await res.json();
 
         if (!json.success) {
@@ -105,7 +101,7 @@ export default function CategoryPage() {
         {loading && <p className="text-gray-500">Loading {categoryName}...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && allProducts.length === 0 && !error && (
-          <p className="text-gray-500">No products found in this section.</p>
+          <p className="text-white text-lg text-center mt-12">Oops, <span className="text-yellow-400 font-bold uppercase tracking-wider">SOLD OUT</span>, check back soon for fresh stock</p>
         )}
       </div>
 
@@ -135,7 +131,6 @@ export default function CategoryPage() {
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className={`object-contain transition-opacity duration-300 ${!inStock ? 'opacity-50 grayscale' : ''}`}
                         priority={index < 6}
-                        loading={index >= 6 ? 'lazy' : undefined}
                         quality={75}
                       />
                       <div className="absolute top-2 right-4 w-8 h-8 overflow-hidden rounded-full shadow-md">
@@ -176,20 +171,14 @@ export default function CategoryPage() {
 
           <div className="relative z-10 mt-12 flex justify-center gap-6 pb-20">
             {showLess && (
-              <button onClick={seeLess} className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95">
-                See Less
-              </button>
+              <button onClick={seeLess} className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full shadow-lg">See Less</button>
             )}
             {hasMore && (
-              <button onClick={loadMore} disabled={loadingMore} className={`px-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${loadingMore ? 'animate-pulse' : ''}`}>
+              <button onClick={loadMore} disabled={loadingMore} className={`px-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-full shadow-lg ${loadingMore ? 'animate-pulse' : ''}`}>
                 {loadingMore ? 'Loading more...' : 'Load More'}
               </button>
             )}
           </div>
-
-          {!hasMore && allProducts.length > 0 && (
-            <p className="relative z-10 mt-6 text-center text-gray-400 pb-20">All {categoryName} products loaded</p>
-          )}
         </>
       )}
     </div>

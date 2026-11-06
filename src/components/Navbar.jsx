@@ -14,11 +14,15 @@ export default function Navbar() {
   const pathname = usePathname()
 
   useEffect(() => {
-    // If the URL starts with /new, we are in the Brand New section
     if (pathname.startsWith('/new')) {
       setActiveSection('brandNew')
-    } else {
-      setActiveSection('thrift')
+    } else if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('section') === 'brandNew') {
+        setActiveSection('brandNew')
+      } else {
+        setActiveSection('thrift')
+      }
     }
   }, [pathname])
 
@@ -40,7 +44,6 @@ export default function Navbar() {
     { name: 'Linen', href: '/category/linen' }
   ]
 
-  // ✅ Added Accessories here
   const brandNewCategories = ['Home', 'Tops', 'Dresses', 'Jeans', 'TwoPiece', 'Linen', 'Shorts', 'Accessories']
 
   let displayedLinks = navLinks
@@ -48,24 +51,15 @@ export default function Navbar() {
   if (isLandingPage) {
     displayedLinks = navLinks.filter(link => link.name === 'Home')
   } else if (isBrandNewSection) {
-    // Show Brand New categories (including Accessories)
     displayedLinks = navLinks.filter(link => brandNewCategories.includes(link.name))
   } else {
-    // Thrift Section: Explicitly exclude Accessories
     displayedLinks = navLinks.filter(link => link.name !== 'Accessories')
   }
 
-  // ✅ Dynamic URL builder for clean routes
+  // ✅ Always route through /category/[cat] but tag the section
   const buildHref = (baseHref) => {
-    if (baseHref === '/') return '/'
-    if (baseHref === '/Contact') return '/Contact'
-    
-    if (isBrandNewSection) {
-      // Turns '/category/accessories' into '/new/accessories'
-      return `/new${baseHref.replace('/category', '')}`
-    }
-    // Thrift keeps the ?section=thrift just in case
-    return `${baseHref}?section=thrift`
+    if (baseHref === '/' || baseHref === '/Contact') return baseHref
+    return `${baseHref}?section=${activeSection}`
   }
 
   return (
